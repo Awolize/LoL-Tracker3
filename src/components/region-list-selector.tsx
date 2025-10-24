@@ -1,4 +1,9 @@
-import { Listbox, ListboxButton, ListboxOption, ListboxOptions } from "@headlessui/react";
+import {
+	Listbox,
+	ListboxButton,
+	ListboxOption,
+	ListboxOptions,
+} from "@headlessui/react";
 
 export const regions = [
 	{ id: 3, name: "EUW", disabled: false },
@@ -27,7 +32,11 @@ export const RegionListSelector = ({ selectedRegion, setSelectedRegion }) => {
 					{regions
 						.filter((region) => selectedRegion?.id !== region.id)
 						.map((region) => (
-							<ListboxOption key={region.id} value={region} disabled={region.disabled}>
+							<ListboxOption
+								key={region.id}
+								value={region}
+								disabled={region.disabled}
+							>
 								<button
 									type="button"
 									className="w-full text-left hover:bg-gray-500 hover:bg-opacity-20 hover:text-[hsl(280,100%,70%)]"

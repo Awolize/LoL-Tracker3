@@ -2,7 +2,10 @@ import { ArrowRightEndOnRectangleIcon as SubmitIcon } from "@heroicons/react/24/
 import { useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { LoadingComponent } from "~/components/old/loading-spinner";
-import { RegionListSelector, regions } from "~/components/old/region-list-selector";
+import {
+	RegionListSelector,
+	regions,
+} from "~/components/old/region-list-selector";
 
 export default function Search() {
 	const navigate = useNavigate();
@@ -32,10 +35,17 @@ export default function Search() {
 			<div className="flex flex-col gap-1 md:flex-row md:gap-4">
 				<div className="flex items-center justify-center">
 					<h1 className="shrink-0 font-extrabold text-2xl text-foreground tracking-tight md:text-[2rem]">
-						<RegionListSelector selectedRegion={selectedRegion} setSelectedRegion={setSelectedRegion} />
+						<RegionListSelector
+							selectedRegion={selectedRegion}
+							setSelectedRegion={setSelectedRegion}
+						/>
 					</h1>
 				</div>
-				<form id="search-summoner" className="flex flex-row justify-center gap-[0.125rem]" onSubmit={onSubmit}>
+				<form
+					id="search-summoner"
+					className="flex flex-row justify-center gap-[0.125rem]"
+					onSubmit={onSubmit}
+				>
 					<div className="flex flex-col gap-1">
 						<input
 							type="text"
