@@ -5,7 +5,13 @@ import {
 	ListboxOptions,
 } from "@headlessui/react";
 
-export const regions = [
+export interface Region {
+	id: number;
+	name: string;
+	disabled: boolean;
+}
+
+export const regions: Region[] = [
 	{ id: 3, name: "EUW", disabled: false },
 	{ id: 1, name: "BR", disabled: false },
 	{ id: 2, name: "EUNE", disabled: false },
@@ -20,17 +26,23 @@ export const regions = [
 	{ id: 12, name: "PBE", disabled: false },
 ];
 
-export const RegionListSelector = ({ selectedRegion, setSelectedRegion }) => {
+export const RegionListSelector = ({
+	selectedRegion,
+	setSelectedRegion,
+}: {
+	selectedRegion: Region;
+	setSelectedRegion: (region: Region) => void;
+}) => {
 	return (
 		<Listbox value={selectedRegion} onChange={setSelectedRegion}>
-			<ListboxButton className={"flex items-end"}>
+			<ListboxButton className="flex items-end">
 				<span className="text-[hsl(280,100%,70%)]">{selectedRegion?.name}</span>
 				<p className="text-xs">v</p>
 			</ListboxButton>
 			<div className="relative">
 				<ListboxOptions className="absolute top-0 left-0 inline w-[150px] flex-col">
 					{regions
-						.filter((region) => selectedRegion?.id !== region.id)
+						.filter((region) => selectedRegion.id !== region.id)
 						.map((region) => (
 							<ListboxOption
 								key={region.id}

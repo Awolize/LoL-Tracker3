@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as DemoDrizzleRouteImport } from './routes/demo/drizzle'
+import { Route as RegionUsernameIndexRouteImport } from './routes/$region/$username/index'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoSentryTestingRouteImport } from './routes/demo/sentry.testing'
+import { Route as RegionUsernameTestRouteImport } from './routes/$region/$username/test'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -25,6 +27,11 @@ const DemoDrizzleRoute = DemoDrizzleRouteImport.update({
   path: '/demo/drizzle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegionUsernameIndexRoute = RegionUsernameIndexRouteImport.update({
+  id: '/$region/$username/',
+  path: '/$region/$username/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
   id: '/demo/start/server-funcs',
   path: '/demo/start/server-funcs',
@@ -33,6 +40,11 @@ const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
 const DemoSentryTestingRoute = DemoSentryTestingRouteImport.update({
   id: '/demo/sentry/testing',
   path: '/demo/sentry/testing',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegionUsernameTestRoute = RegionUsernameTestRouteImport.update({
+  id: '/$region/$username/test',
+  path: '/$region/$username/test',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoStartSsrIndexRoute = DemoStartSsrIndexRouteImport.update({
@@ -44,23 +56,29 @@ const DemoStartSsrIndexRoute = DemoStartSsrIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo/drizzle': typeof DemoDrizzleRoute
+  '/$region/$username/test': typeof RegionUsernameTestRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/$region/$username': typeof RegionUsernameIndexRoute
   '/demo/start/ssr': typeof DemoStartSsrIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo/drizzle': typeof DemoDrizzleRoute
+  '/$region/$username/test': typeof RegionUsernameTestRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/$region/$username': typeof RegionUsernameIndexRoute
   '/demo/start/ssr': typeof DemoStartSsrIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/demo/drizzle': typeof DemoDrizzleRoute
+  '/$region/$username/test': typeof RegionUsernameTestRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
+  '/$region/$username/': typeof RegionUsernameIndexRoute
   '/demo/start/ssr/': typeof DemoStartSsrIndexRoute
 }
 export interface FileRouteTypes {
@@ -68,30 +86,38 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/demo/drizzle'
+    | '/$region/$username/test'
     | '/demo/sentry/testing'
     | '/demo/start/server-funcs'
+    | '/$region/$username'
     | '/demo/start/ssr'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/demo/drizzle'
+    | '/$region/$username/test'
     | '/demo/sentry/testing'
     | '/demo/start/server-funcs'
+    | '/$region/$username'
     | '/demo/start/ssr'
   id:
     | '__root__'
     | '/'
     | '/demo/drizzle'
+    | '/$region/$username/test'
     | '/demo/sentry/testing'
     | '/demo/start/server-funcs'
+    | '/$region/$username/'
     | '/demo/start/ssr/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DemoDrizzleRoute: typeof DemoDrizzleRoute
+  RegionUsernameTestRoute: typeof RegionUsernameTestRoute
   DemoSentryTestingRoute: typeof DemoSentryTestingRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
+  RegionUsernameIndexRoute: typeof RegionUsernameIndexRoute
   DemoStartSsrIndexRoute: typeof DemoStartSsrIndexRoute
 }
 
@@ -111,6 +137,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DemoDrizzleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$region/$username/': {
+      id: '/$region/$username/'
+      path: '/$region/$username'
+      fullPath: '/$region/$username'
+      preLoaderRoute: typeof RegionUsernameIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/start/server-funcs': {
       id: '/demo/start/server-funcs'
       path: '/demo/start/server-funcs'
@@ -123,6 +156,13 @@ declare module '@tanstack/react-router' {
       path: '/demo/sentry/testing'
       fullPath: '/demo/sentry/testing'
       preLoaderRoute: typeof DemoSentryTestingRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$region/$username/test': {
+      id: '/$region/$username/test'
+      path: '/$region/$username/test'
+      fullPath: '/$region/$username/test'
+      preLoaderRoute: typeof RegionUsernameTestRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/start/ssr/': {
@@ -138,8 +178,10 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DemoDrizzleRoute: DemoDrizzleRoute,
+  RegionUsernameTestRoute: RegionUsernameTestRoute,
   DemoSentryTestingRoute: DemoSentryTestingRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,
+  RegionUsernameIndexRoute: RegionUsernameIndexRoute,
   DemoStartSsrIndexRoute: DemoStartSsrIndexRoute,
 }
 export const routeTree = rootRouteImport
