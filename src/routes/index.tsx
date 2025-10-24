@@ -15,14 +15,14 @@ const checkUsername = createServerFn({
 		return { success: true };
 	});
 
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import * as React from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { RegionListSelector, regions } from "@/components/region-list-selector";
-import { Loading } from "@/components/ui/loading";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { ArrowRight, Send } from "lucide-react";
+import * as React from "react";
 import { MainText } from "@/components/header/MainText";
 import { SubText } from "@/components/header/SubText";
-import { ArrowRight, Send } from "lucide-react";
+import { RegionListSelector, regions } from "@/components/region-list-selector";
+import { Loading } from "@/components/ui/loading";
 
 export const Route = createFileRoute("/")({ component: Home });
 
