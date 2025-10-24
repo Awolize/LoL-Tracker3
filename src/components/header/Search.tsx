@@ -1,0 +1,61 @@
+import { ArrowRightEndOnRectangleIcon as SubmitIcon } from "@heroicons/react/24/outline";
+import { useNavigate } from "@tanstack/react-router";
+import { useRef, useState } from "react";
+import { LoadingComponent } from "~/components/old/loading-spinner";
+import { RegionListSelector, regions } from "~/components/old/region-list-selector";
+
+export default function Search() {
+	const navigate = useNavigate();
+	const usernameRef = useRef<HTMLInputElement>(null);
+	const [loading, setLoading] = useState(false);
+	const [selectedRegion, setSelectedRegion] = useState(regions[0]);
+
+	function onSubmit(e: React.FormEvent) {
+		e.preventDefault();
+		const username = usernameRef.current?.value.replace("#", "-").toLowerCase();
+		if (!username || !selectedRegion) return;
+
+		console.log(`Redirecting to "/${selectedRegion.name}/${username}..."`);
+		navigate({
+			to: "/$region/$username",
+			params: {
+				server: selectedRegion?.name,
+				username: username,
+			},
+		});
+
+		setLoading(true);
+	}
+
+	return (
+		<div className="flex h-full w-full items-center justify-center md:py-2">
+			<div className="flex flex-col gap-1 md:flex-row md:gap-4">
+				<div className="flex items-center justify-center">
+					<h1 className="shrink-0 font-extrabold text-2xl text-foreground tracking-tight md:text-[2rem]">
+						<RegionListSelector selectedRegion={selectedRegion} setSelectedRegion={setSelectedRegion} />
+					</h1>
+				</div>
+				<form id="search-summoner" className="flex flex-row justify-center gap-[0.125rem]" onSubmit={onSubmit}>
+					<div className="flex flex-col gap-1">
+						<input
+							type="text"
+							ref={usernameRef}
+							placeholder="lol.awot#dev"
+							className="h-12 w-full rounded-l bg-gray-700 text-center text-xl placeholder-gray-400 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-gray-500"
+						/>
+						<div className="text-foreground/50 text-xs">
+							Remember to include the # and tagline like: Awot#dev
+						</div>
+					</div>
+					<button
+						form="search-summoner"
+						type="submit"
+						className="h-12 w-8 rounded-r bg-gray-700 p-1 align-middle hover:bg-gray-600"
+					>
+						{loading ? <LoadingComponent /> : <SubmitIcon />}
+					</button>
+				</form>
+			</div>
+		</div>
+	);
+}

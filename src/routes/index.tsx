@@ -1,118 +1,93 @@
-import { createFileRoute } from '@tanstack/react-router'
-import {
-  Zap,
-  Server,
-  Route as RouteIcon,
-  Shield,
-  Waves,
-  Sparkles,
-} from 'lucide-react'
+// app/server/userExists.ts
+import { createServerFn } from '@tanstack/react-start'
 
-export const Route = createFileRoute('/')({ component: App })
+const checkUsername = createServerFn({
+  method: 'POST',
+})
+  .inputValidator((data: {username:string}) => data.username)
+  .handler(async ( {data}) => {
+    // simulate server-side processing
+     await new Promise((resolve) => setTimeout(resolve, 500))
+    // await db.insert(todos).values({ title: data.title })
 
-function App() {
-  const features = [
-    {
-      icon: <Zap className="w-12 h-12 text-cyan-400" />,
-      title: 'Powerful Server Functions',
-      description:
-        'Write server-side code that seamlessly integrates with your client components. Type-safe, secure, and simple.',
+console.log(data);
+
+    return { success: true }
+  })
+
+
+import { createFileRoute, useNavigate } from '@tanstack/react-router'
+import * as React from 'react'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { RegionListSelector, regions } from '@/components/region-list-selector'
+import { Loading } from '@/components/ui/loading'
+import { MainText } from "@/components/header/MainText";
+import { SubText } from "@/components/header/SubText";
+import { ArrowRight, Send } from 'lucide-react';
+
+export const Route = createFileRoute('/')({ component: Home })
+
+export function Home() {
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  const [username, setUsername] = React.useState('')
+  const [selectedRegion, setSelectedRegion] = React.useState(regions[0])
+
+  const mutation = useMutation({
+    mutationFn: (username: string) => checkUsername({data: {username}}),
+    onSuccess: () => {
+      qc.invalidateQueries() // optional: invalidate queries if needed
+      // navigate after server check
+      // navigate({
+      //   to: '/$region/$username/layout',
+      //   params: { region: selectedRegion.name, username: username.replace('#', '-').toLowerCase() },
+      // })
     },
-    {
-      icon: <Server className="w-12 h-12 text-cyan-400" />,
-      title: 'Flexible Server Side Rendering',
-      description:
-        'Full-document SSR, streaming, and progressive enhancement out of the box. Control exactly what renders where.',
-    },
-    {
-      icon: <RouteIcon className="w-12 h-12 text-cyan-400" />,
-      title: 'API Routes',
-      description:
-        'Build type-safe API endpoints alongside your application. No separate backend needed.',
-    },
-    {
-      icon: <Shield className="w-12 h-12 text-cyan-400" />,
-      title: 'Strongly Typed Everything',
-      description:
-        'End-to-end type safety from server to client. Catch errors before they reach production.',
-    },
-    {
-      icon: <Waves className="w-12 h-12 text-cyan-400" />,
-      title: 'Full Streaming Support',
-      description:
-        'Stream data from server to client progressively. Perfect for AI applications and real-time updates.',
-    },
-    {
-      icon: <Sparkles className="w-12 h-12 text-cyan-400" />,
-      title: 'Next Generation Ready',
-      description:
-        'Built from the ground up for modern web applications. Deploy anywhere JavaScript runs.',
-    },
-  ]
+  })
+
+  const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
+    if (!username || !selectedRegion) return
+
+    const cleanUsername = username.replace('#', '-').toLowerCase()
+    mutation.mutate(cleanUsername)
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
-      <section className="relative py-20 px-6 text-center overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/10 via-blue-500/10 to-purple-500/10"></div>
-        <div className="relative max-w-5xl mx-auto">
-          <div className="flex items-center justify-center gap-6 mb-6">
-            <img
-              src="/tanstack-circle-logo.png"
-              alt="TanStack Logo"
-              className="w-24 h-24 md:w-32 md:h-32"
+    <main className="flex min-h-screen flex-col items-center justify-center bg-[url('/background-1.webp')] bg-center bg-cover">
+      <div className="flex w-full animate-pulse2 flex-col items-center justify-center gap-4 bg-black py-16">
+        <div>
+          <MainText />
+          <SubText />
+        </div>
+        <div className="flex h-full w-full flex-row items-center justify-center gap-4 px-4 py-2">
+          <h1 className="font-extrabold text-2xl text-foreground tracking-tight sm:text-[2rem] ">
+            <RegionListSelector
+              selectedRegion={selectedRegion}
+              setSelectedRegion={setSelectedRegion}
             />
-            <h1 className="text-6xl md:text-7xl font-black text-white [letter-spacing:-0.08em]">
-              <span className="text-gray-300">TANSTACK</span>{' '}
-              <span className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text text-transparent">
-                START
-              </span>
-            </h1>
-          </div>
-          <p className="text-2xl md:text-3xl text-gray-300 mb-4 font-light">
-            The framework for next generation AI applications
-          </p>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto mb-8">
-            Full-stack framework powered by TanStack Router for React and Solid.
-            Build modern applications with server functions, streaming, and type
-            safety.
-          </p>
-          <div className="flex flex-col items-center gap-4">
-            <a
-              href="https://tanstack.com/start"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-8 py-3 bg-cyan-500 hover:bg-cyan-600 text-white font-semibold rounded-lg transition-colors shadow-lg shadow-cyan-500/50"
-            >
-              Documentation
-            </a>
-            <p className="text-gray-400 text-sm mt-2">
-              Begin your TanStack Start journey by editing{' '}
-              <code className="px-2 py-1 bg-slate-700 rounded text-cyan-400">
-                /src/routes/index.tsx
-              </code>
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <section className="py-16 px-6 max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-slate-800/50 backdrop-blur-sm border border-slate-700 rounded-xl p-6 hover:border-cyan-500/50 transition-all duration-300 hover:shadow-lg hover:shadow-cyan-500/10"
-            >
-              <div className="mb-4">{feature.icon}</div>
-              <h3 className="text-xl font-semibold text-white mb-3">
-                {feature.title}
-              </h3>
-              <p className="text-gray-400 leading-relaxed">
-                {feature.description}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
+          </h1>
+        <form onSubmit={onSubmit} className="flex flex-row gap-0.5">
+  <div className="flex flex-col gap-1">
+    <input
+      value={username}
+      onChange={(e) => setUsername(e.target.value)}
+      placeholder="lol.awot#dev"
+      className="h-12 w-full rounded-l bg-primary text-center text-xl placeholder:text-primary-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
+    />
+    <div className="text-primary-foreground/50 text-xs">
+      Remember to include the # and tagline like: Awot#dev
     </div>
+  </div>
+  <button
+    type="submit"
+    className="h-12 w-8 rounded-r bg-primary p-1 hover:bg-primary-foreground/20 flex items-center justify-center"
+  >
+    {mutation.isPending ? <Loading /> : <ArrowRight className="w-5 h-5 text-primary-foreground" />}
+  </button>
+</form>
+        </div>
+      </div>
+    </main>
   )
 }
