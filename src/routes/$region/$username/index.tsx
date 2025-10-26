@@ -1,9 +1,48 @@
 // app/routes/$region/$username.tsx
 import { createFileRoute } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
+import type { Regions } from "twisted/dist/constants";
 import { z } from "zod";
+import FooterLinks from "@/components/footer/FooterLinks";
+import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
+import { MainTitleLink } from "@/components/header/MainTitleLink";
+import Profile from "@/components/header/Profile";
+import Search from "@/components/header/Search";
+import { ThemeSelector } from "@/components/theme-toggle";
 import { db } from "@/db";
 import { regionToConstant } from "@/lib/champs";
-import { getUserByNameAndRegion } from "@/server/get-user-by-name-and-region";
+import { getSummonerByUsernameRateLimit } from "@/server/get-summoner-by-username-rate-limit";
+
+export const getUserByNameAndRegionFn = createServerFn({
+	method: "GET",
+})
+	.inputValidator((params: { username: string; region: Regions }) => params)
+	.handler(async ({ data }) => {
+		const { username, region } = data;
+
+		try {
+			const user = await getSummonerByUsernameRateLimit(
+				username.toLowerCase(),
+				region,
+			);
+
+			const versionRow = await db.query.championDetails.findFirst({
+				columns: { version: true },
+			});
+			const version = versionRow?.version ?? "latest";
+
+			const profileIconUrl = user.summoner?.profileIconId
+				? `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${user.summoner.profileIconId}.png`
+				: null;
+
+			return { summonerData: user.summoner, profileIconUrl, error: null };
+		} catch (err: any) {
+			console.log(err);
+
+			const error = err?.status === 429 ? "rate_limit" : "not_found";
+			return { summonerData: null, profileIconUrl: null, error };
+		}
+	});
 
 const paramsSchema = z.object({
 	region: z.string(),
@@ -14,48 +53,72 @@ export const Route = createFileRoute("/$region/$username/")({
 	loader: async ({ params }) => {
 		const { region: rawRegion, username: rawUsername } =
 			paramsSchema.parse(params);
+
 		const username = rawUsername.replace("-", "#");
 		const region = regionToConstant(rawRegion.toUpperCase());
 
-		let summonerData;
-		let error: string | null = null;
-
-		try {
-			summonerData = await getUserByNameAndRegion(
-				username.toLowerCase(),
+		const result = await getUserByNameAndRegionFn({
+			data: {
+				username,
 				region,
-			);
-		} catch (err: any) {
-			if (err?.status === 429) {
-				error = "rate_limit";
-			} else {
-				error = "not_found";
-			}
-		}
-
-		const versionRow = await db.query.championDetails.findFirst({
-			columns: { version: true },
+			},
 		});
-		const version = versionRow?.version ?? "latest";
-
-		const profileIconUrl =
-			summonerData?.profileIconId != null
-				? `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${summonerData.profileIconId}.png`
-				: null;
 
 		return {
 			username,
 			region,
 			rawUsername,
-			summonerData,
-			profileIconUrl,
-			error,
+			...result,
 		};
 	},
 	component: RouteComponent,
+	head: ({ loaderData }) => {
+		if (!loaderData) return {};
+
+		const { username, region } = loaderData;
+
+		return {
+			meta: [
+				{ name: "application-name", content: "LoL Mastery Tracker" },
+				{
+					name: "description",
+					content:
+						"Made using Riot API. Repo can be found at https://github.com/Awolize. Built with Tanstack Start",
+				},
+				{
+					name: "keywords",
+					content: [region, username, "LoL", "mastery", "tracker"].join(", "),
+				},
+				{ name: "title", content: `LoL Mastery Tracker: ${username} Profile` },
+			],
+		};
+	},
 });
 
-function RouteComponent() {
+export default function RouteComponent() {
+	return (
+		<div className="flex flex-col ">
+			<header className="sticky top-0 z-30 grid grid-cols-3 w-screen justify-between bg-primary-foreground px-1 md:px-8">
+				<MainTitleLink />
+				<Profile />
+				<Search />
+
+				<div className="absolute top-4 right-4">
+					<ThemeSelector />
+				</div>
+			</header>
+
+			<Client></Client>
+
+			<footer className="flex flex-col items-center gap-4 p-2 text-sm opacity-50">
+				<FooterLinks />
+				<RiotGamesDisclaimer />
+			</footer>
+		</div>
+	);
+}
+
+function Client() {
 	const { username, region, rawUsername, summonerData, profileIconUrl, error } =
 		Route.useLoaderData();
 

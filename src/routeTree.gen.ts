@@ -15,6 +15,7 @@ import { Route as RegionUsernameIndexRouteImport } from './routes/$region/$usern
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoSentryTestingRouteImport } from './routes/demo/sentry.testing'
 import { Route as RegionUsernameTestRouteImport } from './routes/$region/$username/test'
+import { Route as RegionUsernameMasteryRouteImport } from './routes/$region/$username/mastery'
 import { Route as DemoStartSsrIndexRouteImport } from './routes/demo/start.ssr.index'
 
 const IndexRoute = IndexRouteImport.update({
@@ -47,6 +48,11 @@ const RegionUsernameTestRoute = RegionUsernameTestRouteImport.update({
   path: '/$region/$username/test',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegionUsernameMasteryRoute = RegionUsernameMasteryRouteImport.update({
+  id: '/$region/$username/mastery',
+  path: '/$region/$username/mastery',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoStartSsrIndexRoute = DemoStartSsrIndexRouteImport.update({
   id: '/demo/start/ssr/',
   path: '/demo/start/ssr/',
@@ -56,6 +62,7 @@ const DemoStartSsrIndexRoute = DemoStartSsrIndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/demo/drizzle': typeof DemoDrizzleRoute
+  '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/test': typeof RegionUsernameTestRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -65,6 +72,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/demo/drizzle': typeof DemoDrizzleRoute
+  '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/test': typeof RegionUsernameTestRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -75,6 +83,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/demo/drizzle': typeof DemoDrizzleRoute
+  '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/test': typeof RegionUsernameTestRoute
   '/demo/sentry/testing': typeof DemoSentryTestingRoute
   '/demo/start/server-funcs': typeof DemoStartServerFuncsRoute
@@ -86,6 +95,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/demo/drizzle'
+    | '/$region/$username/mastery'
     | '/$region/$username/test'
     | '/demo/sentry/testing'
     | '/demo/start/server-funcs'
@@ -95,6 +105,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/demo/drizzle'
+    | '/$region/$username/mastery'
     | '/$region/$username/test'
     | '/demo/sentry/testing'
     | '/demo/start/server-funcs'
@@ -104,6 +115,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/demo/drizzle'
+    | '/$region/$username/mastery'
     | '/$region/$username/test'
     | '/demo/sentry/testing'
     | '/demo/start/server-funcs'
@@ -114,6 +126,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   DemoDrizzleRoute: typeof DemoDrizzleRoute
+  RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
   RegionUsernameTestRoute: typeof RegionUsernameTestRoute
   DemoSentryTestingRoute: typeof DemoSentryTestingRoute
   DemoStartServerFuncsRoute: typeof DemoStartServerFuncsRoute
@@ -165,6 +178,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionUsernameTestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$region/$username/mastery': {
+      id: '/$region/$username/mastery'
+      path: '/$region/$username/mastery'
+      fullPath: '/$region/$username/mastery'
+      preLoaderRoute: typeof RegionUsernameMasteryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/start/ssr/': {
       id: '/demo/start/ssr/'
       path: '/demo/start/ssr'
@@ -178,6 +198,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   DemoDrizzleRoute: DemoDrizzleRoute,
+  RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
   RegionUsernameTestRoute: RegionUsernameTestRoute,
   DemoSentryTestingRoute: DemoSentryTestingRoute,
   DemoStartServerFuncsRoute: DemoStartServerFuncsRoute,

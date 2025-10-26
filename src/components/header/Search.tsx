@@ -1,34 +1,25 @@
-import { ArrowRightEndOnRectangleIcon as SubmitIcon } from "@heroicons/react/24/outline";
 import { useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { LoadingComponent } from "~/components/old/loading-spinner";
-import {
-	RegionListSelector,
-	regions,
-} from "~/components/old/region-list-selector";
+import { ArrowRight } from "lucide-react";
+import { useState } from "react";
+import { RegionListSelector, regions } from "@/components/region-list-selector";
 
 export default function Search() {
 	const navigate = useNavigate();
-	const usernameRef = useRef<HTMLInputElement>(null);
-	const [loading, setLoading] = useState(false);
 	const [selectedRegion, setSelectedRegion] = useState(regions[0]);
+	const [username, setUsername] = useState("");
 
-	function onSubmit(e: React.FormEvent) {
+	const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
-		const username = usernameRef.current?.value.replace("#", "-").toLowerCase();
 		if (!username || !selectedRegion) return;
-
-		console.log(`Redirecting to "/${selectedRegion.name}/${username}..."`);
+		const cleanUsername = username.replace("#", "-").toLowerCase();
 		navigate({
 			to: "/$region/$username",
 			params: {
-				server: selectedRegion?.name,
-				username: username,
+				region: selectedRegion.name,
+				username: cleanUsername,
 			},
 		});
-
-		setLoading(true);
-	}
+	};
 
 	return (
 		<div className="flex h-full w-full items-center justify-center md:py-2">
@@ -42,28 +33,27 @@ export default function Search() {
 					</h1>
 				</div>
 				<form
-					id="search-summoner"
-					className="flex flex-row justify-center gap-[0.125rem]"
 					onSubmit={onSubmit}
+					className="flex flex-col gap-2 w-full max-w-sm"
 				>
-					<div className="flex flex-col gap-1">
+					<div className="w-full flex flex-row h-12 gap-1">
 						<input
-							type="text"
-							ref={usernameRef}
+							value={username}
+							onChange={(e) => setUsername(e.target.value)}
 							placeholder="lol.awot#dev"
-							className="h-12 w-full rounded-l bg-gray-700 text-center text-xl placeholder-gray-400 focus:border-sky-500 focus:outline-hidden focus:ring-1 focus:ring-gray-500"
+							className="h-12 grow flex rounded-l bg-primary text-center text-xl placeholder:text-primary-foreground/50 focus:outline-none focus:ring-1 focus:ring-primary"
 						/>
-						<div className="text-foreground/50 text-xs">
-							Remember to include the # and tagline like: Awot#dev
-						</div>
+						<button
+							type="submit"
+							className="h-12 min-w-12 max-w-12 rounded-r bg-primary hover:bg-primary-foreground/20 flex items-center justify-center"
+						>
+							<ArrowRight className="w-5 h-5 text-primary-foreground" />
+						</button>
 					</div>
-					<button
-						form="search-summoner"
-						type="submit"
-						className="h-12 w-8 rounded-r bg-gray-700 p-1 align-middle hover:bg-gray-600"
-					>
-						{loading ? <LoadingComponent /> : <SubmitIcon />}
-					</button>
+
+					<div className="text-primary-foreground/50 text-xs">
+						Remember to include the # and tagline like: Awot#dev
+					</div>
 				</form>
 			</div>
 		</div>

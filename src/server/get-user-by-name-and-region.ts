@@ -1,5 +1,5 @@
-import { and, eq, gt, ilike, inArray, lt, notInArray } from "drizzle-orm";
-import { type Regions } from "twisted/dist/constants";
+import { and, eq, ilike, inArray, notInArray } from "drizzle-orm";
+import type { Regions } from "twisted/dist/constants";
 import { db } from "@/db";
 import { summoner } from "@/db/schema";
 import { getSummonerByUsernameRateLimit } from "@/server/get-summoner-by-username-rate-limit";
@@ -77,7 +77,7 @@ export async function getUserByNameAndRegion(
 			createdAt: new Date(),
 		};
 
-		let savedUser;
+		let savedUser: typeof data;
 		if (existing) {
 			await db
 				.update(summoner)

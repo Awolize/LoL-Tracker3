@@ -2,13 +2,13 @@ import { createFileRoute, useRouter } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { desc } from "drizzle-orm";
 import { db } from "@/db";
-import { todos } from "@/db/schema";
+import { summoner } from "@/db/schema";
 
-const getTodos = createServerFn({
+const getSummoners = createServerFn({
 	method: "GET",
 }).handler(async () => {
-	return await db.query.todos.findMany({
-		orderBy: [desc(todos.createdAt)],
+	return await db.query.summoner.findMany({
+		orderBy: [desc(summoner.createdAt)],
 	});
 });
 
@@ -17,18 +17,18 @@ const createTodo = createServerFn({
 })
 	.inputValidator((data: { title: string }) => data)
 	.handler(async ({ data }) => {
-		await db.insert(todos).values({ title: data.title });
+		// await db.insert(summoner).values({ title: data.title });
 		return { success: true };
 	});
 
 export const Route = createFileRoute("/demo/drizzle")({
 	component: DemoDrizzle,
-	loader: async () => await getTodos(),
+	loader: async () => await getSummoners(),
 });
 
 function DemoDrizzle() {
 	const router = useRouter();
-	const todos = Route.useLoaderData();
+	const summoners = Route.useLoaderData();
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
@@ -88,9 +88,9 @@ function DemoDrizzle() {
 				<h2 className="text-2xl font-bold mb-4 text-indigo-200">Todos</h2>
 
 				<ul className="space-y-3 mb-6">
-					{todos.map((todo) => (
+					{summoners.map((summoner) => (
 						<li
-							key={todo.id}
+							key={summoner.puuid}
 							className="rounded-lg p-4 shadow-md border transition-all hover:scale-[1.02] cursor-pointer group"
 							style={{
 								background:
@@ -100,13 +100,15 @@ function DemoDrizzle() {
 						>
 							<div className="flex items-center justify-between">
 								<span className="text-lg font-medium text-white group-hover:text-indigo-200 transition-colors">
-									{todo.title}
+									{summoner.gameName}
 								</span>
-								<span className="text-xs text-indigo-300/70">#{todo.id}</span>
+								<span className="text-xs text-indigo-300/70">
+									#{summoner.puuid}
+								</span>
 							</div>
 						</li>
 					))}
-					{todos.length === 0 && (
+					{summoners.length === 0 && (
 						<li className="text-center py-8 text-indigo-300/70">
 							No todos yet. Create one below!
 						</li>
