@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as RegionUsernameRouteImport } from './routes/$region.$username'
+import { Route as RegionUsernameIndexRouteImport } from './routes/$region.$username.index'
 import { Route as RegionUsernameMasteryRouteImport } from './routes/$region.$username.mastery'
 import { Route as RegionUsernameDifferentRouteImport } from './routes/$region.$username.different'
 
@@ -19,65 +19,67 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RegionUsernameRoute = RegionUsernameRouteImport.update({
-  id: '/$region/$username',
-  path: '/$region/$username',
+const RegionUsernameIndexRoute = RegionUsernameIndexRouteImport.update({
+  id: '/$region/$username/',
+  path: '/$region/$username/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegionUsernameMasteryRoute = RegionUsernameMasteryRouteImport.update({
-  id: '/mastery',
-  path: '/mastery',
-  getParentRoute: () => RegionUsernameRoute,
+  id: '/$region/$username/mastery',
+  path: '/$region/$username/mastery',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const RegionUsernameDifferentRoute = RegionUsernameDifferentRouteImport.update({
-  id: '/different',
-  path: '/different',
-  getParentRoute: () => RegionUsernameRoute,
+  id: '/$region/$username/different',
+  path: '/$region/$username/different',
+  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/$region/$username': typeof RegionUsernameRouteWithChildren
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/$region/$username': typeof RegionUsernameIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/$region/$username': typeof RegionUsernameRouteWithChildren
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/$region/$username': typeof RegionUsernameIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/$region/$username': typeof RegionUsernameRouteWithChildren
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/$region/$username/': typeof RegionUsernameIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
-    | '/$region/$username'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/$region/$username'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
-    | '/$region/$username'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/$region/$username'
   id:
     | '__root__'
     | '/'
-    | '/$region/$username'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/$region/$username/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  RegionUsernameRoute: typeof RegionUsernameRouteWithChildren
+  RegionUsernameDifferentRoute: typeof RegionUsernameDifferentRoute
+  RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
+  RegionUsernameIndexRoute: typeof RegionUsernameIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -89,47 +91,35 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$region/$username': {
-      id: '/$region/$username'
+    '/$region/$username/': {
+      id: '/$region/$username/'
       path: '/$region/$username'
       fullPath: '/$region/$username'
-      preLoaderRoute: typeof RegionUsernameRouteImport
+      preLoaderRoute: typeof RegionUsernameIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$region/$username/mastery': {
       id: '/$region/$username/mastery'
-      path: '/mastery'
+      path: '/$region/$username/mastery'
       fullPath: '/$region/$username/mastery'
       preLoaderRoute: typeof RegionUsernameMasteryRouteImport
-      parentRoute: typeof RegionUsernameRoute
+      parentRoute: typeof rootRouteImport
     }
     '/$region/$username/different': {
       id: '/$region/$username/different'
-      path: '/different'
+      path: '/$region/$username/different'
       fullPath: '/$region/$username/different'
       preLoaderRoute: typeof RegionUsernameDifferentRouteImport
-      parentRoute: typeof RegionUsernameRoute
+      parentRoute: typeof rootRouteImport
     }
   }
 }
 
-interface RegionUsernameRouteChildren {
-  RegionUsernameDifferentRoute: typeof RegionUsernameDifferentRoute
-  RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
-}
-
-const RegionUsernameRouteChildren: RegionUsernameRouteChildren = {
-  RegionUsernameDifferentRoute: RegionUsernameDifferentRoute,
-  RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
-}
-
-const RegionUsernameRouteWithChildren = RegionUsernameRoute._addFileChildren(
-  RegionUsernameRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  RegionUsernameRoute: RegionUsernameRouteWithChildren,
+  RegionUsernameDifferentRoute: RegionUsernameDifferentRoute,
+  RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
+  RegionUsernameIndexRoute: RegionUsernameIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
