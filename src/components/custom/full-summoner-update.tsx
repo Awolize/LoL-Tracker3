@@ -1,13 +1,10 @@
-import type { InferSelectModel } from "drizzle-orm";
 import { useState } from "react";
-import type { summoner } from "@/db/schema";
+import type { Summoner } from "@/lib/types";
 import { fullUpdateSummoner } from "@/server/full-update-summoner";
 import { Button } from "../ui/button";
 
-type SummonerRow = InferSelectModel<typeof summoner>;
-
 interface FullSummonerUpdateProps {
-	user: SummonerRow;
+	user: Summoner;
 }
 
 export const FullSummonerUpdate = ({ user }: FullSummonerUpdateProps) => {

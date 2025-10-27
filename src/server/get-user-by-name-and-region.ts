@@ -1,17 +1,9 @@
-import {
-	and,
-	eq,
-	type InferSelectModel,
-	ilike,
-	inArray,
-	notInArray,
-} from "drizzle-orm";
+import { and, eq, ilike, inArray, notInArray } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import { db } from "@/db";
 import { summoner } from "@/db/schema";
+import type { Summoner } from "@/lib/types";
 import { getSummonerByUsernameRateLimit } from "@/server/get-summoner-by-username-rate-limit";
-
-type SummonerRow = InferSelectModel<typeof summoner>;
 
 export async function getUserByNameAndRegion(
 	username: string,
@@ -74,7 +66,7 @@ export async function getUserByNameAndRegion(
 			where: eq(summoner.puuid, riotSummoner.puuid),
 		});
 
-		const data: SummonerRow = {
+		const data: Summoner = {
 			puuid: riotSummoner.puuid,
 			region,
 			gameName: account.gameName,
@@ -88,7 +80,7 @@ export async function getUserByNameAndRegion(
 			summonerId: null,
 		};
 
-		let savedUser: SummonerRow;
+		let savedUser: Summoner;
 		if (existing) {
 			await db
 				.update(summoner)

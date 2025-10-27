@@ -1,16 +1,13 @@
-import type { InferSelectModel } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
-import type { summoner } from "@/db/schema";
+import type { Summoner } from "@/lib/types";
 import { lolApiSummonerByPUUID } from "@/server/lol-api-summoner-by-puuid";
 import { riotApiAccountByPUUID } from "@/server/riot-api-account-by-puuid";
-
-type SummonerRow = InferSelectModel<typeof summoner>;
 
 export const getSummonerRateLimit = async (puuid: string, region: Regions) => {
 	const account = await riotApiAccountByPUUID(puuid, region);
 	const summonerV4DTO = await lolApiSummonerByPUUID(puuid, region);
 
-	const summoner: SummonerRow = {
+	const summoner: Summoner = {
 		summonerId: summonerV4DTO.id,
 		accountId: null,
 		createdAt: new Date(),

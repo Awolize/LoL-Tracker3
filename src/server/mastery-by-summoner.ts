@@ -1,11 +1,9 @@
-import type { InferSelectModel } from "drizzle-orm";
 import { eq } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import type { ChampionMasteryDTO } from "twisted/dist/models-dto";
 import { db } from "@/db";
-import { championMastery, type summoner } from "@/db/schema";
-
-type SummonerRow = InferSelectModel<typeof summoner>;
+import { championMastery } from "@/db/schema";
+import type { Summoner } from "@/lib/types";
 
 export type ChampionMasteryDTOWithoutExtras = Omit<
 	ChampionMasteryDTO,
@@ -17,7 +15,7 @@ export type ChampionMasteryDTOWithoutExtras = Omit<
 >;
 export const masteryBySummoner = async (
 	region: Regions,
-	user: SummonerRow,
+	user: Summoner,
 ): Promise<ChampionMasteryDTOWithoutExtras[]> => {
 	try {
 		// Fetch mastery rows for this summoner

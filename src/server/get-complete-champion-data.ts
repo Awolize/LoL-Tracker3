@@ -1,17 +1,11 @@
-import type { InferSelectModel } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import { db } from "@/db";
-import { championDetails, type summoner } from "@/db/schema";
-import type { CompleteChampionInfo } from "@/lib/types";
+import { championDetails } from "@/db/schema";
+import type { CompleteChampionInfo, Summoner } from "@/lib/types";
 import { masteryBySummoner } from "@/server/mastery-by-summoner";
 import rolesJson from "./roles.json";
 
-type SummonerRow = InferSelectModel<typeof summoner>;
-
-export async function getCompleteChampionData(
-	region: Regions,
-	user: SummonerRow,
-) {
+export async function getCompleteChampionData(region: Regions, user: Summoner) {
 	const championMasteries = await masteryBySummoner(region, user);
 	const champions = await db.select().from(championDetails);
 
