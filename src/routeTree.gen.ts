@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RegionUsernameIndexRouteImport } from './routes/$region.$username.index'
+import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
 import { Route as RegionUsernameMasteryRouteImport } from './routes/$region.$username.mastery'
 import { Route as RegionUsernameDifferentRouteImport } from './routes/$region.$username.different'
 
@@ -22,6 +23,11 @@ const IndexRoute = IndexRouteImport.update({
 const RegionUsernameIndexRoute = RegionUsernameIndexRouteImport.update({
   id: '/$region/$username/',
   path: '/$region/$username/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
+  id: '/api/images/$',
+  path: '/api/images/$',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegionUsernameMasteryRoute = RegionUsernameMasteryRouteImport.update({
@@ -39,12 +45,14 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/$region/$username': typeof RegionUsernameIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/$region/$username': typeof RegionUsernameIndexRoute
 }
 export interface FileRoutesById {
@@ -52,6 +60,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/api/images/$': typeof ApiImagesSplatRoute
   '/$region/$username/': typeof RegionUsernameIndexRoute
 }
 export interface FileRouteTypes {
@@ -60,18 +69,21 @@ export interface FileRouteTypes {
     | '/'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/api/images/$'
     | '/$region/$username'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/api/images/$'
     | '/$region/$username'
   id:
     | '__root__'
     | '/'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/api/images/$'
     | '/$region/$username/'
   fileRoutesById: FileRoutesById
 }
@@ -79,6 +91,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RegionUsernameDifferentRoute: typeof RegionUsernameDifferentRoute
   RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
+  ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   RegionUsernameIndexRoute: typeof RegionUsernameIndexRoute
 }
 
@@ -96,6 +109,13 @@ declare module '@tanstack/react-router' {
       path: '/$region/$username'
       fullPath: '/$region/$username'
       preLoaderRoute: typeof RegionUsernameIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/images/$': {
+      id: '/api/images/$'
+      path: '/api/images/$'
+      fullPath: '/api/images/$'
+      preLoaderRoute: typeof ApiImagesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$region/$username/mastery': {
@@ -119,6 +139,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RegionUsernameDifferentRoute: RegionUsernameDifferentRoute,
   RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
+  ApiImagesSplatRoute: ApiImagesSplatRoute,
   RegionUsernameIndexRoute: RegionUsernameIndexRoute,
 }
 export const routeTree = rootRouteImport
