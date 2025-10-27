@@ -9,6 +9,7 @@ import {
 	type summoner,
 } from "@/db/schema";
 import { lolApi } from "@/lib/lol-api";
+import { summonersFromGames } from "@/server/summonersFromGames";
 
 type SummonerRow = InferSelectModel<typeof summoner>;
 

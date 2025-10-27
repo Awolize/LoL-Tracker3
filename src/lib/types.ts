@@ -9,6 +9,15 @@ import type {
 	summoner,
 } from "@/db/schema";
 
+export type ChampionMasteryDTOWithoutExtras = Omit<
+	ChampionMasteryDTO,
+	| "summonerId"
+	| "puuid"
+	| "markRequiredForNextLevel"
+	| "championSeasonMilestone"
+	| "nextSeasonMilestone"
+>;
+
 // Database model types
 export type Match = InferSelectModel<typeof match>;
 export type MatchInfo = InferSelectModel<typeof matchInfo>;

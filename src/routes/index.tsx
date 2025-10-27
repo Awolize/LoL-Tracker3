@@ -24,6 +24,12 @@ export function Home() {
 		e.preventDefault();
 		if (!username || !selectedRegion) return;
 		const cleanUsername = username.replace("#", "-").toLowerCase();
+
+		console.log({
+			region: selectedRegion.name,
+			username: cleanUsername,
+		});
+
 		navigate({
 			to: "/$region/$username",
 			params: {
