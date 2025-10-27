@@ -1,4 +1,5 @@
 import { Regions } from "twisted/dist/constants";
+import type { CompleteChampionInfo } from "@/routes/$region.$username.index";
 
 export const filteredOut = (champ: CompleteChampionInfo, filterPoints) => {
 	const disabled: boolean = champ.championPoints > filterPoints;

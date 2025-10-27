@@ -2,7 +2,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import type { Regions } from "twisted/dist/constants";
-import { z } from "zod";
 import FooterLinks from "@/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
 import { MainTitleLink } from "@/components/header/MainTitleLink";
@@ -16,7 +15,7 @@ import { getSummonerByUsernameRateLimit } from "@/server/get-summoner-by-usernam
 export const getUserByNameAndRegionFn = createServerFn({
 	method: "GET",
 })
-	.inputValidator((params: { username: string; region: Regions }) => params)
+	.inputValidator((input: { username: string; region: Regions }) => input)
 	.handler(async ({ data }) => {
 		const { username, region } = data;
 
@@ -44,16 +43,8 @@ export const getUserByNameAndRegionFn = createServerFn({
 		}
 	});
 
-const paramsSchema = z.object({
-	region: z.string(),
-	username: z.string(),
-});
-
 export const Route = createFileRoute("/$region/$username/")({
-	loader: async ({ params }) => {
-		const { region: rawRegion, username: rawUsername } =
-			paramsSchema.parse(params);
-
+	loader: async ({ params: { username: rawUsername, region: rawRegion } }) => {
 		const username = rawUsername.replace("-", "#");
 		const region = regionToConstant(rawRegion.toUpperCase());
 
@@ -89,7 +80,7 @@ export const Route = createFileRoute("/$region/$username/")({
 					name: "keywords",
 					content: [region, username, "LoL", "mastery", "tracker"].join(", "),
 				},
-				{ name: "title", content: `LoL Mastery Tracker: ${username} Profile` },
+				{ name: "title", content: "LoL Mastery Tracker: ${username} Profile" },
 			],
 		};
 	},
@@ -167,7 +158,7 @@ function Client() {
 				<div className="flex flex-col items-center">
 					<div className="flex flex-col gap-6 ">
 						<div>
-							<a href={`${rawUsername}/mastery`} className="underline">
+							<a href={`${rawUsername}/mastery`} className={`underline`}>
 								Mastery Points Tracker
 							</a>
 							<div className="text-sm">
@@ -179,7 +170,7 @@ function Client() {
 							</div>
 						</div>
 						<div>
-							<a href={`${rawUsername}/different`} className="underline">
+							<a href={`${rawUsername}/different`} className={`underline`}>
 								Champion Tracker
 							</a>
 							<div className="text-sm">

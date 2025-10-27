@@ -4,8 +4,6 @@ import * as React from "react";
 import { MainText } from "@/components/header/MainText";
 import { SubText } from "@/components/header/SubText";
 import { RegionListSelector, regions } from "@/components/region-list-selector";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/")({ component: Home });
 

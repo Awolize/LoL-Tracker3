@@ -1,0 +1,90 @@
+import { Link, useParams } from "@tanstack/react-router";
+import type React from "react";
+import { useDataDragonPath } from "@/components/custom/use-data-dragon-path";
+import { useUserContext } from "@/stores/user-store";
+import type { MatchPlayerData } from "./MatchPlayerData";
+
+interface MatchTableProps {
+	players: Array<MatchPlayerData>;
+	teamId: number;
+	version: string;
+}
+
+const MatchTable: React.FC<MatchTableProps> = ({
+	players,
+	teamId,
+	version,
+}) => {
+	const { getChampionImage } = useDataDragonPath(version);
+	const user = useUserContext((s) => s.user);
+
+	const { region } = useParams({ from: "/$region/$username/" }); // destructure region from your route params
+
+	return (
+		<div className="relative overflow-x-auto">
+			<table className="w-full text-left text-gray-500 text-sm rtl:text-right dark:text-gray-400">
+				<thead className="bg-gray-50 text-gray-700 text-xs uppercase dark:bg-gray-700 dark:text-gray-400">
+					<tr>
+						<th scope="col" className="px-2 py-2">
+							Champion
+						</th>
+						<th scope="col" className="px-2 py-2">
+							Player
+						</th>
+						<th scope="col" className="px-2 py-2">
+							K/D/A
+						</th>
+					</tr>
+				</thead>
+				<tbody>
+					{players
+						.filter((player) => player.teamId === teamId)
+						.map((player) => (
+							<tr
+								className={
+									user.puuid === player.puuid
+										? "border-b bg-gray-50 dark:border-gray-700 dark:bg-gray-700"
+										: "border-b bg-white dark:border-gray-700 dark:bg-gray-800"
+								}
+								key={player.puuid}
+							>
+								<td className="flex min-w-24 flex-col justify-center gap-1 whitespace-nowrap px-2 py-2 font-medium text-gray-900 dark:text-foreground">
+									<div className="flex justify-center">
+										<img
+											src={getChampionImage(`${player.championName}.png`)}
+											className="rounded"
+											alt={`${player.championName}`}
+											height={40}
+											width={40}
+											// placeholder="blur" // todo change img to smart image?
+											// blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
+										/>
+									</div>
+									<div className="flex justify-center">
+										{player.championName}
+									</div>
+								</td>
+								<td className="min-w-48 whitespace-nowrap px-2 py-2 font-medium text-gray-900 dark:text-foreground">
+									<Link
+										to="/$region/$username/mastery"
+										params={{
+											region: region,
+											username: `${player.riotIdGameName}-${player.riotIdTagline}`,
+										}}
+										className="hover:underline"
+									>
+										{player.riotIdGameName}
+									</Link>
+								</td>
+								<td className="min-w-24 whitespace-nowrap px-4 py-2 font-medium text-gray-900 dark:text-foreground">
+									{player.kills}/{player.deaths}/{player.assists}
+								</td>
+							</tr>
+						))}
+				</tbody>
+			</table>
+		</div>
+	);
+};
+
+export default MatchTable;
