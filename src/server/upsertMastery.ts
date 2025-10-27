@@ -1,34 +1,42 @@
-import type { ChampionMasteryDTOWithoutExtras } from "@/lib/types";
+import type { Regions } from "twisted/dist/constants";
 import { db } from "@/db";
 import { championMastery } from "@/db/schema";
+import { lolApi } from "@/lib/lol-api";
+import type { Summoner } from "@/lib/types";
 
-export const upsertMastery = async (
-  puuid: string,
-  masteryList: ChampionMasteryDTOWithoutExtras[],
-) => {
-  const promises = masteryList.map((m) =>
-    db
-      .insert(championMastery)
-      .values({
-        puuid,
-        championId: m.championId,
-        championLevel: m.championLevel,
-        championPoints: m.championPoints,
-        lastPlayTime: new Date(m.lastPlayTime),
-        tokensEarned: m.tokensEarned,
-        chestGranted: m.chestGranted,
-      })
-      .onConflictDoUpdate({
-        target: [championMastery.puuid, championMastery.championId],
-        set: {
-          championLevel: m.championLevel,
-          championPoints: m.championPoints,
-          lastPlayTime: new Date(m.lastPlayTime),
-          tokensEarned: m.tokensEarned,
-          chestGranted: m.chestGranted,
-        },
-      }),
-  );
+export const upsertMastery = async (user: Summoner, region: Regions) => {
+	const masteryList = (await lolApi.Champion.masteryByPUUID(user.puuid, region))
+		.response;
 
-  await Promise.all(promises);
+	const promises = masteryList.map((m) =>
+		db
+			.insert(championMastery)
+			.values({
+				puuid: user.puuid,
+				championId: m.championId,
+				championLevel: m.championLevel,
+				championPoints: m.championPoints,
+				lastPlayTime: new Date(m.lastPlayTime),
+				tokensEarned: m.tokensEarned,
+				chestGranted: m.chestGranted,
+				championPointsUntilNextLevel: m.championPointsUntilNextLevel,
+				championPointsSinceLastLevel: m.championPointsSinceLastLevel,
+				updatedAt: new Date(),
+			})
+			.onConflictDoUpdate({
+				target: [championMastery.puuid, championMastery.championId],
+				set: {
+					championLevel: m.championLevel,
+					championPoints: m.championPoints,
+					lastPlayTime: new Date(m.lastPlayTime),
+					tokensEarned: m.tokensEarned,
+					chestGranted: m.chestGranted,
+					championPointsUntilNextLevel: m.championPointsUntilNextLevel,
+					championPointsSinceLastLevel: m.championPointsSinceLastLevel,
+					updatedAt: new Date(),
+				},
+			}),
+	);
+
+	await Promise.all(promises);
 };

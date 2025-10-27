@@ -8,7 +8,7 @@ export const getSummonerRateLimit = async (puuid: string, region: Regions) => {
 	const summonerV4DTO = await lolApiSummonerByPUUID(puuid, region);
 
 	const summoner: Summoner = {
-		summonerId: summonerV4DTO.id,
+		summonerId: null,
 		accountId: null,
 		createdAt: new Date(),
 		updatedAt: new Date(),

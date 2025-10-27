@@ -1,27 +1,26 @@
-import type { InferSelectModel } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
 import { db } from "@/db";
-import { type summoner, summoner as summonerTable } from "@/db/schema";
+import { summoner as summonerTable } from "@/db/schema";
+import type { Summoner } from "@/lib/types";
 import { getSummonerRateLimit } from "@/server/getSummonerRateLimit";
 
-type SummonerRow = InferSelectModel<typeof summoner>;
 export const upsertSummoner = async (
 	puuid: string,
 	region: Regions,
-): Promise<SummonerRow> => {
+): Promise<Summoner | undefined> => {
 	const { account, summoner } = await getSummonerRateLimit(puuid, region);
 
 	if (!summoner) {
 		console.log("Could not find summoner", puuid, region);
-		return;
+		return undefined;
 	}
 
 	return upsertSummonerBySummoner(summoner, region, account);
 };
 
 export const upsertSummonerBySummoner = async (
-	summoner: SummonerRow,
+	summoner: Summoner,
 	region: Regions,
 	account: AccountDto,
 ) => {
@@ -36,6 +35,7 @@ export const upsertSummonerBySummoner = async (
 			revisionDate: summoner.revisionDate,
 			gameName: account.gameName,
 			tagLine: account.tagLine,
+			accountId: summoner.accountId,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		})
@@ -50,7 +50,8 @@ export const upsertSummonerBySummoner = async (
 				tagLine: account.tagLine,
 				updatedAt: new Date(),
 			},
-		});
+		})
+		.returning();
 
-	return upserted;
+	return upserted[0];
 };
