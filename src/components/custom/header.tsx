@@ -4,7 +4,7 @@ import { ToggleEye } from "@/components/custom/toggle-eye";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { filteredOut } from "@/lib/champs";
-import type { CompleteChampionInfo } from "@/routes/$region.$username.index";
+import type { CompleteChampionInfo } from "@/lib/types";
 import { useMatchHistoryStore } from "@/stores/match-history-store";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 import { useUserContext } from "@/stores/user-store";

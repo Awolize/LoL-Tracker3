@@ -1,6 +1,6 @@
 import ChampionItem from "@/components/custom/champion-item";
 import { sortAlgorithm } from "@/lib/champs";
-import type { CompleteChampionInfo } from "@/routes/$region.$username.index";
+import type { CompleteChampionInfo } from "@/lib/types";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 
 const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {

@@ -1,7 +1,10 @@
 import { Regions } from "twisted/dist/constants";
-import type { CompleteChampionInfo } from "@/routes/$region.$username.index";
+import type { CompleteChampionInfo } from "@/lib/types";
 
-export const filteredOut = (champ: CompleteChampionInfo, filterPoints) => {
+export const filteredOut = (
+	champ: CompleteChampionInfo,
+	filterPoints: number,
+) => {
 	const disabled: boolean = champ.championPoints > filterPoints;
 	return disabled;
 };
