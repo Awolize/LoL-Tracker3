@@ -10,3 +10,8 @@ count.txt
 .wrangler
 .vinxi
 todos.json
+
+dist
+.output
+.vinxi
+.tanstack
