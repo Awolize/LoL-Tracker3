@@ -1,1 +1,0 @@
-ALTER TABLE "ChampionMastery" DROP COLUMN "chestGranted";

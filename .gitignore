@@ -1,17 +1,45 @@
-node_modules
-.DS_Store
-dist
-dist-ssr
-*.local
-count.txt
+# Environment files
 .env
-.nitro
-.tanstack
-.wrangler
-.vinxi
-todos.json
+.env.local
+.env.*.local
 
-dist
-.output
-.vinxi
-.tanstack
+# Docker data directories
+db/data/
+db/share/
+minio/data/
+
+# Database backups
+*.sql
+backup_*.sql
+
+# Docker volumes
+docker-compose.override.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+
+# Build outputs (if built at root)
+dist/
+build/
+.output/
