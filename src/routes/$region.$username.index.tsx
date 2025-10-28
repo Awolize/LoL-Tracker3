@@ -23,16 +23,16 @@ export const getUserByNameAndRegionFn = createServerFn({
 			const user = await getSummonerByUsernameRateLimit(
 				username.toLowerCase(),
 				region,
-			)
+			);
 
 			const versionRow = await db.query.championDetails.findFirst({
 				columns: { version: true },
-			})
+			});
 			const version = versionRow?.version ?? "latest";
 
 			const profileIconUrl = user.summoner?.profileIconId
 				? `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${user.summoner.profileIconId}.png`
-				: null
+				: null;
 
 			return { summonerData: user.summoner, profileIconUrl, error: null };
 		} catch (err: any) {
@@ -53,7 +53,7 @@ export const Route = createFileRoute("/$region/$username/")({
 				username,
 				region,
 			},
-		})
+		});
 
 		return {
 			username,
@@ -61,7 +61,7 @@ export const Route = createFileRoute("/$region/$username/")({
 			rawUsername,
 			rawRegion,
 			...result,
-		}
+		};
 	},
 	component: RouteComponent,
 	head: ({ loaderData }) => {
@@ -83,7 +83,7 @@ export const Route = createFileRoute("/$region/$username/")({
 				},
 				{ name: "title", content: "LoL Mastery Tracker: ${username} Profile" },
 			],
-		}
+		};
 	},
 });
 
@@ -107,7 +107,7 @@ export default function RouteComponent() {
 				<RiotGamesDisclaimer />
 			</footer>
 		</div>
-	)
+	);
 }
 
 function Client() {
@@ -128,7 +128,7 @@ function Client() {
 					Riot API rate limit reached. Please try again in a few seconds.
 				</p>
 			</div>
-		)
+		);
 	}
 
 	if (!summonerData) {
@@ -136,7 +136,7 @@ function Client() {
 			<div className="flex items-center justify-center h-screen">
 				<p className="text-xl text-red-500">Summoner not found.</p>
 			</div>
-		)
+		);
 	}
 
 	const { summonerLevel } = summonerData;
@@ -172,6 +172,7 @@ function Client() {
 									region: rawRegion,
 									username: rawUsername,
 								}}
+								preload="intent"
 								className="underline"
 							>
 								Mastery Points Tracker
@@ -191,6 +192,7 @@ function Client() {
 									region: rawRegion,
 									username: rawUsername,
 								}}
+								preload="intent"
 								className="underline"
 							>
 								Champion Tracker
@@ -208,5 +210,5 @@ function Client() {
 				</div>
 			</ul>
 		</div>
-	)
+	);
 }
