@@ -5,12 +5,6 @@ services:
       context: ./app
       dockerfile: Dockerfile
       args:
-        DATABASE_URL: ${DATABASE_URL}
-        RIOT_API_KEY: ${RIOT_API_KEY}
-        MINIO_ENDPOINT: ${MINIO_ENDPOINT}
-        MINIO_PORT: ${MINIO_PORT}
-        MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
-        MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
         VITE_SENTRY_ORG: ${VITE_SENTRY_ORG}
         VITE_SENTRY_PROJECT: ${VITE_SENTRY_PROJECT}
         SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}

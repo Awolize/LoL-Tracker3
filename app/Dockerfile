@@ -1,7 +1,7 @@
 # syntax=docker/dockerfile:1
 
 # Base stage with Node.js
-FROM node:20-alpine AS base
+FROM node:24-alpine AS base
 
 # Install pnpm
 RUN corepack enable && corepack prepare pnpm@latest --activate
@@ -28,23 +28,12 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy source code
 COPY . .
 
-# Set build-time environment variables
-ARG DATABASE_URL
-ARG RIOT_API_KEY
-ARG MINIO_ENDPOINT
-ARG MINIO_PORT
-ARG MINIO_ACCESS_KEY
-ARG MINIO_SECRET_KEY
-ARG VITE_SENTRY_ORG
-ARG VITE_SENTRY_PROJECT
-ARG SENTRY_AUTH_TOKEN
+# Set build-time environment variables (only Sentry for build/sourcemaps)
+# These are optional - Sentry will gracefully skip if not provided
+ARG VITE_SENTRY_ORG=""
+ARG VITE_SENTRY_PROJECT=""
+ARG SENTRY_AUTH_TOKEN=""
 
-ENV DATABASE_URL=$DATABASE_URL
-ENV RIOT_API_KEY=$RIOT_API_KEY
-ENV MINIO_ENDPOINT=$MINIO_ENDPOINT
-ENV MINIO_PORT=$MINIO_PORT
-ENV MINIO_ACCESS_KEY=$MINIO_ACCESS_KEY
-ENV MINIO_SECRET_KEY=$MINIO_SECRET_KEY
 ENV VITE_SENTRY_ORG=$VITE_SENTRY_ORG
 ENV VITE_SENTRY_PROJECT=$VITE_SENTRY_PROJECT
 ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
@@ -69,8 +58,8 @@ ENV HOST=0.0.0.0
 
 # Create a non-root user
 RUN addgroup -g 1001 -S nodejs && \
-    adduser -S tanstack -u 1001 -G nodejs && \
-    chown -R tanstack:nodejs /app
+  adduser -S tanstack -u 1001 -G nodejs && \
+  chown -R tanstack:nodejs /app
 
 USER tanstack
 
