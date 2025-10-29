@@ -28,8 +28,6 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 
 	const { getChampionImage } = useDataDragonPath(champ.version);
 
-	console.log(getChampionImage(champ.full));
-
 	if (hide) return <></>;
 
 	return (

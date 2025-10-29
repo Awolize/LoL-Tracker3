@@ -6,7 +6,6 @@ const themes: UserTheme[] = ["light", "dark", "system"];
 
 export function ThemeSelector() {
 	const { userTheme, setTheme } = useTheme();
-	console.log(userTheme);
 
 	const cycleTheme = () => {
 		const currentIndex = themes.findIndex((t) => t === userTheme);

@@ -51,6 +51,17 @@ WORKDIR /app
 # Copy built application from builder (Nitro output)
 COPY --from=builder /app/.output ./.output
 
+# Copy migration files and scripts
+COPY --from=builder /app/drizzle ./drizzle
+COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
+COPY --from=builder /app/src/db/migrate.ts ./src/db/migrate.ts
+COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/node_modules ./node_modules
+COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
+
+# Make entrypoint script executable
+RUN chmod +x ./docker-entrypoint.sh
+
 # Set runtime environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
@@ -70,5 +81,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application using Nitro's output
-CMD ["node", ".output/server/index.mjs"]
+# Start the application using the entrypoint script
+CMD ["./docker-entrypoint.sh"]
