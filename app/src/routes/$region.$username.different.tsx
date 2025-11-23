@@ -1,32 +1,33 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { useMemo, useState, useEffect } from "react";
-import { DifferentSideBar } from "@/components/custom/different-side-bar";
-import { RoleChampionList } from "@/components/custom/role-champion-list";
-import { ChampionListHeader } from "@/components/custom/champion-list-header";
+import { useEffect, useMemo, useState } from "react";
 import FooterLinks from "@/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
 import { MainTitleLink } from "@/components/header/MainTitleLink";
 import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
-import { regionToConstant } from "@/lib/champs";
-import type {
-	CompleteChampionInfo
-} from "@/lib/types";
-import { getChallengesConfig } from "@/server/get-challenges-config";
-import { getCompleteChampionData } from "@/server/get-complete-champion-data";
-import { getUserByNameAndRegion } from "@/server/get-user-by-name-and-region";
-import { getJackOfAllChamps } from "@/server/different-challenge-queries";
-import { getChampionOcean } from "@/server/different-challenge-queries";
-import { getChampionOcean2024Split3 } from "@/server/different-challenge-queries";
-import { getAdaptToAllSituations } from "@/server/different-challenge-queries";
-import { getInvincible } from "@/server/different-challenge-queries";
+import { DifferentSideBar } from "@/features/challenges/components/challenge-side-bar";
+import { ChampionListHeader } from "@/features/mastery/components/champion-list-header";
+import { RoleChampionList } from "@/features/mastery/components/role-champion-list";
+import { regionToConstant } from "@/features/shared/champs";
+import type { CompleteChampionInfo } from "@/features/shared/types";
+import { getChallengesConfig } from "@/server/api/get-challenges-config";
+import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
 import {
-	OptionsProvider,
-} from "@/stores/options-persistent-store";
+	getAdaptToAllSituations,
+	getChampionOcean,
+	getChampionOcean2024Split3,
+	getInvincible,
+	getJackOfAllChamps,
+} from "@/server/challenges/different-challenge-queries";
+import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
+import {
+	ChallengeProvider,
+	useChallengeContext,
+} from "@/stores/challenge-store";
+import { OptionsProvider } from "@/stores/options-persistent-store";
 import { UserProvider } from "@/stores/user-store";
-import { ChallengeProvider, useChallengeContext } from "@/stores/challenge-store";
 
 export const getSummonerByNameRegionDifferent = createServerFn({
 	method: "GET",
@@ -48,15 +49,16 @@ export const getSummonerByNameRegionDifferent = createServerFn({
 			user,
 			playerChampionInfo: completeChampionsData.completeChampionsData,
 			challenges,
-			version: completeChampionsData.completeChampionsData[0]?.version || "14.3.1",
+			version:
+				completeChampionsData.completeChampionsData[0]?.version || "14.3.1",
 		};
 	});
 
 export const Route = createFileRoute("/$region/$username/different")({
 	loader: async ({ params: { username, region } }) => {
-		const result = await getSummonerByNameRegionDifferent({
+		const result = (await getSummonerByNameRegionDifferent({
 			data: { username, region },
-		}) as any;
+		})) as any;
 
 		return {
 			user: result.user,
@@ -83,7 +85,14 @@ export const Route = createFileRoute("/$region/$username/different")({
 				},
 				{
 					name: "keywords",
-					content: [region, username, "LoL", "mastery", "challenges", "tracker"].join(", "),
+					content: [
+						region,
+						username,
+						"LoL",
+						"mastery",
+						"challenges",
+						"tracker",
+					].join(", "),
 				},
 			],
 		};
@@ -95,7 +104,9 @@ export function RouteComponent() {
 	const { user, playerChampionInfo, challenges, version, username, region } =
 		Route.useLoaderData();
 
-	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) => a.name.localeCompare(b.name));
+	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) =>
+		a.name.localeCompare(b.name),
+	);
 
 	const queryParams = useMemo(
 		() => ({ username: `${user.gameName}#${user.tagLine}`, region }),
@@ -103,7 +114,9 @@ export function RouteComponent() {
 	);
 
 	const ChallengeLogic = () => {
-		const selectedChallengeId = useChallengeContext((state) => state.selectedChallengeId);
+		const selectedChallengeId = useChallengeContext(
+			(state) => state.selectedChallengeId,
+		);
 		const [challengeChampions, setChallengeChampions] = useState<any[]>([]);
 
 		useEffect(() => {
@@ -143,7 +156,11 @@ export function RouteComponent() {
 				</header>
 
 				<div className="flex flex-row">
-					<DifferentSideBar challenges={challenges} username={`${user.gameName}#${user.tagLine}`} region={region} />
+					<DifferentSideBar
+						challenges={challenges}
+						username={`${user.gameName}#${user.tagLine}`}
+						region={region}
+					/>
 					<main className="flex flex-col flex-1">
 						<ChampionListHeader
 							challengeChampions={challengeChampions}

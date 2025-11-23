@@ -11,8 +11,16 @@ interface Store {
 
 interface StoreState extends Store {
 	setSelectedChallengeId: (id: number | null) => void;
-	markChampion: (profileId: string, challengeId: number, championId: number) => void;
-	unmarkChampion: (profileId: string, challengeId: number, championId: number) => void;
+	markChampion: (
+		profileId: string,
+		challengeId: number,
+		championId: number,
+	) => void;
+	unmarkChampion: (
+		profileId: string,
+		challengeId: number,
+		championId: number,
+	) => void;
 }
 
 const initialState = {
@@ -25,7 +33,8 @@ const useChallengeStore = (persistName: string) => {
 		persist(
 			(set) => ({
 				...initialState,
-				setSelectedChallengeId: (id) => set((state) => ({ ...state, selectedChallengeId: id })),
+				setSelectedChallengeId: (id) =>
+					set((state) => ({ ...state, selectedChallengeId: id })),
 				markChampion: (profileId, challengeId, championId) => {
 					set((state) => {
 						const profileData = state.manuallyMarked[profileId] || {};
@@ -103,9 +112,7 @@ export function ChallengeProvider({
 	);
 }
 
-export function useChallengeContext<T>(
-	selector: (state: StoreState) => T,
-): T {
+export function useChallengeContext<T>(selector: (state: StoreState) => T): T {
 	const store = useContext(ChallengeContext);
 	if (!store) throw new Error("Missing ChallengeContext.Provider in the tree");
 	return useStore(store, selector);

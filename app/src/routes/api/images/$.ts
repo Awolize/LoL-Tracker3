@@ -1,5 +1,5 @@
+import { minio } from "@/features/shared/minio";
 import { createFileRoute } from "@tanstack/react-router";
-import { minio } from "@/lib/minio";
 
 // Helper function to convert stream to buffer
 const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> => {

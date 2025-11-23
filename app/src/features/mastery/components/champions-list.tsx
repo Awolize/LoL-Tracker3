@@ -1,0 +1,59 @@
+import ChampionItem from "@/features/mastery/components/champion-item";
+import { sortAlgorithm } from "@/features/shared/champs";
+import type { CompleteChampionInfo } from "@/features/shared/types";
+import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
+
+const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
+	const {
+		showLevels,
+		filterPoints,
+		showMasteryPoints,
+		selectedChampions,
+		sortOrder,
+		showSelectedChampions,
+		championsScale,
+		toggleSelectedChampion,
+	} = useOptionsPersistentContext((state) => state);
+
+	return (
+		<div className="w-full p-4">
+			<p>
+				{selectedChampions.size}/{champions.length}
+			</p>
+			<div
+				className="grid justify-between gap-2"
+				style={{
+					gridTemplateColumns: `repeat(auto-fill, ${championsScale}px)`,
+				}}
+			>
+				{champions
+					.sort((a, b) => sortAlgorithm(sortOrder, a, b))
+					.map((championInfo) => {
+						const hidden = selectedChampions.has(championInfo.id);
+
+						if (hidden && !showSelectedChampions) {
+							return null;
+						}
+
+						return (
+							<ChampionItem
+								key={championInfo.id}
+								champ={championInfo}
+								filterPoints={filterPoints}
+								hiddenChamp={selectedChampions.has(championInfo.id)}
+								showLevel={showLevels}
+								showFinished={false}
+								showMasteryPoints={showMasteryPoints}
+								handleChampionClick={() =>
+									showSelectedChampions &&
+									toggleSelectedChampion(championInfo.id)
+								}
+							/>
+						);
+					})}
+			</div>
+		</div>
+	);
+};
+
+export default ChampionList;

@@ -1,30 +1,30 @@
 // app/routes/$region/$username/mastery.tsx
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import ChampionList from "@/components/custom/champions-list";
-import Header from "@/components/custom/header";
-import MatchHistory from "@/components/custom/match-history";
-import SortedChampionList from "@/components/custom/role-sorted-champion-list";
 import FooterLinks from "@/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
 import { MainTitleLink } from "@/components/header/MainTitleLink";
 import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
-import { regionToConstant } from "@/lib/champs";
+import ChampionList from "@/features/mastery/components/champions-list";
+import SortedChampionList from "@/features/mastery/components/role-sorted-champion-list";
+import MatchHistory from "@/features/matches/components/match-history";
+import { regionToConstant } from "@/features/shared/champs";
 import type {
 	CompleteChampionInfo,
 	CompleteMatch,
 	Summoner,
-} from "@/lib/types";
-import { getCompleteChampionData } from "@/server/get-complete-champion-data";
-import { getMatches } from "@/server/get-matches";
-import { getUserByNameAndRegion } from "@/server/get-user-by-name-and-region";
+} from "@/features/shared/types";
+import Header from "@/features/summoner/components/summoner-header";
+import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
+import { getMatches } from "@/server/matches/get-matches";
 import {
 	OptionsProvider,
 	useOptionsPersistentContext,
 } from "@/stores/options-persistent-store";
 import { UserProvider } from "@/stores/user-store";
+import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
 
 export const getSummonerByNameRegion = createServerFn({
 	method: "GET",
@@ -40,7 +40,7 @@ export const getSummonerByNameRegion = createServerFn({
 
 		const [completeChampionsData, matches] = await Promise.all([
 			getCompleteChampionData(region, user),
-			getMatches(user, 25),
+			getMatches(user, {}, 25),
 		]);
 		return {
 			user,
@@ -93,7 +93,9 @@ export function RouteComponent() {
 	const { user, playerChampionInfo, matches, version, username, region } =
 		Route.useLoaderData();
 
-	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) => a.name.localeCompare(b.name));
+	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) =>
+		a.name.localeCompare(b.name),
+	);
 
 	return (
 		<UserProvider user={user}>

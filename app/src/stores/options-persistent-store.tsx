@@ -1,9 +1,9 @@
+import  { SortOrder2 } from "@/features/summoner/components/summoner-header";
 import type React from "react";
 import { createContext, useContext, useRef } from "react";
 import superjson from "superjson";
 import { create, useStore } from "zustand";
 import { type PersistStorage, persist } from "zustand/middleware";
-import { SortOrder2 } from "@/components/custom/header";
 
 interface Store {
 	showMasteryPoints: boolean;
