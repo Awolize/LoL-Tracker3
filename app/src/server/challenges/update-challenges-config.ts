@@ -3,8 +3,8 @@ import type { Regions } from "twisted/dist/constants";
 import type { ConfigDTO } from "twisted/dist/models-dto";
 import { db } from "@/db";
 import { challengeLocalization, challengesConfig } from "@/db/schema";
-import { lolApi } from "@/server/lib/lol-api";
 import type { ChallengesConfig } from "@/features/shared/types";
+import { lolApi } from "@/server/lib/lol-api";
 
 // Converts your Prisma upserts to Drizzle logic
 const updateConfig = async (
