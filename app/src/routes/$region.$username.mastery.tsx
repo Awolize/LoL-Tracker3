@@ -93,7 +93,7 @@ export function RouteComponent() {
 	const { user, playerChampionInfo, matches, version, username, region } =
 		Route.useLoaderData();
 
-	playerChampionInfo.sort((a, b) => a.name.localeCompare(b.name));
+	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) => a.name.localeCompare(b.name));
 
 	return (
 		<UserProvider user={user}>
