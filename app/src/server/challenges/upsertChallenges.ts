@@ -9,7 +9,7 @@ import {
 	preferences,
 	totalPoints,
 } from "@/db/schema";
-import { lolApi } from "@/features/shared/lol-api";
+import { lolApi } from "@/server/lib/lol-api";
 
 type Summoner = InferSelectModel<typeof summoner>;
 

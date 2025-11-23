@@ -5,7 +5,7 @@ import {
 	DropdownMenuItem,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import ChampionItem from "@/features/mastery/components/champion-item";
+import ChampionItem from "@/features/mastery/champion-item";
 import type { CompleteChampionInfo } from "@/features/shared/types";
 import { useChallengeContext } from "@/stores/challenge-store";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";

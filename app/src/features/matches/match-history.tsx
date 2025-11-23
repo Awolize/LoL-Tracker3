@@ -6,7 +6,7 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from "@/components/ui/sheet";
-import MatchItem from "@/features/matches/components/match-item";
+import MatchItem from "@/features/matches/match-item";
 import type { CompleteMatch } from "@/features/shared/types";
 import { useMatchHistoryStore } from "@/stores/match-history-store";
 

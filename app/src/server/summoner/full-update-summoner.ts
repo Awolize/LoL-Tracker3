@@ -3,7 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import type { Regions } from "twisted/dist/constants";
 import { regionToRegionGroupForAccountAPI } from "twisted/dist/constants";
 import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
-import { riotApi } from "@/features/shared/riot-api";
+import { riotApi } from "@/server/lib/riot-api";
 import { updateChallengesConfigServer } from "@/server/challenges/update-challenges-config";
 import { upsertChallenges } from "@/server/challenges/upsertChallenges";
 import { updateChampionDetails } from "@/server/champions/update-champion-details";

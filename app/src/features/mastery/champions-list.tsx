@@ -1,4 +1,4 @@
-import ChampionItem from "@/features/mastery/components/champion-item";
+import ChampionItem from "@/features/mastery/champion-item";
 import { sortAlgorithm } from "@/features/shared/champs";
 import type { CompleteChampionInfo } from "@/features/shared/types";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";

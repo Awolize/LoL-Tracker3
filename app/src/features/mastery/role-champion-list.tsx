@@ -1,5 +1,5 @@
-import { DifferentChampionItem } from "@/features/challenges/components/challenge-champion-item";
-import { DifferentRoleHeader } from "@/features/challenges/components/challenge-role-header";
+import { DifferentChampionItem } from "@/features/challenges/challenge-champion-item";
+import { DifferentRoleHeader } from "@/features/challenges/challenge-role-header";
 import type {
 	ChampionDetails,
 	CompleteChampionInfo,

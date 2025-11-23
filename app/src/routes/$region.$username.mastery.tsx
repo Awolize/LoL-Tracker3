@@ -7,9 +7,9 @@ import { MainTitleLink } from "@/components/header/MainTitleLink";
 import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
-import ChampionList from "@/features/mastery/components/champions-list";
-import SortedChampionList from "@/features/mastery/components/role-sorted-champion-list";
-import MatchHistory from "@/features/matches/components/match-history";
+import ChampionList from "@/features/mastery/champions-list";
+import SortedChampionList from "@/features/mastery/role-sorted-champion-list";
+import MatchHistory from "@/features/matches/match-history";
 import { regionToConstant } from "@/features/shared/champs";
 import type {
 	CompleteChampionInfo,

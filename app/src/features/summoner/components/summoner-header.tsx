@@ -1,6 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
-import { DifferentHeaderCounter } from "@/features/mastery/components/header-counter";
+import { DifferentHeaderCounter } from "@/features/mastery/header-counter";
 import { filteredOut } from "@/features/shared/champs";
 import { type Choice, Dropdown } from "@/features/shared/components/dropdown";
 import { ScaleSlider } from "@/features/shared/components/scale-slider";

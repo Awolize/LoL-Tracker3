@@ -1,5 +1,5 @@
-import ChampionItem from "@/features/mastery/components/champion-item";
-import { RoleHeader } from "@/features/mastery/components/role-header";
+import ChampionItem from "@/features/mastery/champion-item";
+import { RoleHeader } from "@/features/mastery/role-header";
 import { filteredOut, sortAlgorithm } from "@/features/shared/champs";
 import type { CompleteChampionInfo } from "@/features/shared/types";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";

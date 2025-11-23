@@ -1,4 +1,4 @@
-import MatchTable from "@/features/matches/components/match-table-row";
+import MatchTable from "@/features/matches/match-table-row";
 import type { CompleteMatch } from "@/features/shared/types";
 import { useUserContext } from "@/stores/user-store";
 
