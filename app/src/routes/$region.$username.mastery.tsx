@@ -17,6 +17,7 @@ import type {
 	Summoner,
 } from "@/features/shared/types";
 import Header from "@/features/summoner/components/summoner-header";
+import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
 import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
 import { getMatches } from "@/server/matches/get-matches";
 import {
@@ -24,7 +25,6 @@ import {
 	useOptionsPersistentContext,
 } from "@/stores/options-persistent-store";
 import { UserProvider } from "@/stores/user-store";
-import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
 
 export const getSummonerByNameRegion = createServerFn({
 	method: "GET",

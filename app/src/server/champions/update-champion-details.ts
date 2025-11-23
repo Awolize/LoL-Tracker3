@@ -5,10 +5,10 @@ import type { ChampionsDataDragonDetails } from "twisted/dist/models-dto";
 import { db } from "@/db";
 import type { summoner } from "@/db/schema";
 import { championDetails } from "@/db/schema";
-import rolesJson from "./roles.json";
 import { lolApi } from "@/features/shared/lol-api";
 import type { CompleteChampionInfo } from "@/features/shared/types";
 import { masteryBySummoner } from "@/server/champions/mastery-by-summoner";
+import rolesJson from "./roles.json";
 
 // Flatten champion data (Drizzle expects a flat object)
 const flattenChamp = (obj: ChampionsDataDragonDetails) => ({

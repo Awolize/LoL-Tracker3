@@ -1,7 +1,7 @@
+import type { Regions } from "twisted/dist/constants";
 import type { Summoner } from "@/features/shared/types";
 import { lolApiSummonerByPUUID } from "@/server/api/lol-api-summoner-by-puuid";
 import { riotApiAccountByPUUID } from "@/server/api/riot-api-account-by-puuid";
-import type { Regions } from "twisted/dist/constants";
 
 export const getSummonerRateLimit = async (puuid: string, region: Regions) => {
 	const account = await riotApiAccountByPUUID(puuid, region);

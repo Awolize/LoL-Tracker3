@@ -9,10 +9,14 @@ import {
 	challengesChampionOcean2024Split3,
 	challengesInvincible,
 } from "@/db/schema";
-import  { regionToConstant } from "@/features/shared/champs";
-import type { Summoner, ChampionDetails } from "@/features/shared/types";
-import {  getSRMatches,  getArenaMatches, getMatches } from "@/server/matches/get-matches";
-import  { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
+import { regionToConstant } from "@/features/shared/champs";
+import type { ChampionDetails, Summoner } from "@/features/shared/types";
+import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
+import {
+	getArenaMatches,
+	getMatches,
+	getSRMatches,
+} from "@/server/matches/get-matches";
 
 async function clearChallenge(user: Summoner, challenge: string) {
 	const tableMap = {

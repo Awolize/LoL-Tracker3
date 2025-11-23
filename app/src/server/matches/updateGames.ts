@@ -9,7 +9,7 @@ import {
 	match as matchTable,
 	type summoner,
 } from "@/db/schema";
-import  { lolApi } from "@/features/shared/lol-api";
+import { lolApi } from "@/features/shared/lol-api";
 import { summonersFromGames } from "@/server/summoner/summonersFromGames";
 
 type SummonerRow = InferSelectModel<typeof summoner>;

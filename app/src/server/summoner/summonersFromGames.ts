@@ -1,6 +1,6 @@
-import { createSummoner } from "@/server/summoner/create-summoner";
 import type { Regions } from "twisted/dist/constants";
 import type { MatchV5DTOs } from "twisted/dist/models-dto";
+import { createSummoner } from "@/server/summoner/create-summoner";
 
 export const summonersFromGames = (game: MatchV5DTOs.MatchDto) => {
 	const participantSummoners = game.metadata.participants;
