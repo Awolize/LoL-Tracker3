@@ -43,16 +43,17 @@ export const regionToConstant = (region: string) => {
 		BR: Regions.BRAZIL,
 		EUNE: Regions.EU_EAST,
 		EUW: Regions.EU_WEST,
+		EUW1: Regions.EU_WEST,
 		KR: Regions.KOREA,
 		LA1: Regions.LAT_NORTH,
 		LA2: Regions.LAT_SOUTH,
-		NA: Regions.AMERICA_NORTH,
-		OC: Regions.OCEANIA,
-		TR: Regions.TURKEY,
+		NA1: Regions.AMERICA_NORTH,
+		OC1: Regions.OCEANIA,
+		TR1: Regions.TURKEY,
 		RU: Regions.RUSSIA,
-		JP: Regions.JAPAN,
-		PBE: Regions.PBE,
-	};
+		JP1: Regions.JAPAN,
+		PBE1: Regions.PBE,
+	} as Record<string, Regions>;
 
 	if (!regionMap[region]) {
 		throw new Error(`Invalid region: ${region}`);

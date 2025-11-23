@@ -5,6 +5,7 @@ import { eq, and, desc } from "drizzle-orm";
 import { db } from "@/db";
 import { championMastery, summoner } from "@/db/schema";
 import { getSummonerByUsernameRateLimit } from "@/server/get-summoner-by-username-rate-limit";
+import { regionToConstant } from "@/lib/champs";
 
 const CHECK_INTERVAL_MS = 1000 * 60 * 60; // Check every hour if we should update
 
@@ -25,9 +26,10 @@ type SummonerResult = {
 export const getUserByNameAndRegionFn = createServerFn({
   method: "GET",
 })
-  .inputValidator((input: { username: string; region: Regions; forceRefresh?: boolean }) => input)
+   .inputValidator((input: { username: string; region: string; forceRefresh?: boolean }) => input)
   .handler(async ({ data }): Promise<SummonerResult> => {
     const { username, region, forceRefresh = false } = data;
+    const regionEnum = regionToConstant(region);
     const [gameName, tagLine] = username.toLowerCase().split("#");
 
     try {
@@ -36,7 +38,7 @@ export const getUserByNameAndRegionFn = createServerFn({
         where: and(
           eq(summoner.gameName, gameName),
           eq(summoner.tagLine, tagLine),
-          eq(summoner.region, region)
+          eq(summoner.region, regionEnum)
         ),
       });
 
@@ -73,7 +75,7 @@ export const getUserByNameAndRegionFn = createServerFn({
       }
 
       // 3. Fetch from Riot API
-      const user = await getSummonerByUsernameRateLimit(username.toLowerCase(), region);
+      const user = await getSummonerByUsernameRateLimit(username.toLowerCase(), regionEnum);
 
       if (!user.summoner) {
         throw new Error("Summoner not found");
@@ -95,7 +97,7 @@ export const getUserByNameAndRegionFn = createServerFn({
           puuid: user.summoner.puuid,
           gameName: gameName,
           tagLine: tagLine,
-          region: region,
+          region: regionEnum,
           profileIconId: user.summoner.profileIconId,
           summonerLevel: user.summoner.summonerLevel,
           summonerId: user.summoner.id,
