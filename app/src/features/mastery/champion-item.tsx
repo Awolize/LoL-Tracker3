@@ -26,9 +26,11 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 	const disabled = filteredOut(champ, filterPoints);
 	const hide = disabled && !showFinished;
 
+	if (!champ.version) return null;
+
 	const { getChampionImage } = useDataDragonPath(champ.version);
 
-	if (hide) return <></>;
+	if (hide) return null;
 
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: Not sure how to solve this. Putting it off until later date, more pressing matters

@@ -11,7 +11,7 @@ export async function getUserByNameAndRegion(
 ) {
 	function isWithinThreshold(date: Date) {
 		const oneDayInMillis = 24 * 60 * 60 * 1000;
-		return new Date().getTime() - date.getTime() <= oneDayInMillis;
+		return Date.now() - date.getTime() <= oneDayInMillis;
 	}
 
 	const [gameName, tagLine] = username.split("#");

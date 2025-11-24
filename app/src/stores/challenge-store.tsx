@@ -100,10 +100,7 @@ export function ChallengeProvider({
 	children,
 	persistName,
 }: ChallengeProviderProps) {
-	const storeRef = useRef<ChallengeStore>(null);
-	if (!storeRef.current) {
-		storeRef.current = useChallengeStore(persistName);
-	}
+	const storeRef = useRef(useChallengeStore(persistName));
 
 	return (
 		<ChallengeContext.Provider value={storeRef.current}>

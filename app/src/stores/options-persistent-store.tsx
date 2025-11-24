@@ -102,10 +102,7 @@ export function OptionsProvider({
 	children,
 	persistName,
 }: OptionsProviderProps) {
-	const storeRef = useRef<OptionsStore>(null);
-	if (!storeRef.current) {
-		storeRef.current = useOptionsPersistentStore(persistName);
-	}
+	const storeRef = useRef(useOptionsPersistentStore(persistName));
 
 	return (
 		<OptionsContext.Provider value={storeRef.current}>

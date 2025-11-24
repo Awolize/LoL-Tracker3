@@ -49,7 +49,7 @@ export const Route = createFileRoute("/api/images/$")({
 							"Cache-Control": "public, max-age=31536000, immutable",
 						},
 					});
-				} catch (error) {
+				} catch (_error) {
 					// If not in MinIO, fetch from ddragon and cache it
 					try {
 						const thirdPartyImageUrl = `https://ddragon.leagueoflegends.com/${imagePath}`;

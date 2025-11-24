@@ -8,7 +8,7 @@ export function ThemeSelector() {
 	const { userTheme, setTheme } = useTheme();
 
 	const cycleTheme = () => {
-		const currentIndex = themes.findIndex((t) => t === userTheme);
+		const currentIndex = themes.indexOf(userTheme);
 		const nextIndex = (currentIndex + 1) % themes.length;
 		setTheme(themes[nextIndex]);
 	};

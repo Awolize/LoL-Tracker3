@@ -1,8 +1,5 @@
-import github from "./github.svg";
 import githubColor from "./github-color.svg";
-import league from "./leagueoflegends.svg";
 import leagueColor from "./leagueoflegends-color.svg";
-import riot from "./riotgames.svg";
 import riotColor from "./riotgames-color.svg";
 
 export default function FooterLinks() {

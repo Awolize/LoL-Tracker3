@@ -141,7 +141,7 @@ export function RouteComponent() {
 				}
 			}
 			fetchChallenge();
-		}, [selectedChallengeId, queryParams]);
+		}, [selectedChallengeId]);
 
 		return (
 			<>

@@ -69,7 +69,7 @@ const themeScript = (() => {
 			} else {
 				document.documentElement.classList.add(validTheme);
 			}
-		} catch (e) {
+		} catch (_e) {
 			const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
 				.matches
 				? "dark"

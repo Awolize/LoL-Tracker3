@@ -31,7 +31,7 @@ export async function getMatches(
 	// Filter matches where the user is a participant and by matchInfo fields
 	const filteredMatches = matches.filter((match) => {
 		const matchInfo = match.matchInfos?.[0];
-		const hasUser = match.matchSummoners!.some(
+		const hasUser = match.matchSummoners?.some(
 			(ms) => ms.summoner.puuid === user.puuid,
 		);
 		const matchFilter =
