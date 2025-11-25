@@ -3,7 +3,7 @@
 	"private": true,
 	"type": "module",
 	"scripts": {
-		"dev": "vite dev --port 3000",
+		"dev": "vite dev --port 3001",
 		"start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs",
 		"build": "vite build",
 		"serve": "vite preview",

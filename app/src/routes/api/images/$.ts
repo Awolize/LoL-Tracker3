@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import sharp from "sharp";
 import { minio } from "@/server/lib/minio";
 
 // Helper function to convert stream to buffer
@@ -9,6 +10,63 @@ const streamToBuffer = (stream: NodeJS.ReadableStream): Promise<Buffer> => {
 		stream.on("end", () => resolve(Buffer.concat(chunks)));
 		stream.on("error", (err) => reject(err));
 	});
+};
+
+// Helper function to convert PNG images to WebP for optimization
+const convertPngToWebp = async (
+	buffer: Buffer,
+): Promise<{ buffer: Buffer; isConverted: boolean }> => {
+	try {
+		// Check if the buffer is a PNG by using sharp metadata
+		const metadata = await sharp(buffer).metadata();
+		if (metadata.format === "png") {
+			const webpBuffer = await sharp(buffer).webp({ quality: 85 }).toBuffer();
+			return { buffer: webpBuffer, isConverted: true };
+		}
+		return { buffer, isConverted: false };
+	} catch (error) {
+		console.error("Error converting image to WebP:", error);
+		// Return original buffer on error
+		return { buffer, isConverted: false };
+	}
+};
+
+// Helper function to get content type from extension
+const getContentType = (ext: string): string =>
+	ext === "jpg"
+		? "image/jpeg"
+		: ext === "png"
+			? "image/png"
+			: ext === "webp"
+				? "image/webp"
+				: ext === "svg"
+					? "image/svg+xml"
+					: "image/jpeg";
+
+// Helper function to process and store image
+const processAndStoreImage = async (
+	imagePath: string,
+	buffer: Buffer,
+	bucketName: string,
+) => {
+	const { buffer: processedBuffer, isConverted } =
+		await convertPngToWebp(buffer);
+	const ext = imagePath.split(".").pop()?.toLowerCase() || "";
+	let contentType = getContentType(ext);
+
+	if (isConverted) {
+		contentType = "image/webp";
+		// Store optimized version
+		await minio.putObject(
+			bucketName,
+			imagePath,
+			processedBuffer,
+			processedBuffer.length,
+		);
+		return { buffer: processedBuffer, contentType };
+	}
+
+	return { buffer, contentType };
 };
 
 export const Route = createFileRoute("/api/images/$")({
@@ -29,20 +87,10 @@ export const Route = createFileRoute("/api/images/$")({
 					const objectStream = await minio.getObject(bucketName, imagePath);
 					const imageBuffer = await streamToBuffer(objectStream);
 
-					// Determine content type from file extension
+					// Serve cached image with appropriate content type
 					const ext = imagePath.split(".").pop()?.toLowerCase() || "";
-					const contentType =
-						ext === "jpg"
-							? "image/jpeg"
-							: ext === "png"
-								? "image/png"
-								: ext === "webp"
-									? "image/webp"
-									: ext === "svg"
-										? "image/svg+xml"
-										: "image/jpeg";
+					const contentType = getContentType(ext);
 
-					// Convert Buffer to Uint8Array for Response
 					return new Response(new Uint8Array(imageBuffer), {
 						headers: {
 							"Content-Type": contentType,
@@ -52,7 +100,12 @@ export const Route = createFileRoute("/api/images/$")({
 				} catch (_error) {
 					// If not in MinIO, fetch from ddragon and cache it
 					try {
-						const thirdPartyImageUrl = `https://ddragon.leagueoflegends.com/${imagePath}`;
+						// Translate .webp requests to .png for Riot's Data Dragon API
+						let riotPath = imagePath;
+						if (riotPath.endsWith(".webp")) {
+							riotPath = riotPath.slice(0, -5) + ".png";
+						}
+						const thirdPartyImageUrl = `https://ddragon.leagueoflegends.com/${riotPath}`;
 						const response = await fetch(thirdPartyImageUrl);
 
 						if (!response.ok) {
@@ -60,31 +113,16 @@ export const Route = createFileRoute("/api/images/$")({
 						}
 
 						const arrayBuffer = await response.arrayBuffer();
-						const imageBuffer = Buffer.from(arrayBuffer);
+						const imageBuffer = Buffer.from(new Uint8Array(arrayBuffer));
 
-						// Determine content type from file extension
-						const ext = imagePath.split(".").pop()?.toLowerCase() || "";
-						const contentType =
-							ext === "jpg"
-								? "image/jpeg"
-								: ext === "png"
-									? "image/png"
-									: ext === "webp"
-										? "image/webp"
-										: ext === "svg"
-											? "image/svg+xml"
-											: "image/jpeg";
-
-						// Store in MinIO for future requests (without optimization for now)
-						await minio.putObject(
-							bucketName,
+						// Process, convert if needed, and store in MinIO
+						const { buffer, contentType } = await processAndStoreImage(
 							imagePath,
 							imageBuffer,
-							imageBuffer.length,
+							bucketName,
 						);
 
-						// Convert Buffer to Uint8Array for Response
-						return new Response(new Uint8Array(imageBuffer), {
+						return new Response(new Uint8Array(buffer), {
 							headers: {
 								"Content-Type": contentType,
 								"Cache-Control": "public, max-age=31536000, immutable",
