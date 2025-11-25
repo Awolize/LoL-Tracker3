@@ -142,14 +142,20 @@ function Main({
 	return (
 		<main className="flex flex-col">
 			<Header champions={playerChampionInfo} />
-
 			{byRole ? (
 				<SortedChampionList champions={playerChampionInfo} />
 			) : (
 				<ChampionList champions={playerChampionInfo} />
 			)}
-
 			<MatchHistory matches={matches} />
+			<button
+				type="button"
+				onClick={() => {
+					throw new Error("Sentry Test Error");
+				}}
+			>
+				Break the world
+			</button>
 		</main>
 	);
 }
