@@ -1,6 +1,6 @@
 services:
-  app:
-    container_name: lol-app2
+  web:
+    container_name: lol-web2
     build:
       context: ./app
       dockerfile: Dockerfile
@@ -18,14 +18,15 @@ services:
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       PORT: 3000
     ports:
-      - "9003:3000"
+      - "9103:3000"
     restart: unless-stopped
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.enable=true"
-      - "traefik.http.routers.lol-app.rule=Host(`lol.awot.dev`)"
-      - "traefik.http.routers.lol-app.entrypoints=websecure"
-      - "traefik.http.routers.lol-app.tls.certresolver=myresolver"
+      - "traefik.http.routers.lol-web2.rule=Host(`lol2.awot.dev`)"
+      - "traefik.http.routers.lol-web2.entrypoints=websecure"
+      - "traefik.http.routers.lol-web2.tls.certresolver=myresolver"
+      - traefik.http.services.lol-web2.loadbalancer.server.port=3000
     depends_on:
       db:
         condition: service_healthy
@@ -33,6 +34,7 @@ services:
         condition: service_started
     networks:
       - lol-network
+      - webnet
 
   db:
     image: postgres:16-alpine
@@ -49,7 +51,7 @@ services:
       - ./db/share:/pgshare
       - ./db/scripts:/pgscripts:ro
     ports:
-      - "5432:5432"
+      - "9132:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
@@ -67,8 +69,8 @@ services:
       MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
       MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
     ports:
-      - "9000:9000"
-      - "9005:9005"
+      - "9100:9000"
+      - "9105:9005"
     volumes:
       - ./minio/data:/data
     command: server /data --console-address ":9005"
@@ -85,3 +87,5 @@ services:
 networks:
   lol-network:
     driver: bridge
+  webnet:
+    external: true
