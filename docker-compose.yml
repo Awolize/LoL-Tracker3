@@ -23,10 +23,11 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=false"
       - "traefik.enable=true"
+      - "traefik.docker.network=webnet"
       - "traefik.http.routers.lol-web2.rule=Host(`lol2.awot.dev`)"
       - "traefik.http.routers.lol-web2.entrypoints=websecure"
       - "traefik.http.routers.lol-web2.tls.certresolver=myresolver"
-      - traefik.http.services.lol-web2.loadbalancer.server.port=3000
+      - "traefik.http.services.lol-web2.loadbalancer.server.port=3000"
     depends_on:
       db:
         condition: service_healthy
