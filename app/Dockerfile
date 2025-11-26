@@ -1,85 +1,69 @@
 # syntax=docker/dockerfile:1
 
-# Base stage with Node.js
+# 1. Base Stage
 FROM node:24-alpine AS base
+# Install compatibility libraries for Sharp/libc
+RUN apk add --no-cache libc6-compat
+# Enable corepack for pnpm
+RUN corepack enable
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Set working directory
 WORKDIR /app
 
-# Dependencies stage
+# 2. Dependencies Stage
 FROM base AS deps
-
-# Copy package files
 COPY package.json pnpm-lock.yaml ./
-COPY pnpm-workspace.yaml* ./
+# If you have a workspace file, keep this
+COPY pnpm-workspace.yaml* ./ 
 
-# Install dependencies
+# Install dependencies (frozen lockfile is safer for reproducible builds)
 RUN pnpm install --frozen-lockfile
 
-# Builder stage
+# 3. Builder Stage
 FROM base AS builder
-
-# Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
-
-# Copy source code
 COPY . .
 
-# Set build-time environment variables (only Sentry for build/sourcemaps)
-# These are optional - Sentry will gracefully skip if not provided
+
+# Build args for Sentry
 ARG VITE_SENTRY_ORG=""
 ARG VITE_SENTRY_PROJECT=""
 ARG SENTRY_AUTH_TOKEN=""
-
 ENV VITE_SENTRY_ORG=$VITE_SENTRY_ORG
 ENV VITE_SENTRY_PROJECT=$VITE_SENTRY_PROJECT
 ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NODE_ENV=production
 
-# Build the application
+# Build the app
 RUN pnpm run build
 
-# Runner stage
+# 4. Runner Stage
 FROM base AS runner
-
-# Set working directory
 WORKDIR /app
 
-# Copy built application from builder (Nitro output)
-COPY --from=builder /app/.output ./.output
-
-# Copy migration files and scripts
-COPY --from=builder /app/drizzle ./drizzle
-COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
-COPY --from=builder /app/src/db/migrate.ts ./src/db/migrate.ts
-COPY --from=builder /app/package.json ./package.json
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/docker-entrypoint.sh ./docker-entrypoint.sh
-
-# Make entrypoint script executable
-RUN chmod +x ./docker-entrypoint.sh
-
-# Set runtime environment variables
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
 
-# Create a non-root user
-RUN addgroup -g 1001 -S nodejs && \
-  adduser -S tanstack -u 1001 -G nodejs && \
-  chown -R tanstack:nodejs /app
+# Create user first
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 tanstack
+
+# Copy the standalone output directory
+# Nitro produces a self-contained .output folder containing server and public assets
+COPY --from=builder --chown=tanstack:nodejs /app/.output ./.output
+COPY --chown=tanstack:nodejs ./instrument.server.mjs ./.output/server
+
+# Copy package.json just in case your start script relies on it (optional but good practice)
+COPY --from=builder /app/package.json ./package.json
 
 USER tanstack
 
-# Expose port
 EXPOSE 3000
 
-# Health check
+# Health check (adjusted to use the PORT env var)
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Start the application using the entrypoint script
-CMD ["./docker-entrypoint.sh"]
+# Use the start script logic directly or the output file
+# If you need the Sentry instrumentation (instrument.server.mjs), use the command below:
+CMD ["node", "--import", "./.output/server/instrument.server.mjs", ".output/server/index.mjs"]

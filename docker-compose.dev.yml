@@ -1,11 +1,39 @@
+name: LoL-Tracker3-dev
 services:
+  web:
+    container_name: web
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+      args:
+        VITE_SENTRY_ORG: ${VITE_SENTRY_ORG}
+        VITE_SENTRY_PROJECT: ${VITE_SENTRY_PROJECT}
+        SENTRY_AUTH_TOKEN: ${SENTRY_AUTH_TOKEN}
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      RIOT_API_KEY: ${RIOT_API_KEY}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_PORT: ${MINIO_PORT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      PORT: 3000
+    ports:
+      - "3001:3000"
+    restart: unless-stopped
+    depends_on:
+      - db
+      - minio
+    networks:
+      - internal-net
+
   db:
     image: postgres:16-alpine
-    container_name: lol-db-dev
+    container_name: db-dev
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-lol_tracker}
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PGPORT: 5432
     ports:
       - "5432:5432"
@@ -13,36 +41,24 @@ services:
       - ./db/data:/var/lib/postgresql/data
       - ./db/share:/pgshare
       - ./db/scripts:/pgscripts:ro
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d ${POSTGRES_DB:-lol_tracker}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 10s
     networks:
-      - lol-network-dev
+      - internal-net
 
   minio:
     image: minio/minio:latest
     container_name: lol-minio-dev
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-minioadmin}
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
     ports:
       - "9000:9000"
       - "9005:9005"
     volumes:
       - ./minio/data:/data
     command: server /data --console-address ":9005"
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 10s
     networks:
-      - lol-network-dev
+      - internal-net
 
 networks:
-  lol-network-dev:
+  internal-net:
     driver: bridge

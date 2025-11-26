@@ -11,7 +11,7 @@ export default defineConfig({
 			projects: ["./tsconfig.json"],
 		}),
 		tailwindcss(),
-		tanstackStart(),
+		tanstackStart({ srcDirectory: "src" }),
 		nitro({ preset: "node-server" }),
 		viteReact(),
 	],

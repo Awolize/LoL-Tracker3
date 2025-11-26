@@ -4,7 +4,7 @@ import {
 	HeadContent,
 	Scripts,
 } from "@tanstack/react-router";
-import { ThemeProvider } from "@/hooks/theme-provider";
+import { ThemeProvider, themeScript } from "@/hooks/theme-provider";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {
@@ -31,6 +31,11 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 				href: appCss,
 			},
 		],
+		scripts: [
+			{
+				children: themeScript,
+			},
+		],
 	}),
 
 	shellComponent: RootDocument,
@@ -43,7 +48,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 			</head>
 			<body>
-				{/* <Header /> */}
 				<ThemeProvider>
 					{children}
 					<Scripts />

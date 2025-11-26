@@ -1,4 +1,3 @@
-import { ScriptOnce } from "@tanstack/react-router";
 import { createClientOnlyFn, createIsomorphicFn } from "@tanstack/react-start";
 import { createContext, type ReactNode, use, useEffect, useState } from "react";
 import { z } from "zod";
@@ -52,7 +51,7 @@ const setupPreferredListener = createClientOnlyFn(() => {
 	return () => mediaQuery.removeEventListener("change", handler);
 });
 
-const themeScript = (() => {
+export const themeScript = (() => {
 	function themeFn() {
 		try {
 			const storedTheme = localStorage.getItem("ui-theme") || "system";
@@ -109,8 +108,6 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 
 	return (
 		<ThemeContext value={{ userTheme, appTheme, setTheme }}>
-			<ScriptOnce>{themeScript}</ScriptOnce>
-
 			{children}
 		</ThemeContext>
 	);
