@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { DifferentHeaderCounter } from "@/features/mastery/header-counter";
 import { filteredOut } from "@/features/shared/champs";
@@ -7,7 +6,6 @@ import { ScaleSlider } from "@/features/shared/components/scale-slider";
 import { SwitchWithLabel } from "@/features/shared/components/switch-with-label";
 import { ToggleEye } from "@/features/shared/components/toggle-eye";
 import type { CompleteChampionInfo } from "@/features/shared/types";
-import { useMatchHistoryStore } from "@/stores/match-history-store";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 import { useUserContext } from "@/stores/user-store";
 import { FullSummonerUpdate } from "./summoner-update";
@@ -36,9 +34,6 @@ export default function Header({
 		toggleSortedByRole,
 		toggleShowSelectedChampions,
 	} = useOptionsPersistentContext((state) => state);
-	const toggleShowMatchHistory = useMatchHistoryStore(
-		(state) => state.toggleShowMatchHistory,
-	);
 
 	const user = useUserContext((s) => s.user);
 
@@ -119,19 +114,11 @@ export default function Header({
 					checked={showMasteryPoints}
 					onChange={toggleMasteryPoints}
 				/>
+				<div className="h-8 w-[1px] bg-gray-500" />
 				<div className="flex flex-col items-center gap-3">
 					<Label>Image size</Label>
 					<ScaleSlider />
 				</div>
-				<div className="h-8 w-[1px] bg-gray-500" />
-				<Button
-					size={"sm"}
-					variant="secondary"
-					className="w-32"
-					onClick={toggleShowMatchHistory}
-				>
-					Match history
-				</Button>
 			</div>
 			{/* Right (optional, can be empty) */}
 			<div className="flex flex-1 justify-end" />

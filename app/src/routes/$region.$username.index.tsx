@@ -274,6 +274,23 @@ function Client() {
 					</Link>
 
 					<Link
+						to="/$region/$username/matches"
+						params={{
+							region: rawRegion,
+							username: rawUsername,
+						}}
+						preload="intent"
+						className="group rounded-lg border border-border p-6 transition-all hover:border-primary hover:bg-accent/50 hover:shadow-lg"
+					>
+						<h2 className="text-xl font-semibold transition-colors group-hover:text-primary">
+							Match History
+						</h2>
+						<p className="mt-2 text-sm text-muted-foreground">
+							View your recent games and performance statistics.
+						</p>
+					</Link>
+
+					<Link
 						to="/$region/$username/different"
 						params={{
 							region: rawRegion,

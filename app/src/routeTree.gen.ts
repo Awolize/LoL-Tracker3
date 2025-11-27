@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as RegionUsernameIndexRouteImport } from './routes/$region.$username.index'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
+import { Route as RegionUsernameMatchesRouteImport } from './routes/$region.$username.matches'
 import { Route as RegionUsernameMasteryRouteImport } from './routes/$region.$username.mastery'
 import { Route as RegionUsernameDifferentRouteImport } from './routes/$region.$username.different'
 
@@ -30,6 +31,11 @@ const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
   path: '/api/images/$',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RegionUsernameMatchesRoute = RegionUsernameMatchesRouteImport.update({
+  id: '/$region/$username/matches',
+  path: '/$region/$username/matches',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegionUsernameMasteryRoute = RegionUsernameMasteryRouteImport.update({
   id: '/$region/$username/mastery',
   path: '/$region/$username/mastery',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/$region/$username/matches': typeof RegionUsernameMatchesRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/$region/$username': typeof RegionUsernameIndexRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/$region/$username/matches': typeof RegionUsernameMatchesRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/$region/$username': typeof RegionUsernameIndexRoute
 }
@@ -60,6 +68,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
+  '/$region/$username/matches': typeof RegionUsernameMatchesRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/$region/$username/': typeof RegionUsernameIndexRoute
 }
@@ -69,6 +78,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/$region/$username/matches'
     | '/api/images/$'
     | '/$region/$username'
   fileRoutesByTo: FileRoutesByTo
@@ -76,6 +86,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/$region/$username/matches'
     | '/api/images/$'
     | '/$region/$username'
   id:
@@ -83,6 +94,7 @@ export interface FileRouteTypes {
     | '/'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
+    | '/$region/$username/matches'
     | '/api/images/$'
     | '/$region/$username/'
   fileRoutesById: FileRoutesById
@@ -91,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   RegionUsernameDifferentRoute: typeof RegionUsernameDifferentRoute
   RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
+  RegionUsernameMatchesRoute: typeof RegionUsernameMatchesRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
   RegionUsernameIndexRoute: typeof RegionUsernameIndexRoute
 }
@@ -118,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiImagesSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$region/$username/matches': {
+      id: '/$region/$username/matches'
+      path: '/$region/$username/matches'
+      fullPath: '/$region/$username/matches'
+      preLoaderRoute: typeof RegionUsernameMatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$region/$username/mastery': {
       id: '/$region/$username/mastery'
       path: '/$region/$username/mastery'
@@ -139,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   RegionUsernameDifferentRoute: RegionUsernameDifferentRoute,
   RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
+  RegionUsernameMatchesRoute: RegionUsernameMatchesRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
   RegionUsernameIndexRoute: RegionUsernameIndexRoute,
 }

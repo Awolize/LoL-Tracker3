@@ -1,4 +1,3 @@
-// app/routes/$region/$username/mastery.tsx
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import FooterLinks from "@/components/footer/FooterLinks";
@@ -9,17 +8,11 @@ import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import ChampionList from "@/features/mastery/champions-list";
 import SortedChampionList from "@/features/mastery/role-sorted-champion-list";
-import MatchHistory from "@/features/matches/match-history";
 import { regionToConstant } from "@/features/shared/champs";
-import type {
-	CompleteChampionInfo,
-	CompleteMatch,
-	Summoner,
-} from "@/features/shared/types";
+import type { CompleteChampionInfo, Summoner } from "@/features/shared/types";
 import Header from "@/features/summoner/components/summoner-header";
 import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
 import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
-import { getMatches } from "@/server/matches/get-matches";
 import {
 	OptionsProvider,
 	useOptionsPersistentContext,
@@ -38,14 +31,10 @@ export const getSummonerByNameRegion = createServerFn({
 
 		const user = await getUserByNameAndRegion(username, region);
 
-		const [completeChampionsData, matches] = await Promise.all([
-			getCompleteChampionData(region, user),
-			getMatches(user, {}, 25),
-		]);
+		const completeChampionsData = await getCompleteChampionData(region, user);
 		return {
 			user,
 			playerChampionInfo: completeChampionsData.completeChampionsData,
-			matches,
 			version: "latest",
 		};
 	});
@@ -59,7 +48,6 @@ export const Route = createFileRoute("/$region/$username/mastery")({
 		return {
 			user: result.user,
 			playerChampionInfo: result.playerChampionInfo,
-			matches: result.matches,
 			version: result.version,
 			region,
 			username,
@@ -90,7 +78,7 @@ export const Route = createFileRoute("/$region/$username/mastery")({
 
 // Correct component
 export function RouteComponent() {
-	const { user, playerChampionInfo, matches, version, username, region } =
+	const { user, playerChampionInfo, version, username, region } =
 		Route.useLoaderData();
 
 	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) =>
@@ -113,7 +101,6 @@ export function RouteComponent() {
 
 					<Main
 						playerChampionInfo={playerChampionInfo}
-						matches={matches}
 						user={user}
 						version={version}
 					/>
@@ -130,12 +117,10 @@ export function RouteComponent() {
 
 function Main({
 	playerChampionInfo,
-	matches,
 }: {
 	user: Summoner;
 	playerChampionInfo: CompleteChampionInfo[];
 	version: string;
-	matches: CompleteMatch[];
 }) {
 	const byRole = useOptionsPersistentContext((state) => state.byRole);
 
@@ -147,15 +132,6 @@ function Main({
 			) : (
 				<ChampionList champions={playerChampionInfo} />
 			)}
-			<MatchHistory matches={matches} />
-			<button
-				type="button"
-				onClick={() => {
-					throw new Error("Sentry Test Error");
-				}}
-			>
-				Break the world
-			</button>
 		</main>
 	);
 }
