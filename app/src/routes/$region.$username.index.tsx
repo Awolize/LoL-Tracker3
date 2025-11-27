@@ -13,11 +13,11 @@ import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import { regionToConstant } from "@/features/shared/champs";
-import { checkNameChangeFn } from "@/server/summoner/check-name-change";
+import { checkNameChangeFn } from "@/server/summoner/check-name-change.api";
 import {
 	getUserByNameAndRegionFn,
 	refreshSummonerDataFn,
-} from "@/server/summoner/summoner";
+} from "@/server/summoner/summoner.api";
 
 export const Route = createFileRoute("/$region/$username/")({
 	loader: async ({ params: { username: rawUsername, region: rawRegion } }) => {

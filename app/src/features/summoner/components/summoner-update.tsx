@@ -2,8 +2,8 @@ import { useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Summoner } from "@/features/shared/types";
-import { fullUpdateSummoner } from "@/server/summoner/full-update-summoner";
-import { getLastMasteryUpdate } from "@/server/summoner/summoner";
+import { fullUpdateSummoner } from "@/server/summoner/full-update-summoner.api";
+import { getLastMasteryUpdate } from "@/server/summoner/summoner.api";
 
 interface FullSummonerUpdateProps {
 	user: Summoner;
