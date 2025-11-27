@@ -73,7 +73,7 @@ const MatchTable: React.FC<MatchTableProps> = ({
 							</Link>
 						</div>
 
-						{/* K/D/A Stats */}
+						{/* KDA Stats */}
 						<div className="text-right">
 							<div className="text-sm font-bold">
 								<span className="text-green-600 dark:text-green-400">
@@ -90,8 +90,8 @@ const MatchTable: React.FC<MatchTableProps> = ({
 							</div>
 							<div className="text-xs text-muted-foreground">
 								{player.deaths === 0
-									? "∞ K/D"
-									: `${((player.kills + player.assists) / player.deaths).toFixed(1)} K/D`}
+									? "∞ KDA"
+									: `${((player.kills + player.assists) / player.deaths).toFixed(1)} KDA`}
 							</div>
 						</div>
 					</div>
