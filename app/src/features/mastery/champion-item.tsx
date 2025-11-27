@@ -9,7 +9,6 @@ interface ChampionItemProps {
 	handleChampionClick: (championId: number) => void;
 	filterPoints: number;
 	showFinished: boolean;
-	showLevel: boolean;
 	hiddenChamp: boolean;
 	showMasteryPoints: boolean;
 }
@@ -18,7 +17,6 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 	champ,
 	filterPoints,
 	showFinished,
-	showLevel,
 	hiddenChamp,
 	showMasteryPoints,
 	handleChampionClick,
@@ -40,12 +38,6 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 			onClick={() => handleChampionClick(champ.id)}
 		>
 			<div className="relative z-10">
-				{showLevel && (
-					<div className="absolute top-1 left-1 flex h-5 w-5 items-center justify-center rounded-full bg-gray-900 bg-opacity-50 font-bold text-xs">
-						{champ.championLevel}
-					</div>
-				)}
-
 				<img
 					src={getChampionImage(champ.full)}
 					style={{
@@ -57,14 +49,6 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 						{
 							"brightness-50 grayscale": hiddenChamp,
 							grayscale: disabled,
-							"border-4 border-sky-500 border-opacity-70":
-								showLevel && champ.championLevel >= 10,
-							"border-4 border-purple-600 border-opacity-60":
-								showLevel && champ.championLevel === 9,
-							"border-4 border-red-600 border-opacity-50":
-								showLevel && champ.championLevel === 8,
-							"border-4 border-yellow-700 border-opacity-25":
-								showLevel && champ.championLevel < 8,
 						},
 						"rounded",
 					)}

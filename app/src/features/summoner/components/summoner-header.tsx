@@ -24,7 +24,6 @@ export default function Header({
 	champions: CompleteChampionInfo[];
 }) {
 	const {
-		showLevels,
 		showMasteryPoints,
 		byRole,
 		filterPoints,
@@ -33,7 +32,6 @@ export default function Header({
 		selectedChampions,
 		setSortOrder,
 		setFilterPoints,
-		toggleLevels,
 		toggleMasteryPoints,
 		toggleSortedByRole,
 		toggleShowSelectedChampions,
@@ -120,11 +118,6 @@ export default function Header({
 					label={"Mastery Points"}
 					checked={showMasteryPoints}
 					onChange={toggleMasteryPoints}
-				/>
-				<SwitchWithLabel
-					label={"Levels"}
-					checked={showLevels}
-					onChange={toggleLevels}
 				/>
 				<div className="flex flex-col items-center gap-3">
 					<Label>Image size</Label>

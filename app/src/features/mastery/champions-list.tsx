@@ -5,7 +5,6 @@ import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 
 const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
 	const {
-		showLevels,
 		filterPoints,
 		showMasteryPoints,
 		selectedChampions,
@@ -41,7 +40,6 @@ const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
 								champ={championInfo}
 								filterPoints={filterPoints}
 								hiddenChamp={selectedChampions.has(championInfo.id)}
-								showLevel={showLevels}
 								showFinished={false}
 								showMasteryPoints={showMasteryPoints}
 								handleChampionClick={() =>

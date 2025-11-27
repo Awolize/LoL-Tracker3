@@ -11,7 +11,6 @@ const SortedChampionList = ({
 	champions: CompleteChampionInfo[];
 }) => {
 	const {
-		showLevels,
 		filterPoints,
 		showMasteryPoints,
 		selectedChampions,
@@ -72,7 +71,6 @@ const SortedChampionList = ({
 										champ={championInfo}
 										filterPoints={filterPoints}
 										hiddenChamp={hidden}
-										showLevel={showLevels}
 										showMasteryPoints={showMasteryPoints}
 										showFinished={false}
 										handleChampionClick={() =>

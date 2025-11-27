@@ -26,9 +26,8 @@ const ChallengeChampionList = ({
 	const markChampion = useChallengeContext((state) => state.markChampion);
 	const unmarkChampion = useChallengeContext((state) => state.unmarkChampion);
 	const manuallyMarked = useChallengeContext((state) => state.manuallyMarked);
-	const { showLevels, showMasteryPoints, filterPoints, championsScale } =
+	const { showMasteryPoints, filterPoints, championsScale } =
 		useOptionsPersistentContext((state) => ({
-			showLevels: state.showLevels,
 			showMasteryPoints: state.showMasteryPoints,
 			filterPoints: state.filterPoints,
 			championsScale: state.championsScale,
@@ -119,7 +118,6 @@ const ChallengeChampionList = ({
 								champ={championInfo}
 								filterPoints={filterPoints}
 								hiddenChamp={false}
-								showLevel={showLevels}
 								showFinished={selectedChallengeId ? isMarked : false}
 								showMasteryPoints={showMasteryPoints}
 								handleChampionClick={
