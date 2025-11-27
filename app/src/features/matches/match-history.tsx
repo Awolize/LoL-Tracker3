@@ -7,7 +7,6 @@ interface MatchHistoryProps {
 }
 
 export const MatchHistory = ({ matches }: MatchHistoryProps) => {
-
 	if (!matches?.length) {
 		return (
 			<div className="flex items-center justify-center py-12">

@@ -1,9 +1,9 @@
 import { Link, useParams } from "@tanstack/react-router";
 import type React from "react";
+import { cn } from "@/components/utils";
 import type { MatchPlayerData } from "@/features/matches/match-player-data";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
 import { useUserContext } from "@/stores/user-store";
-import { cn } from "@/components/utils";
 
 interface MatchTableProps {
 	players: Array<MatchPlayerData>;
@@ -91,8 +91,7 @@ const MatchTable: React.FC<MatchTableProps> = ({
 							<div className="text-xs text-muted-foreground">
 								{player.deaths === 0
 									? "∞ K/D"
-									: `${((player.kills + player.assists) / player.deaths).toFixed(1)} K/D`
-								}
+									: `${((player.kills + player.assists) / player.deaths).toFixed(1)} K/D`}
 							</div>
 						</div>
 					</div>

@@ -70,9 +70,12 @@ function RouteComponent() {
 						<div className="max-w-7xl mx-auto w-full">
 							<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
 								<div>
-									<h1 className="text-3xl font-bold tracking-tight">Match History</h1>
+									<h1 className="text-3xl font-bold tracking-tight">
+										Match History
+									</h1>
 									<p className="text-muted-foreground mt-1">
-										View detailed results from your recent League of Legends games
+										View detailed results from your recent League of Legends
+										games
 									</p>
 								</div>
 								<div className="flex items-center gap-2">
