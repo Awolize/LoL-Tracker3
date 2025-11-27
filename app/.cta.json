@@ -1,23 +1,23 @@
 {
-  "projectName": "app",
-  "mode": "file-router",
-  "typescript": true,
-  "tailwind": true,
-  "packageManager": "pnpm",
-  "addOnOptions": {
-    "drizzle": {
-      "database": "postgresql"
-    }
-  },
-  "git": true,
-  "version": 1,
-  "framework": "react-cra",
-  "chosenAddOns": [
-    "biome",
-    "sentry",
-    "drizzle",
-    "shadcn",
-    "start",
-    "tanstack-query"
-  ]
+	"projectName": "app",
+	"mode": "file-router",
+	"typescript": true,
+	"tailwind": true,
+	"packageManager": "pnpm",
+	"addOnOptions": {
+		"drizzle": {
+			"database": "postgresql"
+		}
+	},
+	"git": true,
+	"version": 1,
+	"framework": "react-cra",
+	"chosenAddOns": [
+		"biome",
+		"sentry",
+		"drizzle",
+		"shadcn",
+		"start",
+		"tanstack-query"
+	]
 }

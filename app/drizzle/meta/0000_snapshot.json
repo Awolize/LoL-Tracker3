@@ -1,1671 +1,1567 @@
 {
-  "id": "15ddcedb-0067-4937-91dd-c90e0fa205da",
-  "prevId": "00000000-0000-0000-0000-000000000000",
-  "version": "7",
-  "dialect": "postgresql",
-  "tables": {
-    "public.CategoryPoints": {
-      "name": "CategoryPoints",
-      "schema": "",
-      "columns": {
-        "category": {
-          "name": "category",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "level": {
-          "name": "level",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "current": {
-          "name": "current",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "max": {
-          "name": "max",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "percentile": {
-          "name": "percentile",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "challengesDetailsId": {
-          "name": "challengesDetailsId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "CategoryPoints_category_challengesDetailsId_key": {
-          "name": "CategoryPoints_category_challengesDetailsId_key",
-          "columns": [
-            {
-              "expression": "category",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            },
-            {
-              "expression": "challengesDetailsId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "CategoryPoints_challengesDetailsId_fkey": {
-          "name": "CategoryPoints_challengesDetailsId_fkey",
-          "tableFrom": "CategoryPoints",
-          "tableTo": "ChallengesDetails",
-          "columnsFrom": [
-            "challengesDetailsId"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.Challenge": {
-      "name": "Challenge",
-      "schema": "",
-      "columns": {
-        "challengeId": {
-          "name": "challengeId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "percentile": {
-          "name": "percentile",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "level": {
-          "name": "level",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "value": {
-          "name": "value",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "achievedTime": {
-          "name": "achievedTime",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "challengesDetailsId": {
-          "name": "challengesDetailsId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "Challenge_challengeId_challengesDetailsId_key": {
-          "name": "Challenge_challengeId_challengesDetailsId_key",
-          "columns": [
-            {
-              "expression": "challengeId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            },
-            {
-              "expression": "challengesDetailsId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "Challenge_challengesDetailsId_fkey": {
-          "name": "Challenge_challengesDetailsId_fkey",
-          "tableFrom": "Challenge",
-          "tableTo": "ChallengesDetails",
-          "columnsFrom": [
-            "challengesDetailsId"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public._ChallengeHeroes": {
-      "name": "_ChallengeHeroes",
-      "schema": "",
-      "columns": {
-        "A": {
-          "name": "A",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "B": {
-          "name": "B",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "_ChallengeHeroes_B_index": {
-          "name": "_ChallengeHeroes_B_index",
-          "columns": [
-            {
-              "expression": "B",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "_ChallengeHeroes_A_fkey": {
-          "name": "_ChallengeHeroes_A_fkey",
-          "tableFrom": "_ChallengeHeroes",
-          "tableTo": "Challenges",
-          "columnsFrom": [
-            "A"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "_ChallengeHeroes_B_fkey": {
-          "name": "_ChallengeHeroes_B_fkey",
-          "tableFrom": "_ChallengeHeroes",
-          "tableTo": "ChampionDetails",
-          "columnsFrom": [
-            "B"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "_ChallengeHeroes_AB_pkey": {
-          "name": "_ChallengeHeroes_AB_pkey",
-          "columns": [
-            "A",
-            "B"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.ChallengeLocalization": {
-      "name": "ChallengeLocalization",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "language": {
-          "name": "language",
-          "type": "Language",
-          "typeSchema": "public",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "description": {
-          "name": "description",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "shortDescription": {
-          "name": "shortDescription",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "ChallengeLocalization_id_language_key": {
-          "name": "ChallengeLocalization_id_language_key",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            },
-            {
-              "expression": "language",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "ChallengeLocalization_id_fkey": {
-          "name": "ChallengeLocalization_id_fkey",
-          "tableFrom": "ChallengeLocalization",
-          "tableTo": "ChallengesConfig",
-          "columnsFrom": [
-            "id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.Challenges": {
-      "name": "Challenges",
-      "schema": "",
-      "columns": {
-        "puuid": {
-          "name": "puuid",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "Challenges_puuid_key": {
-          "name": "Challenges_puuid_key",
-          "columns": [
-            {
-              "expression": "puuid",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "Challenges_puuid_fkey": {
-          "name": "Challenges_puuid_fkey",
-          "tableFrom": "Challenges",
-          "tableTo": "Summoner",
-          "columnsFrom": [
-            "puuid"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public._ChallengesAdaptToAllSituations": {
-      "name": "_ChallengesAdaptToAllSituations",
-      "schema": "",
-      "columns": {
-        "A": {
-          "name": "A",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "B": {
-          "name": "B",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "_ChallengesAdaptToAllSituations_B_index": {
-          "name": "_ChallengesAdaptToAllSituations_B_index",
-          "columns": [
-            {
-              "expression": "B",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "_ChallengesAdaptToAllSituations_A_fkey": {
-          "name": "_ChallengesAdaptToAllSituations_A_fkey",
-          "tableFrom": "_ChallengesAdaptToAllSituations",
-          "tableTo": "Challenges",
-          "columnsFrom": [
-            "A"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "_ChallengesAdaptToAllSituations_B_fkey": {
-          "name": "_ChallengesAdaptToAllSituations_B_fkey",
-          "tableFrom": "_ChallengesAdaptToAllSituations",
-          "tableTo": "ChampionDetails",
-          "columnsFrom": [
-            "B"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "_ChallengesAdaptToAllSituations_AB_pkey": {
-          "name": "_ChallengesAdaptToAllSituations_AB_pkey",
-          "columns": [
-            "A",
-            "B"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public._ChallengesChampionOcean": {
-      "name": "_ChallengesChampionOcean",
-      "schema": "",
-      "columns": {
-        "A": {
-          "name": "A",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "B": {
-          "name": "B",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "_ChallengesChampionOcean_B_index": {
-          "name": "_ChallengesChampionOcean_B_index",
-          "columns": [
-            {
-              "expression": "B",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "_ChallengesChampionOcean_A_fkey": {
-          "name": "_ChallengesChampionOcean_A_fkey",
-          "tableFrom": "_ChallengesChampionOcean",
-          "tableTo": "Challenges",
-          "columnsFrom": [
-            "A"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "_ChallengesChampionOcean_B_fkey": {
-          "name": "_ChallengesChampionOcean_B_fkey",
-          "tableFrom": "_ChallengesChampionOcean",
-          "tableTo": "ChampionDetails",
-          "columnsFrom": [
-            "B"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "_ChallengesChampionOcean_AB_pkey": {
-          "name": "_ChallengesChampionOcean_AB_pkey",
-          "columns": [
-            "A",
-            "B"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public._ChallengesChampionOcean2024Split3": {
-      "name": "_ChallengesChampionOcean2024Split3",
-      "schema": "",
-      "columns": {
-        "A": {
-          "name": "A",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "B": {
-          "name": "B",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "_ChallengesChampionOcean2024Split3_B_index": {
-          "name": "_ChallengesChampionOcean2024Split3_B_index",
-          "columns": [
-            {
-              "expression": "B",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "_ChallengesChampionOcean2024Split3_A_fkey": {
-          "name": "_ChallengesChampionOcean2024Split3_A_fkey",
-          "tableFrom": "_ChallengesChampionOcean2024Split3",
-          "tableTo": "Challenges",
-          "columnsFrom": [
-            "A"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "_ChallengesChampionOcean2024Split3_B_fkey": {
-          "name": "_ChallengesChampionOcean2024Split3_B_fkey",
-          "tableFrom": "_ChallengesChampionOcean2024Split3",
-          "tableTo": "ChampionDetails",
-          "columnsFrom": [
-            "B"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "_ChallengesChampionOcean2024Split3_AB_pkey": {
-          "name": "_ChallengesChampionOcean2024Split3_AB_pkey",
-          "columns": [
-            "A",
-            "B"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.ChallengesConfig": {
-      "name": "ChallengesConfig",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "state": {
-          "name": "state",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "leaderboard": {
-          "name": "leaderboard",
-          "type": "boolean",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "endTimestamp": {
-          "name": "endTimestamp",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "thresholds": {
-          "name": "thresholds",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.ChallengesDetails": {
-      "name": "ChallengesDetails",
-      "schema": "",
-      "columns": {
-        "puuid": {
-          "name": "puuid",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "ChallengesDetails_puuid_fkey": {
-          "name": "ChallengesDetails_puuid_fkey",
-          "tableFrom": "ChallengesDetails",
-          "tableTo": "Summoner",
-          "columnsFrom": [
-            "puuid"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public._ChallengesInvincible": {
-      "name": "_ChallengesInvincible",
-      "schema": "",
-      "columns": {
-        "A": {
-          "name": "A",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "B": {
-          "name": "B",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "_ChallengesInvincible_B_index": {
-          "name": "_ChallengesInvincible_B_index",
-          "columns": [
-            {
-              "expression": "B",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "_ChallengesInvincible_A_fkey": {
-          "name": "_ChallengesInvincible_A_fkey",
-          "tableFrom": "_ChallengesInvincible",
-          "tableTo": "Challenges",
-          "columnsFrom": [
-            "A"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "_ChallengesInvincible_B_fkey": {
-          "name": "_ChallengesInvincible_B_fkey",
-          "tableFrom": "_ChallengesInvincible",
-          "tableTo": "ChampionDetails",
-          "columnsFrom": [
-            "B"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "_ChallengesInvincible_AB_pkey": {
-          "name": "_ChallengesInvincible_AB_pkey",
-          "columns": [
-            "A",
-            "B"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.ChampionDetails": {
-      "name": "ChampionDetails",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "integer",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "version": {
-          "name": "version",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "key": {
-          "name": "key",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "name": {
-          "name": "name",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "blurb": {
-          "name": "blurb",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attack": {
-          "name": "attack",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "defense": {
-          "name": "defense",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "magic": {
-          "name": "magic",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "difficulty": {
-          "name": "difficulty",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "full": {
-          "name": "full",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "sprite": {
-          "name": "sprite",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "group": {
-          "name": "group",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "x": {
-          "name": "x",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "y": {
-          "name": "y",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "w": {
-          "name": "w",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "h": {
-          "name": "h",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "tags": {
-          "name": "tags",
-          "type": "text[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "partype": {
-          "name": "partype",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "hp": {
-          "name": "hp",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "hpperlevel": {
-          "name": "hpperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "mp": {
-          "name": "mp",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "mpperlevel": {
-          "name": "mpperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "movespeed": {
-          "name": "movespeed",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "armor": {
-          "name": "armor",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "armorperlevel": {
-          "name": "armorperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "spellblock": {
-          "name": "spellblock",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "spellblockperlevel": {
-          "name": "spellblockperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attackrange": {
-          "name": "attackrange",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "hpregen": {
-          "name": "hpregen",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "hpregenperlevel": {
-          "name": "hpregenperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "mpregen": {
-          "name": "mpregen",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "mpregenperlevel": {
-          "name": "mpregenperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "crit": {
-          "name": "crit",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "critperlevel": {
-          "name": "critperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attackdamage": {
-          "name": "attackdamage",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attackdamageperlevel": {
-          "name": "attackdamageperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attackspeedperlevel": {
-          "name": "attackspeedperlevel",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "attackspeed": {
-          "name": "attackspeed",
-          "type": "double precision",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "ChampionDetails_id_key": {
-          "name": "ChampionDetails_id_key",
-          "columns": [
-            {
-              "expression": "id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.ChampionMastery": {
-      "name": "ChampionMastery",
-      "schema": "",
-      "columns": {
-        "championId": {
-          "name": "championId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "championLevel": {
-          "name": "championLevel",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "championPoints": {
-          "name": "championPoints",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "tokensEarned": {
-          "name": "tokensEarned",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "lastPlayTime": {
-          "name": "lastPlayTime",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "championPointsUntilNextLevel": {
-          "name": "championPointsUntilNextLevel",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "championPointsSinceLastLevel": {
-          "name": "championPointsSinceLastLevel",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "puuid": {
-          "name": "puuid",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "ChampionMastery_championId_puuid_key": {
-          "name": "ChampionMastery_championId_puuid_key",
-          "columns": [
-            {
-              "expression": "championId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "int4_ops"
-            },
-            {
-              "expression": "puuid",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "ChampionMastery_puuid_fkey": {
-          "name": "ChampionMastery_puuid_fkey",
-          "tableFrom": "ChampionMastery",
-          "tableTo": "Summoner",
-          "columnsFrom": [
-            "puuid"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.Match": {
-      "name": "Match",
-      "schema": "",
-      "columns": {
-        "gameId": {
-          "name": "gameId",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.MatchInfo": {
-      "name": "MatchInfo",
-      "schema": "",
-      "columns": {
-        "gameId": {
-          "name": "gameId",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "gameDuration": {
-          "name": "gameDuration",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gameMode": {
-          "name": "gameMode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gameName": {
-          "name": "gameName",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gameType": {
-          "name": "gameType",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gameVersion": {
-          "name": "gameVersion",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "mapId": {
-          "name": "mapId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "participants": {
-          "name": "participants",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "platformId": {
-          "name": "platformId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "queueId": {
-          "name": "queueId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "teams": {
-          "name": "teams",
-          "type": "jsonb",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "tournamentCode": {
-          "name": "tournamentCode",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gameCreation": {
-          "name": "gameCreation",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gameStartTimestamp": {
-          "name": "gameStartTimestamp",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "gameEndTimestamp": {
-          "name": "gameEndTimestamp",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {
-        "MatchInfo_gameId_fkey": {
-          "name": "MatchInfo_gameId_fkey",
-          "tableFrom": "MatchInfo",
-          "tableTo": "Match",
-          "columnsFrom": [
-            "gameId"
-          ],
-          "columnsTo": [
-            "gameId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public._MatchSummoners": {
-      "name": "_MatchSummoners",
-      "schema": "",
-      "columns": {
-        "A": {
-          "name": "A",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "B": {
-          "name": "B",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "_MatchSummoners_B_index": {
-          "name": "_MatchSummoners_B_index",
-          "columns": [
-            {
-              "expression": "B",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "_MatchSummoners_A_fkey": {
-          "name": "_MatchSummoners_A_fkey",
-          "tableFrom": "_MatchSummoners",
-          "tableTo": "Match",
-          "columnsFrom": [
-            "A"
-          ],
-          "columnsTo": [
-            "gameId"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        },
-        "_MatchSummoners_B_fkey": {
-          "name": "_MatchSummoners_B_fkey",
-          "tableFrom": "_MatchSummoners",
-          "tableTo": "Summoner",
-          "columnsFrom": [
-            "B"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {
-        "_MatchSummoners_AB_pkey": {
-          "name": "_MatchSummoners_AB_pkey",
-          "columns": [
-            "A",
-            "B"
-          ]
-        }
-      },
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.Preferences": {
-      "name": "Preferences",
-      "schema": "",
-      "columns": {
-        "bannerAccent": {
-          "name": "bannerAccent",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "title": {
-          "name": "title",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "challengeIds": {
-          "name": "challengeIds",
-          "type": "integer[]",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "challengesDetailsId": {
-          "name": "challengesDetailsId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "Preferences_challengesDetailsId_key": {
-          "name": "Preferences_challengesDetailsId_key",
-          "columns": [
-            {
-              "expression": "challengesDetailsId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "Preferences_challengesDetailsId_fkey": {
-          "name": "Preferences_challengesDetailsId_fkey",
-          "tableFrom": "Preferences",
-          "tableTo": "ChallengesDetails",
-          "columnsFrom": [
-            "challengesDetailsId"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public._prisma_migrations": {
-      "name": "_prisma_migrations",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "varchar(36)",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "checksum": {
-          "name": "checksum",
-          "type": "varchar(64)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "finished_at": {
-          "name": "finished_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "migration_name": {
-          "name": "migration_name",
-          "type": "varchar(255)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "logs": {
-          "name": "logs",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "rolled_back_at": {
-          "name": "rolled_back_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "started_at": {
-          "name": "started_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        },
-        "applied_steps_count": {
-          "name": "applied_steps_count",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true,
-          "default": 0
-        }
-      },
-      "indexes": {},
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.Summoner": {
-      "name": "Summoner",
-      "schema": "",
-      "columns": {
-        "summonerId": {
-          "name": "summonerId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "createdAt": {
-          "name": "createdAt",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "CURRENT_TIMESTAMP"
-        },
-        "updatedAt": {
-          "name": "updatedAt",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "region": {
-          "name": "region",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "profileIconId": {
-          "name": "profileIconId",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "puuid": {
-          "name": "puuid",
-          "type": "text",
-          "primaryKey": true,
-          "notNull": true
-        },
-        "summonerLevel": {
-          "name": "summonerLevel",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "revisionDate": {
-          "name": "revisionDate",
-          "type": "timestamp (3)",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "accountId": {
-          "name": "accountId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "gameName": {
-          "name": "gameName",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "tagLine": {
-          "name": "tagLine",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": false
-        }
-      },
-      "indexes": {
-        "Summoner_puuid_key": {
-          "name": "Summoner_puuid_key",
-          "columns": [
-            {
-              "expression": "puuid",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {},
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.TotalPoints": {
-      "name": "TotalPoints",
-      "schema": "",
-      "columns": {
-        "level": {
-          "name": "level",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "current": {
-          "name": "current",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "max": {
-          "name": "max",
-          "type": "integer",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "challengesDetailsId": {
-          "name": "challengesDetailsId",
-          "type": "text",
-          "primaryKey": false,
-          "notNull": true
-        }
-      },
-      "indexes": {
-        "TotalPoints_challengesDetailsId_key": {
-          "name": "TotalPoints_challengesDetailsId_key",
-          "columns": [
-            {
-              "expression": "challengesDetailsId",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last",
-              "opclass": "text_ops"
-            }
-          ],
-          "isUnique": true,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "TotalPoints_challengesDetailsId_fkey": {
-          "name": "TotalPoints_challengesDetailsId_fkey",
-          "tableFrom": "TotalPoints",
-          "tableTo": "ChallengesDetails",
-          "columnsFrom": [
-            "challengesDetailsId"
-          ],
-          "columnsTo": [
-            "puuid"
-          ],
-          "onDelete": "restrict",
-          "onUpdate": "cascade"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    }
-  },
-  "enums": {
-    "public.Language": {
-      "name": "Language",
-      "schema": "public",
-      "values": [
-        "en_US"
-      ]
-    }
-  },
-  "schemas": {},
-  "sequences": {},
-  "roles": {},
-  "policies": {},
-  "views": {},
-  "_meta": {
-    "columns": {},
-    "schemas": {},
-    "tables": {}
-  }
+	"id": "15ddcedb-0067-4937-91dd-c90e0fa205da",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.CategoryPoints": {
+			"name": "CategoryPoints",
+			"schema": "",
+			"columns": {
+				"category": {
+					"name": "category",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"level": {
+					"name": "level",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"current": {
+					"name": "current",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"max": {
+					"name": "max",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"percentile": {
+					"name": "percentile",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"challengesDetailsId": {
+					"name": "challengesDetailsId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"CategoryPoints_category_challengesDetailsId_key": {
+					"name": "CategoryPoints_category_challengesDetailsId_key",
+					"columns": [
+						{
+							"expression": "category",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						},
+						{
+							"expression": "challengesDetailsId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"CategoryPoints_challengesDetailsId_fkey": {
+					"name": "CategoryPoints_challengesDetailsId_fkey",
+					"tableFrom": "CategoryPoints",
+					"tableTo": "ChallengesDetails",
+					"columnsFrom": ["challengesDetailsId"],
+					"columnsTo": ["puuid"],
+					"onDelete": "restrict",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.Challenge": {
+			"name": "Challenge",
+			"schema": "",
+			"columns": {
+				"challengeId": {
+					"name": "challengeId",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"percentile": {
+					"name": "percentile",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"level": {
+					"name": "level",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"value": {
+					"name": "value",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"achievedTime": {
+					"name": "achievedTime",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"challengesDetailsId": {
+					"name": "challengesDetailsId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"Challenge_challengeId_challengesDetailsId_key": {
+					"name": "Challenge_challengeId_challengesDetailsId_key",
+					"columns": [
+						{
+							"expression": "challengeId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						},
+						{
+							"expression": "challengesDetailsId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"Challenge_challengesDetailsId_fkey": {
+					"name": "Challenge_challengesDetailsId_fkey",
+					"tableFrom": "Challenge",
+					"tableTo": "ChallengesDetails",
+					"columnsFrom": ["challengesDetailsId"],
+					"columnsTo": ["puuid"],
+					"onDelete": "restrict",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public._ChallengeHeroes": {
+			"name": "_ChallengeHeroes",
+			"schema": "",
+			"columns": {
+				"A": {
+					"name": "A",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"B": {
+					"name": "B",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"_ChallengeHeroes_B_index": {
+					"name": "_ChallengeHeroes_B_index",
+					"columns": [
+						{
+							"expression": "B",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"_ChallengeHeroes_A_fkey": {
+					"name": "_ChallengeHeroes_A_fkey",
+					"tableFrom": "_ChallengeHeroes",
+					"tableTo": "Challenges",
+					"columnsFrom": ["A"],
+					"columnsTo": ["puuid"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"_ChallengeHeroes_B_fkey": {
+					"name": "_ChallengeHeroes_B_fkey",
+					"tableFrom": "_ChallengeHeroes",
+					"tableTo": "ChampionDetails",
+					"columnsFrom": ["B"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"_ChallengeHeroes_AB_pkey": {
+					"name": "_ChallengeHeroes_AB_pkey",
+					"columns": ["A", "B"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.ChallengeLocalization": {
+			"name": "ChallengeLocalization",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"language": {
+					"name": "language",
+					"type": "Language",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"shortDescription": {
+					"name": "shortDescription",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"ChallengeLocalization_id_language_key": {
+					"name": "ChallengeLocalization_id_language_key",
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						},
+						{
+							"expression": "language",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"ChallengeLocalization_id_fkey": {
+					"name": "ChallengeLocalization_id_fkey",
+					"tableFrom": "ChallengeLocalization",
+					"tableTo": "ChallengesConfig",
+					"columnsFrom": ["id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.Challenges": {
+			"name": "Challenges",
+			"schema": "",
+			"columns": {
+				"puuid": {
+					"name": "puuid",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"Challenges_puuid_key": {
+					"name": "Challenges_puuid_key",
+					"columns": [
+						{
+							"expression": "puuid",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"Challenges_puuid_fkey": {
+					"name": "Challenges_puuid_fkey",
+					"tableFrom": "Challenges",
+					"tableTo": "Summoner",
+					"columnsFrom": ["puuid"],
+					"columnsTo": ["puuid"],
+					"onDelete": "restrict",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public._ChallengesAdaptToAllSituations": {
+			"name": "_ChallengesAdaptToAllSituations",
+			"schema": "",
+			"columns": {
+				"A": {
+					"name": "A",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"B": {
+					"name": "B",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"_ChallengesAdaptToAllSituations_B_index": {
+					"name": "_ChallengesAdaptToAllSituations_B_index",
+					"columns": [
+						{
+							"expression": "B",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"_ChallengesAdaptToAllSituations_A_fkey": {
+					"name": "_ChallengesAdaptToAllSituations_A_fkey",
+					"tableFrom": "_ChallengesAdaptToAllSituations",
+					"tableTo": "Challenges",
+					"columnsFrom": ["A"],
+					"columnsTo": ["puuid"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"_ChallengesAdaptToAllSituations_B_fkey": {
+					"name": "_ChallengesAdaptToAllSituations_B_fkey",
+					"tableFrom": "_ChallengesAdaptToAllSituations",
+					"tableTo": "ChampionDetails",
+					"columnsFrom": ["B"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"_ChallengesAdaptToAllSituations_AB_pkey": {
+					"name": "_ChallengesAdaptToAllSituations_AB_pkey",
+					"columns": ["A", "B"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public._ChallengesChampionOcean": {
+			"name": "_ChallengesChampionOcean",
+			"schema": "",
+			"columns": {
+				"A": {
+					"name": "A",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"B": {
+					"name": "B",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"_ChallengesChampionOcean_B_index": {
+					"name": "_ChallengesChampionOcean_B_index",
+					"columns": [
+						{
+							"expression": "B",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"_ChallengesChampionOcean_A_fkey": {
+					"name": "_ChallengesChampionOcean_A_fkey",
+					"tableFrom": "_ChallengesChampionOcean",
+					"tableTo": "Challenges",
+					"columnsFrom": ["A"],
+					"columnsTo": ["puuid"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"_ChallengesChampionOcean_B_fkey": {
+					"name": "_ChallengesChampionOcean_B_fkey",
+					"tableFrom": "_ChallengesChampionOcean",
+					"tableTo": "ChampionDetails",
+					"columnsFrom": ["B"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"_ChallengesChampionOcean_AB_pkey": {
+					"name": "_ChallengesChampionOcean_AB_pkey",
+					"columns": ["A", "B"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public._ChallengesChampionOcean2024Split3": {
+			"name": "_ChallengesChampionOcean2024Split3",
+			"schema": "",
+			"columns": {
+				"A": {
+					"name": "A",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"B": {
+					"name": "B",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"_ChallengesChampionOcean2024Split3_B_index": {
+					"name": "_ChallengesChampionOcean2024Split3_B_index",
+					"columns": [
+						{
+							"expression": "B",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"_ChallengesChampionOcean2024Split3_A_fkey": {
+					"name": "_ChallengesChampionOcean2024Split3_A_fkey",
+					"tableFrom": "_ChallengesChampionOcean2024Split3",
+					"tableTo": "Challenges",
+					"columnsFrom": ["A"],
+					"columnsTo": ["puuid"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"_ChallengesChampionOcean2024Split3_B_fkey": {
+					"name": "_ChallengesChampionOcean2024Split3_B_fkey",
+					"tableFrom": "_ChallengesChampionOcean2024Split3",
+					"tableTo": "ChampionDetails",
+					"columnsFrom": ["B"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"_ChallengesChampionOcean2024Split3_AB_pkey": {
+					"name": "_ChallengesChampionOcean2024Split3_AB_pkey",
+					"columns": ["A", "B"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.ChallengesConfig": {
+			"name": "ChallengesConfig",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"state": {
+					"name": "state",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"leaderboard": {
+					"name": "leaderboard",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"endTimestamp": {
+					"name": "endTimestamp",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"thresholds": {
+					"name": "thresholds",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.ChallengesDetails": {
+			"name": "ChallengesDetails",
+			"schema": "",
+			"columns": {
+				"puuid": {
+					"name": "puuid",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"ChallengesDetails_puuid_fkey": {
+					"name": "ChallengesDetails_puuid_fkey",
+					"tableFrom": "ChallengesDetails",
+					"tableTo": "Summoner",
+					"columnsFrom": ["puuid"],
+					"columnsTo": ["puuid"],
+					"onDelete": "restrict",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public._ChallengesInvincible": {
+			"name": "_ChallengesInvincible",
+			"schema": "",
+			"columns": {
+				"A": {
+					"name": "A",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"B": {
+					"name": "B",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"_ChallengesInvincible_B_index": {
+					"name": "_ChallengesInvincible_B_index",
+					"columns": [
+						{
+							"expression": "B",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"_ChallengesInvincible_A_fkey": {
+					"name": "_ChallengesInvincible_A_fkey",
+					"tableFrom": "_ChallengesInvincible",
+					"tableTo": "Challenges",
+					"columnsFrom": ["A"],
+					"columnsTo": ["puuid"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"_ChallengesInvincible_B_fkey": {
+					"name": "_ChallengesInvincible_B_fkey",
+					"tableFrom": "_ChallengesInvincible",
+					"tableTo": "ChampionDetails",
+					"columnsFrom": ["B"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"_ChallengesInvincible_AB_pkey": {
+					"name": "_ChallengesInvincible_AB_pkey",
+					"columns": ["A", "B"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.ChampionDetails": {
+			"name": "ChampionDetails",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "integer",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"version": {
+					"name": "version",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"key": {
+					"name": "key",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"title": {
+					"name": "title",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"blurb": {
+					"name": "blurb",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"attack": {
+					"name": "attack",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"defense": {
+					"name": "defense",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"magic": {
+					"name": "magic",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"difficulty": {
+					"name": "difficulty",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"full": {
+					"name": "full",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"sprite": {
+					"name": "sprite",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"group": {
+					"name": "group",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"x": {
+					"name": "x",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"y": {
+					"name": "y",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"w": {
+					"name": "w",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"h": {
+					"name": "h",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"tags": {
+					"name": "tags",
+					"type": "text[]",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"partype": {
+					"name": "partype",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"hp": {
+					"name": "hp",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"hpperlevel": {
+					"name": "hpperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"mp": {
+					"name": "mp",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"mpperlevel": {
+					"name": "mpperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"movespeed": {
+					"name": "movespeed",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"armor": {
+					"name": "armor",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"armorperlevel": {
+					"name": "armorperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"spellblock": {
+					"name": "spellblock",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"spellblockperlevel": {
+					"name": "spellblockperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"attackrange": {
+					"name": "attackrange",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"hpregen": {
+					"name": "hpregen",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"hpregenperlevel": {
+					"name": "hpregenperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"mpregen": {
+					"name": "mpregen",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"mpregenperlevel": {
+					"name": "mpregenperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"crit": {
+					"name": "crit",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"critperlevel": {
+					"name": "critperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"attackdamage": {
+					"name": "attackdamage",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"attackdamageperlevel": {
+					"name": "attackdamageperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"attackspeedperlevel": {
+					"name": "attackspeedperlevel",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"attackspeed": {
+					"name": "attackspeed",
+					"type": "double precision",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"ChampionDetails_id_key": {
+					"name": "ChampionDetails_id_key",
+					"columns": [
+						{
+							"expression": "id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.ChampionMastery": {
+			"name": "ChampionMastery",
+			"schema": "",
+			"columns": {
+				"championId": {
+					"name": "championId",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"championLevel": {
+					"name": "championLevel",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"championPoints": {
+					"name": "championPoints",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"tokensEarned": {
+					"name": "tokensEarned",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"lastPlayTime": {
+					"name": "lastPlayTime",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"championPointsUntilNextLevel": {
+					"name": "championPointsUntilNextLevel",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"championPointsSinceLastLevel": {
+					"name": "championPointsSinceLastLevel",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"puuid": {
+					"name": "puuid",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"ChampionMastery_championId_puuid_key": {
+					"name": "ChampionMastery_championId_puuid_key",
+					"columns": [
+						{
+							"expression": "championId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "int4_ops"
+						},
+						{
+							"expression": "puuid",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"ChampionMastery_puuid_fkey": {
+					"name": "ChampionMastery_puuid_fkey",
+					"tableFrom": "ChampionMastery",
+					"tableTo": "Summoner",
+					"columnsFrom": ["puuid"],
+					"columnsTo": ["puuid"],
+					"onDelete": "restrict",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.Match": {
+			"name": "Match",
+			"schema": "",
+			"columns": {
+				"gameId": {
+					"name": "gameId",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.MatchInfo": {
+			"name": "MatchInfo",
+			"schema": "",
+			"columns": {
+				"gameId": {
+					"name": "gameId",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"gameDuration": {
+					"name": "gameDuration",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"gameMode": {
+					"name": "gameMode",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"gameName": {
+					"name": "gameName",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"gameType": {
+					"name": "gameType",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"gameVersion": {
+					"name": "gameVersion",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"mapId": {
+					"name": "mapId",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"participants": {
+					"name": "participants",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"platformId": {
+					"name": "platformId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"queueId": {
+					"name": "queueId",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"teams": {
+					"name": "teams",
+					"type": "jsonb",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"tournamentCode": {
+					"name": "tournamentCode",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"gameCreation": {
+					"name": "gameCreation",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"gameStartTimestamp": {
+					"name": "gameStartTimestamp",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"gameEndTimestamp": {
+					"name": "gameEndTimestamp",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {
+				"MatchInfo_gameId_fkey": {
+					"name": "MatchInfo_gameId_fkey",
+					"tableFrom": "MatchInfo",
+					"tableTo": "Match",
+					"columnsFrom": ["gameId"],
+					"columnsTo": ["gameId"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public._MatchSummoners": {
+			"name": "_MatchSummoners",
+			"schema": "",
+			"columns": {
+				"A": {
+					"name": "A",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"B": {
+					"name": "B",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"_MatchSummoners_B_index": {
+					"name": "_MatchSummoners_B_index",
+					"columns": [
+						{
+							"expression": "B",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"_MatchSummoners_A_fkey": {
+					"name": "_MatchSummoners_A_fkey",
+					"tableFrom": "_MatchSummoners",
+					"tableTo": "Match",
+					"columnsFrom": ["A"],
+					"columnsTo": ["gameId"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				},
+				"_MatchSummoners_B_fkey": {
+					"name": "_MatchSummoners_B_fkey",
+					"tableFrom": "_MatchSummoners",
+					"tableTo": "Summoner",
+					"columnsFrom": ["B"],
+					"columnsTo": ["puuid"],
+					"onDelete": "cascade",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {
+				"_MatchSummoners_AB_pkey": {
+					"name": "_MatchSummoners_AB_pkey",
+					"columns": ["A", "B"]
+				}
+			},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.Preferences": {
+			"name": "Preferences",
+			"schema": "",
+			"columns": {
+				"bannerAccent": {
+					"name": "bannerAccent",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"title": {
+					"name": "title",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"challengeIds": {
+					"name": "challengeIds",
+					"type": "integer[]",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"challengesDetailsId": {
+					"name": "challengesDetailsId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"Preferences_challengesDetailsId_key": {
+					"name": "Preferences_challengesDetailsId_key",
+					"columns": [
+						{
+							"expression": "challengesDetailsId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"Preferences_challengesDetailsId_fkey": {
+					"name": "Preferences_challengesDetailsId_fkey",
+					"tableFrom": "Preferences",
+					"tableTo": "ChallengesDetails",
+					"columnsFrom": ["challengesDetailsId"],
+					"columnsTo": ["puuid"],
+					"onDelete": "restrict",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public._prisma_migrations": {
+			"name": "_prisma_migrations",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "varchar(36)",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"checksum": {
+					"name": "checksum",
+					"type": "varchar(64)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"finished_at": {
+					"name": "finished_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"migration_name": {
+					"name": "migration_name",
+					"type": "varchar(255)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"logs": {
+					"name": "logs",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"rolled_back_at": {
+					"name": "rolled_back_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"started_at": {
+					"name": "started_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"applied_steps_count": {
+					"name": "applied_steps_count",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.Summoner": {
+			"name": "Summoner",
+			"schema": "",
+			"columns": {
+				"summonerId": {
+					"name": "summonerId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"createdAt": {
+					"name": "createdAt",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "CURRENT_TIMESTAMP"
+				},
+				"updatedAt": {
+					"name": "updatedAt",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"region": {
+					"name": "region",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"profileIconId": {
+					"name": "profileIconId",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"puuid": {
+					"name": "puuid",
+					"type": "text",
+					"primaryKey": true,
+					"notNull": true
+				},
+				"summonerLevel": {
+					"name": "summonerLevel",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"revisionDate": {
+					"name": "revisionDate",
+					"type": "timestamp (3)",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"accountId": {
+					"name": "accountId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"gameName": {
+					"name": "gameName",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"tagLine": {
+					"name": "tagLine",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				}
+			},
+			"indexes": {
+				"Summoner_puuid_key": {
+					"name": "Summoner_puuid_key",
+					"columns": [
+						{
+							"expression": "puuid",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.TotalPoints": {
+			"name": "TotalPoints",
+			"schema": "",
+			"columns": {
+				"level": {
+					"name": "level",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"current": {
+					"name": "current",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"max": {
+					"name": "max",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"challengesDetailsId": {
+					"name": "challengesDetailsId",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				}
+			},
+			"indexes": {
+				"TotalPoints_challengesDetailsId_key": {
+					"name": "TotalPoints_challengesDetailsId_key",
+					"columns": [
+						{
+							"expression": "challengesDetailsId",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last",
+							"opclass": "text_ops"
+						}
+					],
+					"isUnique": true,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"TotalPoints_challengesDetailsId_fkey": {
+					"name": "TotalPoints_challengesDetailsId_fkey",
+					"tableFrom": "TotalPoints",
+					"tableTo": "ChallengesDetails",
+					"columnsFrom": ["challengesDetailsId"],
+					"columnsTo": ["puuid"],
+					"onDelete": "restrict",
+					"onUpdate": "cascade"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		}
+	},
+	"enums": {
+		"public.Language": {
+			"name": "Language",
+			"schema": "public",
+			"values": ["en_US"]
+		}
+	},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
 }
