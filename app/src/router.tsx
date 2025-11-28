@@ -17,15 +17,6 @@ export const getRouter = () => {
 			return (
 				<TanstackQuery.Provider {...rqContext}>
 					{props.children}
-					<button
-						type="button"
-						onClick={() => {
-							throw new Error("Sentry Test Error");
-						}}
-					>
-						Break the world
-					</button>
-					;
 				</TanstackQuery.Provider>
 			);
 		},
