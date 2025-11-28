@@ -15,20 +15,37 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: () => ({
 		meta: [
 			{
-				charSet: "utf-8",
+				title: "Awot's Challenge Tracker - League of Legends Challenge Tracker",
 			},
 			{
 				name: "viewport",
 				content: "width=device-width, initial-scale=1",
 			},
 			{
-				title: "TanStack Start Starter",
+				name: "description",
+				content: "Awot's League of Legends challenge tracker built with TanStack Start.",
+			},
+			{
+				name: "keywords",
+				content: "league of legends, tracker, summoner, challenge, player, stats, matches, mastery, champions",
+			},
+			{
+				name: "theme-color",
+				content: "#000000",
 			},
 		],
 		links: [
 			{
 				rel: "stylesheet",
 				href: appCss,
+			},
+			{
+				rel: "manifest",
+				href: "/manifest.json",
+			},
+			{
+				rel: "apple-touch-icon",
+				href: "/logo192.png",
 			},
 		],
 		scripts: [
