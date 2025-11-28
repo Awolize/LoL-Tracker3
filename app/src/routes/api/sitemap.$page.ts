@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { db } from "@/db";
 import { and, not, desc, isNull } from "drizzle-orm";
 import { summoner } from "@/db/schema";
-import { regionToConstant } from "@/features/shared/champs";
+import { regionToDisplay } from "@/features/shared/champs";
 
 export const Route = createFileRoute('/api/sitemap/$page')({
   server: {
@@ -35,7 +35,7 @@ export const Route = createFileRoute('/api/sitemap/$page')({
           .map(
             (u) => `
   <url>
-    <loc>${baseUrl}/${regionToConstant(u.region)}/${u.gameName}-${u.tagLine}</loc>
+    <loc>${baseUrl}/${regionToDisplay(u.region)}/${u.gameName}-${u.tagLine}</loc>
     <lastmod>${u.updatedAt.toISOString().slice(0, 10)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>

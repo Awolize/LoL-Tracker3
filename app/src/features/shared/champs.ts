@@ -61,3 +61,41 @@ export const regionToConstant = (region: string) => {
 
 	return regionMap[region] as Regions;
 };
+
+export const regionToDisplay = (region: string): string => {
+	const keys = Object.keys({
+		BR: Regions.BRAZIL,
+		EUNE: Regions.EU_EAST,
+		EUW: Regions.EU_WEST,
+		EUW1: Regions.EU_WEST,
+		KR: Regions.KOREA,
+		LA1: Regions.LAT_NORTH,
+		LA2: Regions.LAT_SOUTH,
+		NA1: Regions.AMERICA_NORTH,
+		OC1: Regions.OCEANIA,
+		TR1: Regions.TURKEY,
+		RU: Regions.RUSSIA,
+		JP1: Regions.JAPAN,
+		PBE1: Regions.PBE,
+	});
+
+	const upper = region.toUpperCase();
+	if (!keys.includes(upper)) {
+		return upper;
+	}
+
+	const rootToRegions = new Map<string, Set<Regions>>();
+	for (const key of keys) {
+		const root = key.replace(/\d+$/, '');
+		if (!rootToRegions.has(root)) rootToRegions.set(root, new Set());
+		rootToRegions.get(root)?.add(regionToConstant(key));
+	}
+
+	const root = upper.replace(/\d+$/, '');
+	const size = rootToRegions.get(root)?.size || 0;
+	if (size === 1) {
+		return root;
+	} else {
+		return upper;
+	}
+};
