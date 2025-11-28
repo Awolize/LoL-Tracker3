@@ -86,12 +86,12 @@ export const regionToDisplay = (region: string): string => {
 
 	const rootToRegions = new Map<string, Set<Regions>>();
 	for (const key of keys) {
-		const root = key.replace(/\d+$/, '');
+		const root = key.replace(/\d+$/, "");
 		if (!rootToRegions.has(root)) rootToRegions.set(root, new Set());
 		rootToRegions.get(root)?.add(regionToConstant(key));
 	}
 
-	const root = upper.replace(/\d+$/, '');
+	const root = upper.replace(/\d+$/, "");
 	const size = rootToRegions.get(root)?.size || 0;
 	if (size === 1) {
 		return root;

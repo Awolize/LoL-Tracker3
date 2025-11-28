@@ -23,11 +23,13 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 			},
 			{
 				name: "description",
-				content: "Awot's League of Legends challenge tracker built with TanStack Start.",
+				content:
+					"Awot's League of Legends challenge tracker built with TanStack Start.",
 			},
 			{
 				name: "keywords",
-				content: "league of legends, tracker, summoner, challenge, player, stats, matches, mastery, champions",
+				content:
+					"league of legends, tracker, summoner, challenge, player, stats, matches, mastery, champions",
 			},
 			{
 				name: "theme-color",
