@@ -25,12 +25,12 @@ export default function Search() {
 		<div className="flex h-full w-full items-center justify-center md:py-2">
 			<div className="flex flex-col gap-1 md:flex-row md:gap-4">
 				<div className="flex items-center justify-center">
-					<h1 className="shrink-0 font-extrabold text-2xl text-foreground tracking-tight md:text-[2rem]">
+					<div className="shrink-0 font-extrabold text-2xl text-foreground tracking-tight md:text-[2rem]">
 						<RegionListSelector
 							selectedRegion={selectedRegion}
 							setSelectedRegion={setSelectedRegion}
 						/>
-					</h1>
+					</div>
 				</div>
 				<form
 					onSubmit={onSubmit}

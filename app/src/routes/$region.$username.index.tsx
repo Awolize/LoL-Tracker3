@@ -28,7 +28,7 @@ export const Route = createFileRoute("/$region/$username/")({
 
 		Sentry.metrics.count("profile_view", 1, {
 			attributes: {
-				endpoint: `/${region}/${username}`,
+				endpoint: `/${region}/${rawUsername}`,
 				region: region,
 				username: username,
 			},
