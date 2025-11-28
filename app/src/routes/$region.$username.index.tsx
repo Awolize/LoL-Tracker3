@@ -1,4 +1,6 @@
 // app/routes/$region/$username.tsx
+
+import * as Sentry from "@sentry/tanstackstart-react";
 import {
 	createFileRoute,
 	Link,
@@ -23,6 +25,14 @@ export const Route = createFileRoute("/$region/$username/")({
 	loader: async ({ params: { username: rawUsername, region: rawRegion } }) => {
 		const username = rawUsername.replace("-", "#");
 		const region = regionToConstant(rawRegion.toUpperCase());
+
+		Sentry.metrics.count("profile_view", 1, {
+			attributes: {
+				endpoint: `/${region}/${username}`,
+				region: region,
+				username: username,
+			},
+		});
 
 		const result = await getUserByNameAndRegionFn({
 			data: { username, region },

@@ -17,6 +17,15 @@ export const getRouter = () => {
 			return (
 				<TanstackQuery.Provider {...rqContext}>
 					{props.children}
+					<button
+						type="button"
+						onClick={() => {
+							throw new Error("Sentry Test Error");
+						}}
+					>
+						Break the world
+					</button>
+					;
 				</TanstackQuery.Provider>
 			);
 		},
@@ -27,17 +36,29 @@ export const getRouter = () => {
 		queryClient: rqContext.queryClient,
 	});
 
-	// if (!router.isServer) {
-	// 	Sentry.init({
-	// 		dsn: "https://60d349e38f5f58f5ba5637eb48be597b@o4510246374670336.ingest.de.sentry.io/4510246385418320",
+	if (!router.isServer) {
+		Sentry.init({
+			dsn: import.meta.env.VITE_SENTRY_DSN,
 
-	// 		// Adds request headers and IP for users, for more info visit:
-	// 		// https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/configuration/options/#sendDefaultPii
-	// 		sendDefaultPii: true,
+			// Adds request headers and IP for users, for more info visit:
+			// https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/configuration/options/#sendDefaultPii
+			sendDefaultPii: true,
 
-	// 		integrations: [],
-	// 	});
-	// }
+			integrations: [
+				Sentry.tanstackRouterBrowserTracingIntegration(router),
+				Sentry.replayIntegration(),
+				Sentry.feedbackIntegration({ colorScheme: "system" }),
+			],
+			enableLogs: true,
+			tracesSampleRate: 1.0,
+			replaysSessionSampleRate: 0.1,
+			replaysOnErrorSampleRate: 1.0,
+		});
+
+		Sentry.logger.info("User triggered test log", {
+			log_source: "sentry_test",
+		});
+	}
 
 	return router;
 };
