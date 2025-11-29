@@ -16,6 +16,7 @@ const SortedChampionList = ({
 		filterPointsDirection,
 		filterLevelDirection,
 		showMasteryPoints,
+		showChampionLevels,
 		selectedChampions,
 		sortOrder,
 		showSelectedChampions,
@@ -78,6 +79,7 @@ const SortedChampionList = ({
 										filterLevelDirection={filterLevelDirection}
 										hiddenChamp={hidden}
 										showMasteryPoints={showMasteryPoints}
+										showChampionLevels={showChampionLevels}
 										showFinished={false}
 										handleChampionClick={() =>
 											showSelectedChampions &&

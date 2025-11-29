@@ -25,6 +25,7 @@ export default function Header({
 }) {
 	const {
 		showMasteryPoints,
+		showChampionLevels,
 		byRole,
 		filterPoints,
 		filterLevel,
@@ -39,6 +40,7 @@ export default function Header({
 		toggleFilterPointsDirection,
 		toggleFilterLevelDirection,
 		toggleMasteryPoints,
+		toggleChampionLevels,
 		toggleSortedByRole,
 		toggleShowSelectedChampions,
 	} = useOptionsPersistentContext((state) => state);
@@ -174,6 +176,12 @@ export default function Header({
 					label={"Mastery Points"}
 					checked={showMasteryPoints}
 					onChange={toggleMasteryPoints}
+				/>
+				<div className="h-8 w-px bg-gray-500" />
+				<SwitchWithLabel
+					label={"Show Levels"}
+					checked={showChampionLevels}
+					onChange={toggleChampionLevels}
 				/>
 				<div className="h-8 w-px bg-gray-500" />
 				<div className="flex flex-col items-center gap-3">

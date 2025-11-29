@@ -14,6 +14,7 @@ interface ChampionItemProps {
 	showFinished: boolean;
 	hiddenChamp: boolean;
 	showMasteryPoints: boolean;
+	showChampionLevels: boolean;
 }
 
 const ChampionItem: React.FC<ChampionItemProps> = ({
@@ -25,6 +26,7 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 	showFinished,
 	hiddenChamp,
 	showMasteryPoints,
+	showChampionLevels,
 	handleChampionClick,
 }) => {
 	const disabled = filteredOut(champ, filterPoints, filterLevel, filterPointsDirection, filterLevelDirection);
@@ -64,6 +66,11 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 					// placeholder="blur"
 					// blurDataURL="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII="
 				/>
+				{showChampionLevels && (
+					<div className="absolute top-1 left-1 bg-black bg-opacity-70 text-white text-xs font-bold px-1 rounded z-20">
+						{champ.championLevel}
+					</div>
+				)}
 			</div>
 
 			<div className="text-center text-xs">{champ.name}</div>

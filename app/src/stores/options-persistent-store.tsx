@@ -7,6 +7,7 @@ import { SortOrder2 } from "@/features/summoner/components/summoner-header";
 
 interface Store {
 	showMasteryPoints: boolean;
+	showChampionLevels: boolean;
 	byRole: boolean;
 	filterPoints: number;
 	filterLevel: number;
@@ -20,6 +21,7 @@ interface Store {
 
 interface StoreState extends Store {
 	toggleMasteryPoints: () => void;
+	toggleChampionLevels: () => void;
 	toggleSortedByRole: () => void;
 	setFilterPoints: (newFilter: number) => void;
 	setFilterLevel: (newFilter: number) => void;
@@ -33,11 +35,12 @@ interface StoreState extends Store {
 
 const initialState = {
 	showMasteryPoints: true,
+	showChampionLevels: false,
 	byRole: true,
 	filterPoints: Number.MAX_SAFE_INTEGER,
 	filterLevel: 0,
-	filterPointsDirection: 'above',
-	filterLevelDirection: 'above',
+	filterPointsDirection: 'above' as const,
+	filterLevelDirection: 'above' as const,
 	selectedChampions: new Set<number>(),
 	championsScale: 85,
 	sortOrder: SortOrder2.Points,
@@ -58,6 +61,11 @@ const useOptionsPersistentStore = (persistName: string) => {
 					set((state) => ({
 						...state,
 						showMasteryPoints: !state.showMasteryPoints,
+					})),
+				toggleChampionLevels: () =>
+					set((state) => ({
+						...state,
+						showChampionLevels: !state.showChampionLevels,
 					})),
 				toggleSortedByRole: () =>
 					set((state) => ({ ...state, byRole: !state.byRole })),

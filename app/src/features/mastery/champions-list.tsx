@@ -10,6 +10,7 @@ const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
 		filterPointsDirection,
 		filterLevelDirection,
 		showMasteryPoints,
+		showChampionLevels,
 		selectedChampions,
 		sortOrder,
 		showSelectedChampions,
@@ -48,6 +49,7 @@ const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
 								hiddenChamp={selectedChampions.has(championInfo.id)}
 								showFinished={false}
 								showMasteryPoints={showMasteryPoints}
+								showChampionLevels={showChampionLevels}
 								handleChampionClick={() =>
 									showSelectedChampions &&
 									toggleSelectedChampion(championInfo.id)
