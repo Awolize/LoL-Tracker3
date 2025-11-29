@@ -12,6 +12,9 @@ const SortedChampionList = ({
 }) => {
 	const {
 		filterPoints,
+		filterLevel,
+		filterPointsDirection,
+		filterLevelDirection,
 		showMasteryPoints,
 		selectedChampions,
 		sortOrder,
@@ -37,7 +40,7 @@ const SortedChampionList = ({
 				roleChampions.sort((a, b) => sortAlgorithm(sortOrder, a, b));
 				const finishedChamps = roleChampions.filter(
 					(champ) =>
-						filteredOut(champ, filterPoints) || selectedChampions.has(champ.id),
+						filteredOut(champ, filterPoints, filterLevel, filterPointsDirection, filterLevelDirection) || selectedChampions.has(champ.id),
 				);
 				const finishedChampsPercentage =
 					(finishedChamps.length / roleChampions.length) * 100;
@@ -70,6 +73,9 @@ const SortedChampionList = ({
 										key={championInfo.id}
 										champ={championInfo}
 										filterPoints={filterPoints}
+										filterLevel={filterLevel}
+										filterPointsDirection={filterPointsDirection}
+										filterLevelDirection={filterLevelDirection}
 										hiddenChamp={hidden}
 										showMasteryPoints={showMasteryPoints}
 										showFinished={false}

@@ -6,6 +6,9 @@ import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
 	const {
 		filterPoints,
+		filterLevel,
+		filterPointsDirection,
+		filterLevelDirection,
 		showMasteryPoints,
 		selectedChampions,
 		sortOrder,
@@ -39,6 +42,9 @@ const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
 								key={championInfo.id}
 								champ={championInfo}
 								filterPoints={filterPoints}
+								filterLevel={filterLevel}
+								filterPointsDirection={filterPointsDirection}
+								filterLevelDirection={filterLevelDirection}
 								hiddenChamp={selectedChampions.has(championInfo.id)}
 								showFinished={false}
 								showMasteryPoints={showMasteryPoints}

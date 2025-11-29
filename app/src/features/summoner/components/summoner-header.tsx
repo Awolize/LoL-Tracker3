@@ -1,3 +1,5 @@
+import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { DifferentHeaderCounter } from "@/features/mastery/header-counter";
 import { filteredOut } from "@/features/shared/champs";
@@ -25,11 +27,17 @@ export default function Header({
 		showMasteryPoints,
 		byRole,
 		filterPoints,
+		filterLevel,
+		filterPointsDirection,
+		filterLevelDirection,
 		sortOrder,
 		showSelectedChampions,
 		selectedChampions,
 		setSortOrder,
 		setFilterPoints,
+		setFilterLevel,
+		toggleFilterPointsDirection,
+		toggleFilterLevelDirection,
 		toggleMasteryPoints,
 		toggleSortedByRole,
 		toggleShowSelectedChampions,
@@ -56,6 +64,28 @@ export default function Header({
 		},
 	];
 
+	const levelChoices: Choice[] = [
+		{ text: "Level 1", value: 1 },
+		{ text: "Level 2", value: 2 },
+		{ text: "Level 3", value: 3 },
+		{ text: "Level 4", value: 4 },
+		{ text: "Level 5", value: 5 },
+		{ text: "Level 6", value: 6 },
+		{ text: "Level 7", value: 7 },
+		{ text: "Level 8", value: 8 },
+		{ text: "Level 9", value: 9 },
+		{ text: "Level 10", value: 10 },
+		{ text: "Level 15", value: 15 },
+		{ text: "Level 20", value: 20 },
+		{ text: "Level 25", value: 25 },
+		{ text: "Level 50", value: 50 },
+		{ text: "Level 100", value: 100 },
+		{
+			text: "All Levels",
+			value: 0,
+		},
+	];
+
 	const sortOrderChoices: Choice[] = [
 		{ text: "Points", value: SortOrder2.Points },
 		{ text: "A-Z", value: SortOrder2.AZ },
@@ -68,7 +98,7 @@ export default function Header({
 	);
 
 	const filteredCount = visibleChampions.filter((c) =>
-		filteredOut(c, filterPoints),
+		filteredOut(c, filterPoints, filterLevel, filterPointsDirection, filterLevelDirection),
 	).length;
 
 	return (
@@ -81,7 +111,7 @@ export default function Header({
 					version={0}
 				/>
 			</div>
-			<div className="flex flex-row items-center justify-center gap-4 mx-auto">
+			<div className="flex flex-row items-center justify-center gap-2 mx-auto">
 				<FullSummonerUpdate user={user} />
 				<div className="h-8 w-px bg-gray-500" />
 				<SwitchWithLabel
@@ -91,11 +121,42 @@ export default function Header({
 				/>
 				<Dropdown
 					callback={(choice) => setFilterPoints(choice)}
-					menuLabel="Filter by"
+					menuLabel={`Filter by (${filterPointsDirection})`}
 					// biome-ignore lint/style/noNonNullAssertion: This will always find a match
 					choice={filteredChoices.find((el) => el.value === filterPoints)!}
 					choices={filteredChoices}
 				/>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={toggleFilterPointsDirection}
+					className="px-1"
+				>
+					{filterPointsDirection === 'above' ? (
+						<ArrowUpIcon className="h-4 w-4" />
+					) : (
+						<ArrowDownIcon className="h-4 w-4" />
+					)}
+				</Button>
+				<Dropdown
+					callback={(choice) => setFilterLevel(choice)}
+					menuLabel={`Level (${filterLevelDirection})`}
+					// biome-ignore lint/style/noNonNullAssertion: This will always find a match
+					choice={levelChoices.find((el) => el.value === filterLevel)!}
+					choices={levelChoices}
+				/>
+				<Button
+					variant="outline"
+					size="sm"
+					onClick={toggleFilterLevelDirection}
+					className="px-1"
+				>
+					{filterLevelDirection === 'above' ? (
+						<ArrowUpIcon className="h-4 w-4" />
+					) : (
+						<ArrowDownIcon className="h-4 w-4" />
+					)}
+				</Button>
 				<Dropdown
 					choices={sortOrderChoices}
 					menuLabel="Sort by"
@@ -108,13 +169,13 @@ export default function Header({
 					checked={!showSelectedChampions}
 					onChange={toggleShowSelectedChampions}
 				/>
-				<div className="h-8 w-[1px] bg-gray-500" />
+				<div className="h-8 w-px bg-gray-500" />
 				<SwitchWithLabel
 					label={"Mastery Points"}
 					checked={showMasteryPoints}
 					onChange={toggleMasteryPoints}
 				/>
-				<div className="h-8 w-[1px] bg-gray-500" />
+				<div className="h-8 w-px bg-gray-500" />
 				<div className="flex flex-col items-center gap-3">
 					<Label>Image size</Label>
 					<ScaleSlider />

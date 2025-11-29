@@ -9,6 +9,9 @@ interface Store {
 	showMasteryPoints: boolean;
 	byRole: boolean;
 	filterPoints: number;
+	filterLevel: number;
+	filterPointsDirection: 'above' | 'below';
+	filterLevelDirection: 'above' | 'below';
 	selectedChampions: Set<number>;
 	championsScale: number;
 	sortOrder: number;
@@ -19,6 +22,9 @@ interface StoreState extends Store {
 	toggleMasteryPoints: () => void;
 	toggleSortedByRole: () => void;
 	setFilterPoints: (newFilter: number) => void;
+	setFilterLevel: (newFilter: number) => void;
+	toggleFilterPointsDirection: () => void;
+	toggleFilterLevelDirection: () => void;
 	setSortOrder: (newFilter: SortOrder2) => void;
 	toggleSelectedChampion: (championId: number) => void;
 	toggleShowSelectedChampions: () => void;
@@ -29,6 +35,9 @@ const initialState = {
 	showMasteryPoints: true,
 	byRole: true,
 	filterPoints: Number.MAX_SAFE_INTEGER,
+	filterLevel: 0,
+	filterPointsDirection: 'above',
+	filterLevelDirection: 'above',
 	selectedChampions: new Set<number>(),
 	championsScale: 85,
 	sortOrder: SortOrder2.Points,
@@ -59,6 +68,18 @@ const useOptionsPersistentStore = (persistName: string) => {
 					})),
 				setFilterPoints: (newFilter) =>
 					set((state) => ({ ...state, filterPoints: newFilter })),
+				setFilterLevel: (newFilter) =>
+					set((state) => ({ ...state, filterLevel: newFilter })),
+				toggleFilterPointsDirection: () =>
+					set((state) => ({
+						...state,
+						filterPointsDirection: state.filterPointsDirection === 'above' ? 'below' : 'above',
+					})),
+				toggleFilterLevelDirection: () =>
+					set((state) => ({
+						...state,
+						filterLevelDirection: state.filterLevelDirection === 'above' ? 'below' : 'above',
+					})),
 				setSortOrder: (newSortOrder) =>
 					set((state) => ({ ...state, sortOrder: newSortOrder })),
 				toggleSelectedChampion: (championId) =>

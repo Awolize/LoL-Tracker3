@@ -4,8 +4,27 @@ import type { CompleteChampionInfo } from "@/features/shared/types";
 export const filteredOut = (
 	champ: CompleteChampionInfo,
 	filterPoints: number,
+	filterLevel: number,
+	filterPointsDirection: 'above' | 'below',
+	filterLevelDirection: 'above' | 'below',
 ) => {
-	const disabled: boolean = champ.championPoints > filterPoints;
+	let levelFiltered = false;
+	if (filterLevel > 0) {
+		if (filterLevelDirection === 'above') {
+			levelFiltered = champ.championLevel < filterLevel;
+		} else {
+			levelFiltered = champ.championLevel > filterLevel;
+		}
+	}
+	let pointsFiltered = false;
+	if (filterPoints !== Number.MAX_SAFE_INTEGER) {
+		if (filterPointsDirection === 'above') {
+			pointsFiltered = champ.championPoints > filterPoints;
+		} else {
+			pointsFiltered = champ.championPoints < filterPoints;
+		}
+	}
+	const disabled: boolean = pointsFiltered || levelFiltered;
 	return disabled;
 };
 
