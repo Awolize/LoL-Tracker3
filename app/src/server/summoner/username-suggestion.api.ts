@@ -2,43 +2,57 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "@/db";
 import { summoner } from "@/db/schema";
-import { eq, like, ilike, and, desc, sql, or, gt } from "drizzle-orm";
+import { ilike, and, desc, eq } from "drizzle-orm";
 
 export const getUsernameSuggestions = createServerFn({
-	method: "POST",
+  method: "POST",
 })
-	.inputValidator((data: { username: string; region: string }) => ({
-		username: data.username,
-		region: data.region,
-	}))
-	.handler(async ({ data: { username, region } }) => {
-		const query = username.trim().toLowerCase();
+  .inputValidator((data: { username: string; region: string }) => ({
+    username: data.username,
+    region: data.region,
+  }))
+  .handler(async ({ data: { username, region } }) => {
+    const query = username.trim().toLowerCase();
+    if (!query || query.length > 50) return [];
 
-		if (!query) return [];
+    // Split query on # to handle gameName#tagLine format
+    const [gameNamePart = "", tagLinePart = ""] = query
+      .split("#")
+      .map((s) => s.trim());
 
-		console.log("Querying for", query, region);
+    let whereConditions;
+    if (gameNamePart && tagLinePart) {
+      whereConditions = and(
+        ilike(summoner.gameName, `%${gameNamePart}%`),
+        ilike(summoner.tagLine, `%${tagLinePart}%`)
+      );
+    } else if (gameNamePart) {
+      whereConditions = ilike(summoner.gameName, `%${gameNamePart}%`);
+    } else if (tagLinePart) {
+      whereConditions = ilike(summoner.tagLine, `%${tagLinePart}%`);
+    } else {
+      return [];
+    }
 
-		const suggestions = await db
-			.select({
-				gameName: summoner.gameName,
-				tagLine: summoner.tagLine,
-				summonerLevel: summoner.summonerLevel,
-				profileIconId: summoner.profileIconId,
-				region: summoner.region,
-			})
-			.from(summoner)
-			.where(
-					ilike(summoner.gameName, `%${query}%`),
-			)
-			.orderBy(desc(summoner.updatedAt))
-			.limit(10);
+    whereConditions = and(whereConditions, eq(summoner.region, region));
 
-		console.log("Suggestions", suggestions);
+    const suggestions = await db
+      .select({
+        gameName: summoner.gameName,
+        tagLine: summoner.tagLine,
+        summonerLevel: summoner.summonerLevel,
+        profileIconId: summoner.profileIconId,
+        region: summoner.region,
+      })
+      .from(summoner)
+      .where(whereConditions)
+      .orderBy(desc(summoner.updatedAt))
+      .limit(10);
 
-		return suggestions.map((entry) => ({
-			username: `${entry.gameName}#${entry.tagLine}`,
-			level: entry.summonerLevel,
-			iconId: entry.profileIconId,
-			region: entry.region,
-		}));
-	});
+    return suggestions.map((entry) => ({
+      username: `${entry.gameName}#${entry.tagLine}`,
+      level: entry.summonerLevel,
+      iconId: entry.profileIconId,
+      region: entry.region,
+    }));
+  });
