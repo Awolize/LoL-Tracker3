@@ -2,7 +2,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "@/db";
 import { summoner } from "@/db/schema";
-import { ilike, and, desc, eq } from "drizzle-orm";
+import { ilike, and, desc } from "drizzle-orm";
 
 export const getUsernameSuggestions = createServerFn({
   method: "POST",
@@ -33,8 +33,6 @@ export const getUsernameSuggestions = createServerFn({
     } else {
       return [];
     }
-
-    whereConditions = and(whereConditions, eq(summoner.region, region));
 
     const suggestions = await db
       .select({
