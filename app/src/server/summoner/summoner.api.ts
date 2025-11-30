@@ -94,7 +94,7 @@ export const getUserByNameAndRegionFn = createServerFn({
 			const version = versionRow?.version ?? "latest";
 
 			const profileIconUrl = user.summoner.profileIconId
-				? `/api/images/cdn/${version}/img/profileicon/${user.summoner.profileIconId}`
+				? `/api/images/cdn/${version}/img/profileicon/${user.summoner.profileIconId}.webp`
 				: null;
 
 			// 4. Upsert into database

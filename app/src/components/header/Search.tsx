@@ -28,7 +28,6 @@ export default function Search() {
 	});
 
 	const { getProfileImage } = useDataDragonPath(version ?? "13.24.1");
-	
 
 	useEffect(() => {
 		if (username.trim().length < 2) {
@@ -42,7 +41,7 @@ export default function Search() {
 				const result = await getUsernameSuggestions({
 					data: { username, region: selectedRegion.name },
 				});
-				
+
 				setSuggestions(result);
 				setIsDropdownOpen(result.length > 0);
 			} catch (error) {
@@ -116,7 +115,7 @@ export default function Search() {
 												alt="Profile icon"
 												className="w-8 h-8 rounded-full border"
 												onError={(e) => {
-													e.currentTarget.style.display = 'none';
+													e.currentTarget.style.display = "none";
 												}}
 											/>
 											<div className="flex-1">

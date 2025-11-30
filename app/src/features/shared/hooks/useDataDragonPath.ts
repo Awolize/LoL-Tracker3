@@ -7,8 +7,7 @@ export const useDataDragonPath = (version: string) => {
 	};
 
 	const getProfileImage = (iconId: string) => {
-		
-		return `/api/images/cdn/${version}/img/profileicon/${iconId}.webp`
+		return `/api/images/cdn/${version}/img/profileicon/${iconId}.webp`;
 	};
 
 	return { getChampionImage, getProfileImage };

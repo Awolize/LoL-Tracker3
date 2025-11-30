@@ -53,7 +53,6 @@ export const Route = createFileRoute("/$region/$username/")({
 				});
 			}
 		}
-
 		return {
 			username,
 			region,
