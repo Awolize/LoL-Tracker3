@@ -9,8 +9,8 @@ interface ChampionItemProps {
 	handleChampionClick: (championId: number) => void;
 	filterPoints: number;
 	filterLevel: number;
-	filterPointsDirection: 'above' | 'below';
-	filterLevelDirection: 'above' | 'below';
+	filterPointsDirection: "above" | "below";
+	filterLevelDirection: "above" | "below";
 	showFinished: boolean;
 	hiddenChamp: boolean;
 	showMasteryPoints: boolean;
@@ -29,7 +29,13 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 	showChampionLevels,
 	handleChampionClick,
 }) => {
-	const disabled = filteredOut(champ, filterPoints, filterLevel, filterPointsDirection, filterLevelDirection);
+	const disabled = filteredOut(
+		champ,
+		filterPoints,
+		filterLevel,
+		filterPointsDirection,
+		filterLevelDirection,
+	);
 	const hide = disabled && !showFinished;
 
 	if (!champ.version) return null;

@@ -5,12 +5,12 @@ export const filteredOut = (
 	champ: CompleteChampionInfo,
 	filterPoints: number,
 	filterLevel: number,
-	filterPointsDirection: 'above' | 'below',
-	filterLevelDirection: 'above' | 'below',
+	filterPointsDirection: "above" | "below",
+	filterLevelDirection: "above" | "below",
 ) => {
 	let levelFiltered = false;
 	if (filterLevel > 0) {
-		if (filterLevelDirection === 'above') {
+		if (filterLevelDirection === "above") {
 			levelFiltered = champ.championLevel < filterLevel;
 		} else {
 			levelFiltered = champ.championLevel > filterLevel;
@@ -18,7 +18,7 @@ export const filteredOut = (
 	}
 	let pointsFiltered = false;
 	if (filterPoints !== Number.MAX_SAFE_INTEGER) {
-		if (filterPointsDirection === 'above') {
+		if (filterPointsDirection === "above") {
 			pointsFiltered = champ.championPoints > filterPoints;
 		} else {
 			pointsFiltered = champ.championPoints < filterPoints;

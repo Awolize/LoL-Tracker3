@@ -100,7 +100,13 @@ export default function Header({
 	);
 
 	const filteredCount = visibleChampions.filter((c) =>
-		filteredOut(c, filterPoints, filterLevel, filterPointsDirection, filterLevelDirection),
+		filteredOut(
+			c,
+			filterPoints,
+			filterLevel,
+			filterPointsDirection,
+			filterLevelDirection,
+		),
 	).length;
 
 	return (
@@ -134,7 +140,7 @@ export default function Header({
 					onClick={toggleFilterPointsDirection}
 					className="px-1"
 				>
-					{filterPointsDirection === 'above' ? (
+					{filterPointsDirection === "above" ? (
 						<ArrowUpIcon className="h-4 w-4" />
 					) : (
 						<ArrowDownIcon className="h-4 w-4" />
@@ -153,7 +159,7 @@ export default function Header({
 					onClick={toggleFilterLevelDirection}
 					className="px-1"
 				>
-					{filterLevelDirection === 'above' ? (
+					{filterLevelDirection === "above" ? (
 						<ArrowUpIcon className="h-4 w-4" />
 					) : (
 						<ArrowDownIcon className="h-4 w-4" />

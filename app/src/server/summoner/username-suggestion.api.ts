@@ -1,31 +1,44 @@
 // app/server/userSuggestions.ts
 import { createServerFn } from "@tanstack/react-start";
-
-// Example user database (replace with real DB query)
-const USERS = [
-	"Awot#dev",
-	"Awot#prod",
-	"Alex#1234",
-	"Alice#5678",
-	"Bob#0001",
-	"Charlie#9999",
-];
+import { db } from "@/db";
+import { summoner } from "@/db/schema";
+import { eq, like, ilike, and, desc, sql, or, gt } from "drizzle-orm";
 
 export const getUsernameSuggestions = createServerFn({
 	method: "POST",
 })
-	.inputValidator((data: { username: string }) => data.username)
-	.handler(async ({ data: username }) => {
-		const query = username.toLowerCase();
+	.inputValidator((data: { username: string; region: string }) => ({
+		username: data.username,
+		region: data.region,
+	}))
+	.handler(async ({ data: { username, region } }) => {
+		const query = username.trim().toLowerCase();
 
-		// simulate server-side processing delay
-		await new Promise((resolve) => setTimeout(resolve, 200));
+		if (!query) return [];
 
-		// return matches containing the query
-		const matches = USERS.filter((u) => u.toLowerCase().includes(query)).slice(
-			0,
-			5,
-		); // limit results to 5
+		console.log("Querying for", query, region);
 
-		return matches.map((username) => ({ username }));
+		const suggestions = await db
+			.select({
+				gameName: summoner.gameName,
+				tagLine: summoner.tagLine,
+				summonerLevel: summoner.summonerLevel,
+				profileIconId: summoner.profileIconId,
+				region: summoner.region,
+			})
+			.from(summoner)
+			.where(
+					ilike(summoner.gameName, `%${query}%`),
+			)
+			.orderBy(desc(summoner.updatedAt))
+			.limit(10);
+
+		console.log("Suggestions", suggestions);
+
+		return suggestions.map((entry) => ({
+			username: `${entry.gameName}#${entry.tagLine}`,
+			level: entry.summonerLevel,
+			iconId: entry.profileIconId,
+			region: entry.region,
+		}));
 	});

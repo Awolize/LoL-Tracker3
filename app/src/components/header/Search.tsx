@@ -1,17 +1,52 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { RegionListSelector, regions } from "@/components/region-list-selector";
+import { getUsernameSuggestions } from "@/server/summoner/username-suggestion.api";
+
+type Suggestion = {
+	username: string;
+	level: number;
+	iconId: number;
+	region: string;
+};
 
 export default function Search() {
 	const navigate = useNavigate();
 	const [selectedRegion, setSelectedRegion] = useState(regions[0]);
 	const [username, setUsername] = useState("");
+	const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
+	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+	const inputRef = useRef<HTMLInputElement>(null);
 
-	const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-		e.preventDefault();
-		if (!username || !selectedRegion) return;
-		const cleanUsername = username.replace("#", "-").toLowerCase();
+	useEffect(() => {
+		if (username.trim().length < 2) {
+			setSuggestions([]);
+			setIsDropdownOpen(false);
+			return;
+		}
+
+		const timeout = setTimeout(async () => {
+			try {
+				const result = await getUsernameSuggestions({
+					data: { username, region: selectedRegion.name },
+				});
+				
+				setSuggestions(result);
+				setIsDropdownOpen(result.length > 0);
+			} catch (error) {
+				console.error("Failed to fetch suggestions", error);
+				setSuggestions([]);
+				setIsDropdownOpen(false);
+			}
+		}, 300);
+
+		return () => clearTimeout(timeout);
+	}, [username, selectedRegion.name]);
+
+	const navigateToSummoner = (user: string) => {
+		if (!user || !selectedRegion) return;
+		const cleanUsername = user.replace("#", "-").toLowerCase();
 		navigate({
 			to: "/$region/$username",
 			params: {
@@ -20,6 +55,20 @@ export default function Search() {
 			},
 		});
 	};
+
+	const onSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+		e.preventDefault();
+		setIsDropdownOpen(false);
+		navigateToSummoner(username);
+	};
+
+	const selectSuggestion = (suggestionUsername: string) => {
+		setIsDropdownOpen(false);
+		navigateToSummoner(suggestionUsername);
+	};
+
+	console.log(isDropdownOpen);
+	console.log(suggestions.length);
 
 	return (
 		<div className="flex h-full w-full items-center justify-center md:py-2">
@@ -34,15 +83,44 @@ export default function Search() {
 				</div>
 				<form
 					onSubmit={onSubmit}
-					className="flex flex-col gap-2 w-full max-w-sm"
+					className="flex flex-col gap-2 w-full max-w-sm relative"
 				>
 					<div className="w-full flex flex-row h-12 gap-1">
-						<input
-							value={username}
-							onChange={(e) => setUsername(e.target.value)}
-							placeholder="lol.awot#dev"
-							className="h-12 grow flex rounded-l bg-input border border-input text-foreground text-center text-xl placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-						/>
+						<div className="relative gap-1 flex w-full">
+							<input
+								ref={inputRef}
+								value={username}
+								onChange={(e) => setUsername(e.target.value)}
+								placeholder="lol.awot#dev"
+								className="h-12 grow flex rounded-l bg-input border border-input text-foreground text-center text-xl placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+							/>
+
+							{isDropdownOpen && suggestions.length > 0 && (
+								<div className="absolute top-full left-0 right-0 z-10 mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+									{suggestions.map((suggestion, index) => (
+										<div
+											key={suggestion.username + index}
+											onClick={() => selectSuggestion(suggestion.username)}
+											className="px-3 py-2 hover:bg-muted cursor-pointer flex items-center gap-3"
+										>
+											<img
+												src={`/api/images/cdn/14.24.1/img/profileicon/${suggestion.iconId}.png`}
+												alt="Profile icon"
+												className="w-8 h-8 rounded-full border"
+											/>
+											<div className="flex-1">
+												<div className="font-medium text-foreground">
+													{suggestion.username}
+												</div>
+												<div className="text-sm text-muted-foreground">
+													Level {suggestion.level} • {suggestion.region}
+												</div>
+											</div>
+										</div>
+									))}
+								</div>
+							)}
+						</div>
 						<button
 							type="submit"
 							className="h-12 min-w-12 max-w-12 rounded-r bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center transition-colors"

@@ -41,7 +41,13 @@ const SortedChampionList = ({
 				roleChampions.sort((a, b) => sortAlgorithm(sortOrder, a, b));
 				const finishedChamps = roleChampions.filter(
 					(champ) =>
-						filteredOut(champ, filterPoints, filterLevel, filterPointsDirection, filterLevelDirection) || selectedChampions.has(champ.id),
+						filteredOut(
+							champ,
+							filterPoints,
+							filterLevel,
+							filterPointsDirection,
+							filterLevelDirection,
+						) || selectedChampions.has(champ.id),
 				);
 				const finishedChampsPercentage =
 					(finishedChamps.length / roleChampions.length) * 100;
