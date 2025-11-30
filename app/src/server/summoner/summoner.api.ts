@@ -60,7 +60,7 @@ export const getUserByNameAndRegionFn = createServerFn({
 				const version = versionRow?.version ?? "latest";
 
 				const profileIconUrl = cachedUser.profileIconId
-					? `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${cachedUser.profileIconId}.png`
+					? `/api/images/cdn/${version}/img/profileicon/${cachedUser.profileIconId}.webp`
 					: null;
 
 				return {
@@ -94,7 +94,7 @@ export const getUserByNameAndRegionFn = createServerFn({
 			const version = versionRow?.version ?? "latest";
 
 			const profileIconUrl = user.summoner.profileIconId
-				? `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${user.summoner.profileIconId}.png`
+				? `/api/images/cdn/${version}/img/profileicon/${user.summoner.profileIconId}`
 				: null;
 
 			// 4. Upsert into database

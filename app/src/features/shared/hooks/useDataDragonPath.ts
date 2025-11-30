@@ -6,5 +6,10 @@ export const useDataDragonPath = (version: string) => {
 		);
 	};
 
-	return { getChampionImage };
+	const getProfileImage = (iconId: string) => {
+		
+		return `/api/images/cdn/${version}/img/profileicon/${iconId}.webp`
+	};
+
+	return { getChampionImage, getProfileImage };
 };

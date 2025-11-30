@@ -1,8 +1,11 @@
 import { useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { RegionListSelector, regions } from "@/components/region-list-selector";
 import { getUsernameSuggestions } from "@/server/summoner/username-suggestion.api";
+import { getDataDragonVersion } from "@/server/api/get-data-dragon-version.api";
+import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
 
 type Suggestion = {
 	username: string;
@@ -18,6 +21,14 @@ export default function Search() {
 	const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
 	const [isDropdownOpen, setIsDropdownOpen] = useState(false);
 	const inputRef = useRef<HTMLInputElement>(null);
+
+	const { data: version } = useQuery({
+		queryKey: ["dd-version"],
+		queryFn: () => getDataDragonVersion(),
+	});
+
+	const { getProfileImage } = useDataDragonPath(version ?? "13.24.1");
+	
 
 	useEffect(() => {
 		if (username.trim().length < 2) {
@@ -67,9 +78,6 @@ export default function Search() {
 		navigateToSummoner(suggestionUsername);
 	};
 
-	console.log(isDropdownOpen);
-	console.log(suggestions.length);
-
 	return (
 		<div className="flex h-full w-full items-center justify-center md:py-2">
 			<div className="flex flex-col gap-1 md:flex-row md:gap-4">
@@ -104,9 +112,12 @@ export default function Search() {
 											className="px-3 py-2 hover:bg-muted cursor-pointer flex items-center gap-3"
 										>
 											<img
-												src={`/api/images/cdn/14.24.1/img/profileicon/${suggestion.iconId}.png`}
+												src={getProfileImage(String(suggestion.iconId))}
 												alt="Profile icon"
 												className="w-8 h-8 rounded-full border"
+												onError={(e) => {
+													e.currentTarget.style.display = 'none';
+												}}
 											/>
 											<div className="flex-1">
 												<div className="font-medium text-foreground">
