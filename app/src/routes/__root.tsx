@@ -15,7 +15,7 @@ export const Route = createRootRouteWithContext<MyRouterContext>()({
 	head: () => ({
 		meta: [
 			{
-				title: "Awot's Challenge Tracker - League of Legends Challenge Tracker",
+				title: "Awot's Challenge Tracker for League of Legends",
 			},
 			{
 				name: "viewport",
