@@ -15,6 +15,7 @@ interface ChampionItemProps {
 	hiddenChamp: boolean;
 	showMasteryPoints: boolean;
 	showChampionLevels: boolean;
+	isDraggingEnabled?: boolean;
 }
 
 const ChampionItem: React.FC<ChampionItemProps> = ({
@@ -28,6 +29,7 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 	showMasteryPoints,
 	showChampionLevels,
 	handleChampionClick,
+	isDraggingEnabled = false,
 }) => {
 	const disabled = filteredOut(
 		champ,
@@ -44,12 +46,18 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 
 	if (hide) return null;
 
+	const handleDragStart = (e: React.DragEvent) => {
+		e.dataTransfer.setData('text/plain', String(champ.id));
+	};
+
 	return (
 		// biome-ignore lint/a11y/useKeyWithClickEvents: Not sure how to solve this. Putting it off until later date, more pressing matters
 		<li
 			key={champ.key as React.Key}
 			className="flex flex-col pb-2"
 			onClick={() => handleChampionClick(champ.id)}
+			draggable={isDraggingEnabled}
+			onDragStart={isDraggingEnabled ? handleDragStart : undefined}
 		>
 			<div className="relative z-10">
 				<img

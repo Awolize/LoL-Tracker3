@@ -34,6 +34,10 @@ export default function Header({
 		sortOrder,
 		showSelectedChampions,
 		selectedChampions,
+		roleMode,
+		userRoles,
+		toggleRoleMode,
+		clearUserRoles,
 		setSortOrder,
 		setFilterPoints,
 		setFilterLevel,
@@ -127,6 +131,24 @@ export default function Header({
 					checked={byRole}
 					onChange={toggleSortedByRole}
 				/>
+				{byRole && (
+					<>
+						<div className="h-8 w-px bg-gray-500" />
+						<SwitchWithLabel
+							label={`Role Mode: ${roleMode === 'user' ? 'Custom' : 'Default'}`}
+							checked={roleMode === 'user'}
+							onChange={toggleRoleMode}
+						/>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={clearUserRoles}
+							disabled={Object.keys(userRoles).length === 0}
+						>
+							Reset Custom Roles
+						</Button>
+					</>
+				)}
 				<Dropdown
 					callback={(choice) => setFilterPoints(choice)}
 					menuLabel={`Filter by (${filterPointsDirection})`}

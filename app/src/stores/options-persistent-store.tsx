@@ -17,6 +17,8 @@ interface Store {
 	championsScale: number;
 	sortOrder: number;
 	showSelectedChampions: boolean;
+	roleMode: 'default' | 'user';
+	userRoles: Record<number, string>;
 }
 
 interface StoreState extends Store {
@@ -31,6 +33,9 @@ interface StoreState extends Store {
 	toggleSelectedChampion: (championId: number) => void;
 	toggleShowSelectedChampions: () => void;
 	setChampionsScale: (newScaleValue: number) => void;
+	toggleRoleMode: () => void;
+	setUserRole: (championId: number, role: string) => void;
+	clearUserRoles: () => void;
 }
 
 const initialState = {
@@ -45,6 +50,8 @@ const initialState = {
 	championsScale: 85,
 	sortOrder: SortOrder2.Points,
 	showSelectedChampions: false,
+	roleMode: 'default' as const,
+	userRoles: {} as Record<number, string>,
 };
 
 // const useOptionsStore: (persistName: string) => UseBoundStore<StoreApi<StoreState>>
@@ -101,6 +108,18 @@ const useOptionsPersistentStore = (persistName: string) => {
 					}),
 				setChampionsScale: (newScaleValue) =>
 					set((state) => ({ ...state, championsScale: newScaleValue })),
+				toggleRoleMode: () =>
+					set((state) => ({
+						...state,
+						roleMode: state.roleMode === 'default' ? 'user' : 'default',
+					})),
+				setUserRole: (championId, role) =>
+					set((state) => ({
+						...state,
+						userRoles: { ...state.userRoles, [championId]: role },
+					})),
+				clearUserRoles: () =>
+					set((state) => ({ ...state, userRoles: {} })),
 			}),
 			{ name: persistName, storage },
 		),

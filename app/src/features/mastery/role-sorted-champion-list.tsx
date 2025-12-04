@@ -22,13 +22,20 @@ const SortedChampionList = ({
 		showSelectedChampions,
 		championsScale,
 		toggleSelectedChampion,
+		roleMode,
+		userRoles,
+		setUserRole,
 	} = useOptionsPersistentContext((state) => state);
+
+	const getEffectiveRole = (champ: CompleteChampionInfo): string => {
+		return roleMode === 'user' ? userRoles[champ.id] || champ.role : champ.role;
+	};
 
 	const playerChampionInfoSorted: CompleteChampionInfo[][] = [];
 
 	for (const role of ROLES) {
 		const championsForRole = champions.filter(
-			(champion) => champion.role === role,
+			(champion) => getEffectiveRole(champion) === role,
 		);
 		playerChampionInfoSorted.push(championsForRole);
 	}
@@ -52,8 +59,23 @@ const SortedChampionList = ({
 				const finishedChampsPercentage =
 					(finishedChamps.length / roleChampions.length) * 100;
 
+				const handleDragOver = (e: React.DragEvent) => {
+					e.preventDefault();
+				};
+
+				const handleDrop = (e: React.DragEvent) => {
+					e.preventDefault();
+					const champId = parseInt(e.dataTransfer.getData('text/plain'), 10);
+					setUserRole(champId, role);
+				};
+
 				return (
-					<div className="w-full p-4" key={role}>
+					<div
+						className="w-full p-4"
+						key={role}
+						onDragOver={roleMode === 'user' ? handleDragOver : undefined}
+						onDrop={roleMode === 'user' ? handleDrop : undefined}
+					>
 						<RoleHeader
 							role={role}
 							finishedSize={finishedChamps.length}
@@ -87,6 +109,7 @@ const SortedChampionList = ({
 										showMasteryPoints={showMasteryPoints}
 										showChampionLevels={showChampionLevels}
 										showFinished={false}
+										isDraggingEnabled={roleMode === 'user'}
 										handleChampionClick={() =>
 											showSelectedChampions &&
 											toggleSelectedChampion(championInfo.id)
