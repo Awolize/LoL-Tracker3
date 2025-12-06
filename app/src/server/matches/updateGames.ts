@@ -1,4 +1,4 @@
-import { type InferSelectModel, inArray } from "drizzle-orm";
+import { type InferSelectModel, eq, inArray } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import { regionToRegionGroup } from "twisted/dist/constants";
 import type { RateLimitError } from "twisted/dist/errors";
@@ -7,10 +7,10 @@ import {
 	matchInfo as matchInfoTable,
 	matchSummoners as matchSummonersTable,
 	match as matchTable,
+	summoner as summonerTable,
 	type summoner,
 } from "@/db/schema";
 import { lolApi } from "@/server/lib/lol-api";
-import { summonersFromGames } from "@/server/summoner/summonersFromGames";
 
 type SummonerRow = InferSelectModel<typeof summoner>;
 
@@ -136,19 +136,65 @@ const processSingleMatch = async (region: Regions, matchId: string) => {
 	);
 	const game = gameResponse.response;
 
-	const creationPromises = summonersFromGames(game);
-	const summoners = await Promise.all(
-		creationPromises.map(async (p) => {
-			try {
-				return await p;
-			} catch (error) {
-				console.error("Error creating summoner:", error);
-				return null;
-			}
-		}),
-	);
+	const validSummoners: SummonerRow[] = [];
+	for (const participant of game.info.participants) {
+		try {
+			// Check if summoner exists
+			const existingSummoner = await db
+				.select()
+				.from(summonerTable)
+				.where(eq(summonerTable.puuid, participant.puuid))
+				.limit(1)
+				.then((rows) => rows[0] || null);
 
-	const validSummoners = summoners.filter((s): s is SummonerRow => s !== null);
+			let summoner: SummonerRow;
+			if (!existingSummoner) {
+				// Insert new summoner with full data
+				const inserted = await db
+					.insert(summonerTable)
+					.values({
+						puuid: participant.puuid,
+						region,
+						gameName: participant.riotIdGameName,
+						tagLine: participant.riotIdTagline,
+						summonerId: null, // summonerId is deprecated
+						summonerLevel: participant.summonerLevel,
+						profileIconId: participant.profileIcon,
+						revisionDate: new Date(),
+						accountId: null,
+						updatedAt: new Date(),
+						createdAt: new Date(),
+					})
+					.returning();
+				summoner = inserted[0];
+			} else {
+				const gameDate = new Date(game.info.gameStartTimestamp);
+				if (gameDate > existingSummoner.updatedAt) {
+					const updated = await db
+						.update(summonerTable)
+						.set({
+							gameName: participant.riotIdGameName,
+							tagLine: participant.riotIdTagline,
+							summonerId: null, // summonerId is deprecated
+							summonerLevel: participant.summonerLevel,
+							profileIconId: participant.profileIcon,
+							revisionDate: new Date(),
+							accountId: null,
+							updatedAt: new Date(),
+						})
+						.where(eq(summonerTable.puuid, participant.puuid))
+						.returning();
+					summoner = updated[0];
+				} else {
+					summoner = existingSummoner;
+				}
+			}
+
+			validSummoners.push(summoner);
+		} catch (error) {
+			console.error("Error upserting summoner:", participant.puuid, error);
+		}
+	}
 
 	// Insert match and match info
 	await db.insert(matchTable).values({
