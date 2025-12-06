@@ -47,7 +47,7 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 	if (hide) return null;
 
 	const handleDragStart = (e: React.DragEvent) => {
-		e.dataTransfer.setData('text/plain', String(champ.id));
+		e.dataTransfer.setData("text/plain", String(champ.id));
 	};
 
 	return (

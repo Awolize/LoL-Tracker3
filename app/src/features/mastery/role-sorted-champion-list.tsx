@@ -28,7 +28,7 @@ const SortedChampionList = ({
 	} = useOptionsPersistentContext((state) => state);
 
 	const getEffectiveRole = (champ: CompleteChampionInfo): string => {
-		return roleMode === 'user' ? userRoles[champ.id] || champ.role : champ.role;
+		return roleMode === "user" ? userRoles[champ.id] || champ.role : champ.role;
 	};
 
 	const playerChampionInfoSorted: CompleteChampionInfo[][] = [];
@@ -65,7 +65,7 @@ const SortedChampionList = ({
 
 				const handleDrop = (e: React.DragEvent) => {
 					e.preventDefault();
-					const champId = parseInt(e.dataTransfer.getData('text/plain'), 10);
+					const champId = parseInt(e.dataTransfer.getData("text/plain"), 10);
 					setUserRole(champId, role);
 				};
 
@@ -73,8 +73,8 @@ const SortedChampionList = ({
 					<div
 						className="w-full p-4"
 						key={role}
-						onDragOver={roleMode === 'user' ? handleDragOver : undefined}
-						onDrop={roleMode === 'user' ? handleDrop : undefined}
+						onDragOver={roleMode === "user" ? handleDragOver : undefined}
+						onDrop={roleMode === "user" ? handleDrop : undefined}
 					>
 						<RoleHeader
 							role={role}
@@ -109,7 +109,7 @@ const SortedChampionList = ({
 										showMasteryPoints={showMasteryPoints}
 										showChampionLevels={showChampionLevels}
 										showFinished={false}
-										isDraggingEnabled={roleMode === 'user'}
+										isDraggingEnabled={roleMode === "user"}
 										handleChampionClick={() =>
 											showSelectedChampions &&
 											toggleSelectedChampion(championInfo.id)

@@ -135,8 +135,8 @@ export default function Header({
 					<>
 						<div className="h-8 w-px bg-gray-500" />
 						<SwitchWithLabel
-							label={`Role Mode: ${roleMode === 'user' ? 'Custom' : 'Default'}`}
-							checked={roleMode === 'user'}
+							label={`Role Mode: ${roleMode === "user" ? "Custom" : "Default"}`}
+							checked={roleMode === "user"}
 							onChange={toggleRoleMode}
 						/>
 						<Button

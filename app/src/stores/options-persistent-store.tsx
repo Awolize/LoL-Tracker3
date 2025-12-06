@@ -17,7 +17,7 @@ interface Store {
 	championsScale: number;
 	sortOrder: number;
 	showSelectedChampions: boolean;
-	roleMode: 'default' | 'user';
+	roleMode: "default" | "user";
 	userRoles: Record<number, string>;
 }
 
@@ -50,7 +50,7 @@ const initialState = {
 	championsScale: 85,
 	sortOrder: SortOrder2.Points,
 	showSelectedChampions: false,
-	roleMode: 'default' as const,
+	roleMode: "default" as const,
 	userRoles: {} as Record<number, string>,
 };
 
@@ -111,15 +111,14 @@ const useOptionsPersistentStore = (persistName: string) => {
 				toggleRoleMode: () =>
 					set((state) => ({
 						...state,
-						roleMode: state.roleMode === 'default' ? 'user' : 'default',
+						roleMode: state.roleMode === "default" ? "user" : "default",
 					})),
 				setUserRole: (championId, role) =>
 					set((state) => ({
 						...state,
 						userRoles: { ...state.userRoles, [championId]: role },
 					})),
-				clearUserRoles: () =>
-					set((state) => ({ ...state, userRoles: {} })),
+				clearUserRoles: () => set((state) => ({ ...state, userRoles: {} })),
 			}),
 			{ name: persistName, storage },
 		),
