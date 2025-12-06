@@ -8,6 +8,7 @@ import {
 	challengesChampionOcean,
 	challengesChampionOcean2024Split3,
 	challengesInvincible,
+	challengesDetails
 } from "@/db/schema";
 import { regionToConstant } from "@/features/shared/champs";
 import type { ChampionDetails, Summoner } from "@/features/shared/types";
@@ -411,4 +412,48 @@ export const updateAllChallengeData = createServerFn()
 		await updateInvincible({ data });
 
 		return { success: true, message: "All challenge data updated" };
+	});
+
+export const getPlayerChallengesProgress = createServerFn()
+	.inputValidator((input: { username: string; region: string }) => input)
+	.handler(async ({ data }) => {
+		const { username: rawUsername, region: rawRegion } = data;
+		const username = rawUsername.replace("-", "#").toLowerCase();
+		const region = regionToConstant(rawRegion);
+		const user = await getUserByNameAndRegion(username, region);
+
+		if (!user) {
+			console.error("User not found for challenges progress");
+			return null;
+		}
+
+		try {
+			// Get the challenge progress from our database instead of Riot API
+			const userChallengesDetails = await db.query.challengesDetails.findFirst({
+				where: eq(challengesDetails.puuid, user.puuid),
+				with: { challenges: true },
+			});
+
+			if (!userChallengesDetails) {
+				console.error(`Could not find challenge data for user ${user.puuid}`);
+				return null;
+			}
+
+			// Return challenges as a Record<number, any> where key is challengeId
+			const challengesMap = userChallengesDetails.challenges.reduce((map: Record<number, any>, challenge) => {
+				map[challenge.challengeId as number] = {
+					challengeId: challenge.challengeId,
+					percentile: challenge.percentile,
+					level: challenge.level,
+					value: challenge.value,
+					achievedTime: challenge.achievedTime,
+				};
+				return map;
+			}, {} as Record<number, any>);
+
+			return challengesMap;
+		} catch (error) {
+			console.error("Failed to fetch player challenges progress from database:", error);
+			return null;
+		}
 	});

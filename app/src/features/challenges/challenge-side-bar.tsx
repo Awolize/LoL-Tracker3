@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { updateAllChallengeData } from "@/server/challenges/different-challenge-queries";
+import { updateChallengesConfig } from "@/server/challenges/update-challenges-config.api";
+import type { Summoner } from "@/features/shared/types";
 import { useChallengeContext } from "@/stores/challenge-store";
 
 interface ChallengeConfig {
@@ -24,17 +26,20 @@ interface DifferentSideBarProps {
 	challenges: ChallengeConfig[];
 	username: string;
 	region: string;
+	user?: Summoner;
 }
 
 export const DifferentSideBar = ({
 	challenges,
 	username,
 	region,
+	user,
 }: DifferentSideBarProps) => {
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [showAll, setShowAll] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 	const [isUpdating, setIsUpdating] = useState(false);
+	const [isUpdatingConfig, setIsUpdatingConfig] = useState(false);
 
 	const selectedChallengeId = useChallengeContext(
 		(state) => state.selectedChallengeId,
@@ -141,7 +146,7 @@ export const DifferentSideBar = ({
 							);
 						})}
 					</ul>
-					<div className="flex gap-2 mt-2">
+					<div className="flex flex-col gap-2 mt-2">
 						<Button
 							variant="outline"
 							onClick={async () => {
@@ -162,6 +167,26 @@ export const DifferentSideBar = ({
 						>
 							{isUpdating ? "Updating..." : "Update"}
 						</Button>
+						{user && user.tagLine === "dev" && (
+							<Button
+								variant="outline"
+								onClick={async () => {
+									setIsUpdatingConfig(true);
+									try {
+										await updateChallengesConfig({ data: { region: "EUW1" } });
+										console.log("Global config updated successfully");
+									} catch (error) {
+										console.error("Failed to update global config:", error);
+									} finally {
+										setIsUpdatingConfig(false);
+									}
+								}}
+								disabled={isUpdatingConfig}
+								className="text-xs"
+							>
+								{isUpdatingConfig ? "Updating..." : "Update global config"}
+							</Button>
+						)}
 					</div>
 				</div>
 			)}
