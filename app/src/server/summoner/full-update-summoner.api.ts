@@ -13,11 +13,11 @@ import { upsertSummoner } from "@/server/summoner/upsertSummoner";
 
 export const fullUpdateSummoner = createServerFn({ method: "POST" })
 	.inputValidator(
-		(input: { gameName: string; tagLine: string; region: string }) => input,
+		(input: { gameName: string; tagLine: string; region: string; includeMatches?: boolean }) => input,
 	)
 	.handler(async ({ data }) => {
 		return Sentry.startSpan({ name: "fullUpdateSummoner" }, async () => {
-			const { gameName, tagLine, region: rawRegion } = data;
+			const { gameName, tagLine, region: rawRegion, includeMatches = true } = data;
 			const region = rawRegion as Regions;
 			const regionGroup = regionToRegionGroupForAccountAPI(region);
 
@@ -59,7 +59,12 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 				region,
 				updatedUser,
 			);
-			await timeIt("updateGames", user, updateGames, updatedUser, region);
+			
+			if (includeMatches) {
+				console.time(`${user.gameName}#${user.tagLine}: updateGames`);
+				await updateGames(updatedUser, region);
+				console.timeEnd(`${user.gameName}#${user.tagLine}: updateGames`);
+			}
 
 			return true;
 		});

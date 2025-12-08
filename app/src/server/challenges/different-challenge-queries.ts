@@ -18,6 +18,7 @@ import {
 	getMatches,
 	getSRMatches,
 } from "@/server/matches/get-matches";
+import { fullUpdateSummoner } from "@/server/summoner/full-update-summoner.api";
 
 async function clearChallenge(user: Summoner, challenge: string) {
 	const tableMap = {
@@ -403,6 +404,16 @@ export const updateAllChallengeData = createServerFn()
 		console.log(
 			`Updating all challenge data for user ${data.username} (${data.region.toUpperCase()})`,
 		);
+
+		// First, ensure we have the latest summoner and match data
+		await fullUpdateSummoner({
+			data: {
+				gameName: data.username.split('#')[0],
+				tagLine: data.username.split('#')[1] || '',
+				region: data.region,
+				includeMatches: true,
+			},
+		});
 
 		// Call all update functions
 		await updateJackOfAllChamps({ data });

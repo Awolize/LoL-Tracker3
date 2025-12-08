@@ -7,6 +7,7 @@ import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import { MatchHistory } from "@/features/matches/match-history";
 import { getMatchesFn } from "@/server/matches/get-matches.api";
+import { FullSummonerUpdate } from "@/features/summoner/components/summoner-update";
 import { OptionsProvider } from "@/stores/options-persistent-store";
 import { UserProvider } from "@/stores/user-store";
 
@@ -78,10 +79,11 @@ function RouteComponent() {
 										games
 									</p>
 								</div>
-								<div className="flex items-center gap-2">
+								<div className="flex items-center gap-4">
 									<div className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
 										{matches.length} matches loaded
 									</div>
+									<FullSummonerUpdate user={user} />
 								</div>
 							</div>
 

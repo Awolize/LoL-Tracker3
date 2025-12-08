@@ -124,7 +124,7 @@ export default function Header({
 				/>
 			</div>
 			<div className="flex flex-row items-center justify-center gap-2 mx-auto">
-				<FullSummonerUpdate user={user} />
+				<FullSummonerUpdate user={user} includeMatches={false} />
 				<div className="h-8 w-px bg-gray-500" />
 				<SwitchWithLabel
 					label={"By role"}

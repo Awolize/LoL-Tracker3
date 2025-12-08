@@ -22,11 +22,11 @@ export const updateGames = async (user: SummonerRow, region: Regions) => {
 			`UpdateGames for user ${user.gameName}#${user.tagLine} (${user.region}), ${matchIds.length} games`,
 		);
 
-		const { addedGames, skippedGames, failedGames } = await processMatches(
-			user,
-			region,
-			matchIds,
-		);
+	const { addedGames, skippedGames, failedGames } = await processMatches(
+		user,
+		region,
+		matchIds,
+	);
 
 		console.log({
 			addedGames: addedGames.length,

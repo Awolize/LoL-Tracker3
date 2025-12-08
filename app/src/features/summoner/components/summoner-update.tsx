@@ -7,13 +7,15 @@ import { getLastMasteryUpdate } from "@/server/summoner/summoner.api";
 
 interface FullSummonerUpdateProps {
 	user: Summoner;
+	includeMatches?: boolean;
 }
 
-export const FullSummonerUpdate = ({ user }: FullSummonerUpdateProps) => {
+export const FullSummonerUpdate = ({ user, includeMatches = true }: FullSummonerUpdateProps) => {
 	const router = useRouter();
 	const [isUpdating, setIsUpdating] = useState(false);
 	const [error, setError] = useState<string | null>(null);
 	const [justCompleted, setJustCompleted] = useState(false);
+	// reprocess removed as per user request
 
 	const updateUser = async () => {
 		if (!user.gameName || !user.tagLine) return;
@@ -28,6 +30,7 @@ export const FullSummonerUpdate = ({ user }: FullSummonerUpdateProps) => {
 					gameName: user.gameName,
 					tagLine: user.tagLine,
 					region: user.region,
+					includeMatches,
 				},
 			});
 

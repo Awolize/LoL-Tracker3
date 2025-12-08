@@ -25,7 +25,6 @@ import {
 	getJackOfAllChamps,
 	getPlayerChallengesProgress,
 } from "@/server/challenges/different-challenge-queries";
-import { updateChallengesConfig } from "@/server/challenges/update-challenges-config.api";
 import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
 import {
 	ChallengeProvider,
@@ -220,7 +219,7 @@ export function RouteComponent() {
 						region={region}
 						user={user}
 					/>
-					<main className="flex flex-col flex-1">
+					<main className="flex flex-col flex-1 p-4">
 						<ChampionListHeader
 							challengeChampions={challengeChampions}
 							champions={playerChampionInfo}
