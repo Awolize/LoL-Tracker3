@@ -1,14 +1,14 @@
 import * as Sentry from "@sentry/tanstackstart-react";
 import { Queue, QueueEvents, Worker } from "bullmq";
 import type { Regions } from "twisted/dist/constants";
-import { regionToRegionGroupForAccountAPI } from "twisted/dist/constants";
 import { updateChallengesConfigServer } from "@/server/challenges/update-challenges-config";
 import { upsertChallenges } from "@/server/challenges/upsertChallenges";
 import { updateChampionDetails } from "@/server/champions/update-champion-details";
 import { upsertMastery } from "@/server/champions/upsertMastery";
-import { riotApi } from "@/server/external/riot/riot-api";
-import { updateGames } from "@/server/matches/updateGames";
+import { fetchMatchIds, updateGamesSingle } from "@/server/matches/updateGames";
+import { getSummonerByUsernameRateLimit } from "@/server/summoner/get-summoner-by-username-rate-limit";
 import { upsertSummoner } from "@/server/summoner/upsertSummoner";
+
 import { connection } from "./redis";
 
 const QUEUE_NAME = "riot-updates";
@@ -33,73 +33,87 @@ if (global.__riotWorker) {
 		QUEUE_NAME,
 		async (job) => {
 			console.log(
-				`[Worker]      Processing ${job.name} for ${job.data.gameName}`,
+				`[Worker]      Processing ${job.name} for ${job.data.gameName || job.data.matchId}`,
 			);
 
-			const result = Sentry.startSpan(
+			const result = await Sentry.startSpan(
 				{ name: `worker-${job.name}` },
 				async () => {
-					const { gameName, tagLine, region: rawRegion } = job.data;
+					const { gameName, tagLine, region: rawRegion, matchId } = job.data;
 					const region = rawRegion as Regions;
-					const regionGroup = regionToRegionGroupForAccountAPI(region);
 
 					if (job.name === "update-meta") {
-						const user = (
-							await riotApi.Account.getByRiotId(gameName, tagLine, regionGroup)
-						).response;
+						const userData = await getSummonerByUsernameRateLimit(
+							`${gameName}#${tagLine}`,
+							region,
+						);
 
-						if (!user.puuid) throw new Error("User does not exist");
+						if (!userData.summoner) throw new Error("Summoner not found");
+
+						await upsertSummoner(userData.summoner, userData.account, region);
 
 						await Promise.all([
+							upsertMastery(userData.account, region),
+							upsertChallenges(region, userData.account),
 							updateChallengesConfigServer(region),
 							updateChampionDetails(),
 						]);
 
-						const updatedUser = await upsertSummoner(user.puuid, region);
+						return { success: true, puuid: userData.account.puuid };
+					}
 
-						if (!updatedUser) throw new Error("Could not update user");
+					if (job.name === "update-summoner-only") {
+						const userData = await getSummonerByUsernameRateLimit(
+							`${gameName}#${tagLine}`,
+							region,
+						);
 
-						await Promise.all([
-							upsertMastery(updatedUser, region),
-							upsertChallenges(region, updatedUser),
-						]);
+						if (!userData.summoner) throw new Error("Summoner not found");
 
-						return { success: true, puuid: user.puuid };
+						await upsertSummoner(userData.summoner, userData.account, region);
+
+						return { success: true, puuid: userData.account.puuid };
+					}
+
+					if (job.name === "process-single-match") {
+						await updateGamesSingle(matchId, region);
+						return { success: true };
 					}
 
 					if (job.name === "update-matches") {
-						const userResponse = await riotApi.Account.getByRiotId(
-							gameName,
-							tagLine,
-							regionGroup,
+						const userData = await getSummonerByUsernameRateLimit(
+							`${gameName}#${tagLine}`,
+							region,
 						);
-						const user = userResponse.response;
+						if (!userData.summoner) throw new Error("Summoner not found");
+						await upsertSummoner(userData.summoner, userData.account, region);
 
-						const updatedUser = await upsertSummoner(user.puuid, region);
+						const matchIds = await fetchMatchIds(
+							userData.account.puuid,
+							region,
+						);
 
-						if (!updatedUser)
-							throw new Error("User not found for match update");
-
-						await updateGames(updatedUser, region);
-
-						return { success: true };
+						for (const id of matchIds) {
+							await updateQueue.add(
+								"process-single-match",
+								{ matchId: id, region },
+								{ priority: 50, jobId: matchId },
+							);
+						}
+						return { queuedMatches: matchIds.length };
 					}
 				},
 			);
 
 			console.log(
-				`[Worker] Done processing ${job.name} for ${job.data.gameName}`,
+				`[Worker] Done processing ${job.name} for ${job.data.gameName || job.data.matchId}`,
 			);
-
 			return result;
 		},
 		{
 			connection,
 			concurrency: 1,
-			limiter: {
-				max: 1,
-				duration: 1200,
-			},
+			limiter: { max: 1, duration: 1200 },
 		},
 	);
 

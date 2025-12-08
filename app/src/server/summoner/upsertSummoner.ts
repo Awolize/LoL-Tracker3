@@ -1,51 +1,43 @@
 import type { Regions } from "twisted/dist/constants";
+import type { SummonerV4DTO } from "twisted/dist/models-dto";
 import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
 import { db } from "@/db";
 import { summoner as summonerTable } from "@/db/schema";
 import type { Summoner } from "@/features/shared/types";
-import { getSummonerRateLimit } from "@/server/summoner/getSummonerRateLimit";
 
 export const upsertSummoner = async (
-	puuid: string,
+	summoner: SummonerV4DTO,
+	account: AccountDto,
 	region: Regions,
-): Promise<Summoner | undefined> => {
-	const { account, summoner } = await getSummonerRateLimit(puuid, region);
-
-	if (!summoner) {
-		console.log("Could not find summoner", puuid, region);
-		return undefined;
-	}
-
+): Promise<Summoner> => {
 	return upsertSummonerBySummoner(summoner, region, account);
 };
 
-export const upsertSummonerBySummoner = async (
-	summoner: Summoner,
+const upsertSummonerBySummoner = async (
+	summoner: SummonerV4DTO,
 	region: Regions,
 	account: AccountDto,
 ) => {
-	const upserted = await db
+	const result = await db
 		.insert(summonerTable)
 		.values({
 			puuid: summoner.puuid,
-			summonerId: summoner.summonerId,
+
 			region,
 			profileIconId: summoner.profileIconId,
 			summonerLevel: summoner.summonerLevel,
-			revisionDate: summoner.revisionDate,
+			revisionDate: new Date(summoner.revisionDate),
 			gameName: account.gameName,
 			tagLine: account.tagLine,
-			accountId: summoner.accountId,
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		})
 		.onConflictDoUpdate({
 			target: summonerTable.puuid,
 			set: {
-				summonerId: summoner.summonerId,
 				profileIconId: summoner.profileIconId,
 				summonerLevel: summoner.summonerLevel,
-				revisionDate: summoner.revisionDate,
+				revisionDate: new Date(summoner.revisionDate),
 				gameName: account.gameName,
 				tagLine: account.tagLine,
 				updatedAt: new Date(),
@@ -53,5 +45,5 @@ export const upsertSummonerBySummoner = async (
 		})
 		.returning();
 
-	return upserted[0];
+	return result[0];
 };

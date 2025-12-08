@@ -174,7 +174,6 @@ export const DifferentSideBar = ({
 									setIsUpdatingConfig(true);
 									try {
 										await updateChallengesConfig({ data: { region: "EUW1" } });
-										console.log("Global config updated successfully");
 									} catch (error) {
 										console.error("Failed to update global config:", error);
 									} finally {

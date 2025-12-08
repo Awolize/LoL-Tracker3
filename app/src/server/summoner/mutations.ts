@@ -211,9 +211,23 @@ export const refreshSummonerDataFn = createServerFn({
 })
 	.inputValidator((input: { username: string; region: Regions }) => input)
 	.handler(async ({ data }) => {
-		return await getUserByNameAndRegionFn({
-			data: { ...data, forceRefresh: true },
+		const { username, region } = data;
+		const [gameName, tagLine] = username.split("#");
+
+		const jobData = { gameName, tagLine, region };
+		console.log(`[API] Refreshing summoner data for ${gameName}#${tagLine}`);
+
+		const updateJob = await updateQueue.add("update-summoner-only", jobData, {
+			priority: 1,
 		});
+
+		try {
+			await updateJob.waitUntilFinished(updateQueueEvents, 20000);
+			return { success: true };
+		} catch (error) {
+			console.error("Summoner update timed out or failed", error);
+			return { success: false };
+		}
 	});
 
 // Helper function to check if username changed and get redirect info

@@ -1,10 +1,10 @@
 import type { Regions } from "twisted/dist/constants";
+import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
 import { db } from "@/db";
 import { championMastery } from "@/db/schema";
-import type { Summoner } from "@/features/shared/types";
 import { lolApi } from "@/server/external/riot/lol-api";
 
-export const upsertMastery = async (user: Summoner, region: Regions) => {
+export const upsertMastery = async (user: AccountDto, region: Regions) => {
 	const masteryList = (await lolApi.Champion.masteryByPUUID(user.puuid, region))
 		.response;
 

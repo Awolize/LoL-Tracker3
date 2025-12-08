@@ -1,5 +1,6 @@
 import type { InferSelectModel } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
+import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
 import { db } from "@/db";
 import type { summoner } from "@/db/schema";
 import {
@@ -11,9 +12,7 @@ import {
 } from "@/db/schema";
 import { lolApi } from "@/server/external/riot/lol-api";
 
-type Summoner = InferSelectModel<typeof summoner>;
-
-export const upsertChallenges = async (region: Regions, user: Summoner) => {
+export const upsertChallenges = async (region: Regions, user: AccountDto) => {
 	const response = (
 		await lolApi.Challenges.PlayerChallenges(user.puuid, region)
 	).response;
