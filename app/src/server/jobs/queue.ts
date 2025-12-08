@@ -47,9 +47,7 @@ if (global.__riotWorker) {
 							`${gameName}#${tagLine}`,
 							region,
 						);
-
 						if (!userData.summoner) throw new Error("Summoner not found");
-
 						await upsertSummoner(userData.summoner, userData.account, region);
 
 						await Promise.all([
@@ -67,9 +65,7 @@ if (global.__riotWorker) {
 							`${gameName}#${tagLine}`,
 							region,
 						);
-
 						if (!userData.summoner) throw new Error("Summoner not found");
-
 						await upsertSummoner(userData.summoner, userData.account, region);
 
 						return { success: true, puuid: userData.account.puuid };
@@ -93,14 +89,27 @@ if (global.__riotWorker) {
 							region,
 						);
 
+						const jobs = [];
+
 						for (const id of matchIds) {
-							await updateQueue.add(
+							const job = await updateQueue.add(
 								"process-single-match",
 								{ matchId: id, region },
-								{ priority: 50, jobId: matchId },
+								{ priority: 50, jobId: id },
 							);
+
+							jobs.push(job);
 						}
-						return { queuedMatches: matchIds.length };
+
+						try {
+							await Promise.all(
+								jobs.map((j) => j.waitUntilFinished(updateQueueEvents)),
+							);
+							return { success: true, processedMatches: matchIds.length };
+						} catch (error) {
+							console.error("Summoner update timed out or failed", error);
+							return { success: false, processedMatches: null };
+						}
 					}
 				},
 			);

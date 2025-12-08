@@ -217,13 +217,13 @@ export const refreshSummonerDataFn = createServerFn({
 		const jobData = { gameName, tagLine, region };
 		console.log(`[API] Refreshing summoner data for ${gameName}#${tagLine}`);
 
-		const updateJob = await updateQueue.add("update-summoner-only", jobData, {
+		const job = await updateQueue.add("update-summoner-only", jobData, {
 			priority: 1,
 			jobId: `update-summoner-only-${gameName}#${tagLine}`,
 		});
 
 		try {
-			await updateJob.waitUntilFinished(updateQueueEvents, 20000);
+			await job.waitUntilFinished(updateQueueEvents);
 			return { success: true };
 		} catch (error) {
 			console.error("Summoner update timed out or failed", error);
@@ -328,13 +328,13 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 			const jobData = { gameName, tagLine, region: regionEnum };
 			console.log(`[API] Received update request for ${gameName}#${tagLine}`);
 
-			const metaJob = await updateQueue.add("update-meta", jobData, {
+			const job = await updateQueue.add("update-meta", jobData, {
 				priority: 1,
 				jobId: `update-meta-${gameName}#${tagLine}`,
 			});
 
 			try {
-				await metaJob.waitUntilFinished(updateQueueEvents, 20000);
+				await job.waitUntilFinished(updateQueueEvents);
 			} catch (error) {
 				console.error("Meta update timed out or failed", error);
 				return false;
@@ -347,7 +347,7 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 						jobId: `update-matches-${gameName}#${tagLine}`,
 					});
 
-					await matchJob.waitUntilFinished(updateQueueEvents, 60000);
+					await matchJob.waitUntilFinished(updateQueueEvents);
 				} catch (error) {
 					console.error("Match update timed out or failed", error);
 					return true;

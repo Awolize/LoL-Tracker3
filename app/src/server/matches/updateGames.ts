@@ -35,7 +35,7 @@ export const fetchMatchIds = async (
 		);
 
 		if (matchIdsResponse.response.length === 0) break;
-	
+
 		matchIds.push(...matchIdsResponse.response);
 		start += count;
 		totalCount -= count;
@@ -51,9 +51,9 @@ export const fetchMatchIds = async (
 		.from(matchTable)
 		.where(inArray(matchTable.gameId, matchIds));
 
-	const existingGameIds = new Set(existingMatches.map(m => m.gameId));
+	const existingGameIds = new Set(existingMatches.map((m) => m.gameId));
 
-	return matchIds.filter(id => !existingGameIds.has(id));
+	return matchIds.filter((id) => !existingGameIds.has(id));
 };
 
 export const updateGamesSingle = async (matchId: string, region: Regions) => {
