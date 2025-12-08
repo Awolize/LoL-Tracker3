@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Summoner } from "@/features/shared/types";
 import { updateAllChallengeData } from "@/server/challenges/different-challenge-queries";
-import { updateChallengesConfig } from "@/server/challenges/update-challenges-config.api";
+import { updateChallengesConfig } from "@/server/challenges/mutations";
 import { useChallengeContext } from "@/stores/challenge-store";
 
 interface ChallengeConfig {

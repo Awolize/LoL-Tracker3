@@ -7,7 +7,7 @@ import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import { MatchHistory } from "@/features/matches/match-history";
 import { FullSummonerUpdate } from "@/features/summoner/components/summoner-update";
-import { getMatchesFn } from "@/server/matches/get-matches.api";
+import { getMatchesFn } from "@/server/matches/mutations";
 import { OptionsProvider } from "@/stores/options-persistent-store";
 import { UserProvider } from "@/stores/user-store";
 

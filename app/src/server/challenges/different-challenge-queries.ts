@@ -18,7 +18,7 @@ import {
 	getMatches,
 	getSRMatches,
 } from "@/server/matches/get-matches";
-import { fullUpdateSummoner } from "@/server/summoner/full-update-summoner.api";
+import { fullUpdateSummoner } from "@/server/summoner/mutations";
 
 async function clearChallenge(user: Summoner, challenge: string) {
 	const tableMap = {

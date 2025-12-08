@@ -15,11 +15,11 @@ import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import { regionToConstant } from "@/features/shared/champs";
-import { checkNameChangeFn } from "@/server/summoner/check-name-change.api";
 import {
+	checkNameChangeFn,
 	getUserByNameAndRegionFn,
 	refreshSummonerDataFn,
-} from "@/server/summoner/summoner.api";
+} from "@/server/summoner/mutations";
 
 export const Route = createFileRoute("/$region/$username/")({
 	loader: async ({ params: { username: rawUsername, region: rawRegion } }) => {
@@ -283,23 +283,6 @@ function Client() {
 					</Link>
 
 					<Link
-						to="/$region/$username/matches"
-						params={{
-							region: rawRegion,
-							username: rawUsername,
-						}}
-						preload="intent"
-						className="group rounded-lg border border-border p-6 transition-all hover:border-primary hover:bg-accent/50 hover:shadow-lg"
-					>
-						<h2 className="text-xl font-semibold transition-colors group-hover:text-primary">
-							Match History
-						</h2>
-						<p className="mt-2 text-sm text-muted-foreground">
-							View your recent games and performance statistics.
-						</p>
-					</Link>
-
-					<Link
 						to="/$region/$username/different"
 						params={{
 							region: rawRegion,
@@ -316,6 +299,23 @@ function Client() {
 							<span className="font-bold italic">All Random All Champions</span>
 							, <span className="font-bold italic">Jack of All Champs</span>,
 							and <span className="font-bold italic">Protean Override</span>.
+						</p>
+					</Link>
+
+					<Link
+						to="/$region/$username/matches"
+						params={{
+							region: rawRegion,
+							username: rawUsername,
+						}}
+						preload="intent"
+						className="group rounded-lg border border-border p-6 transition-all hover:border-primary hover:bg-accent/50 hover:shadow-lg"
+					>
+						<h2 className="text-xl font-semibold transition-colors group-hover:text-primary">
+							Match History
+						</h2>
+						<p className="mt-2 text-sm text-muted-foreground">
+							View your recent games and performance statistics.
 						</p>
 					</Link>
 				</nav>

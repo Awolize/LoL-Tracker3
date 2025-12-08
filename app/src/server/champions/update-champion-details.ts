@@ -7,7 +7,7 @@ import type { summoner } from "@/db/schema";
 import { championDetails } from "@/db/schema";
 import type { CompleteChampionInfo } from "@/features/shared/types";
 import { masteryBySummoner } from "@/server/champions/mastery-by-summoner";
-import { lolApi } from "@/server/lib/lol-api";
+import { lolApi } from "@/server/external/riot/lol-api";
 import rolesJson from "./roles.json";
 
 // Flatten champion data (Drizzle expects a flat object)

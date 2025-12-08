@@ -4,8 +4,8 @@ import { ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { RegionListSelector, regions } from "@/components/region-list-selector";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
-import { getDataDragonVersion } from "@/server/api/get-data-dragon-version.api";
-import { getUsernameSuggestions } from "@/server/summoner/username-suggestion.api";
+import { getDataDragonVersion } from "@/server/api/mutations";
+import { getUsernameSuggestions } from "@/server/summoner/mutations";
 
 type Suggestion = {
 	username: string;
