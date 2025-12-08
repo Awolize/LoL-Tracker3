@@ -1,4 +1,4 @@
-import { type InferSelectModel, eq, inArray } from "drizzle-orm";
+import { eq, type InferSelectModel, inArray } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import { regionToRegionGroup } from "twisted/dist/constants";
 import type { RateLimitError } from "twisted/dist/errors";
@@ -7,8 +7,8 @@ import {
 	matchInfo as matchInfoTable,
 	matchSummoners as matchSummonersTable,
 	match as matchTable,
-	summoner as summonerTable,
 	type summoner,
+	summoner as summonerTable,
 } from "@/db/schema";
 import { lolApi } from "@/server/lib/lol-api";
 
@@ -22,11 +22,11 @@ export const updateGames = async (user: SummonerRow, region: Regions) => {
 			`UpdateGames for user ${user.gameName}#${user.tagLine} (${user.region}), ${matchIds.length} games`,
 		);
 
-	const { addedGames, skippedGames, failedGames } = await processMatches(
-		user,
-		region,
-		matchIds,
-	);
+		const { addedGames, skippedGames, failedGames } = await processMatches(
+			user,
+			region,
+			matchIds,
+		);
 
 		console.log({
 			addedGames: addedGames.length,

@@ -15,12 +15,11 @@ export function ChallengeHeaderThresholds({
 }: ChallengeThresholdsProps) {
 	const currentValue = selectedChallengeProgress?.value;
 
-
 	if (!thresholds || currentValue == null) return null;
 
-	const uniqueSortedValues = Array.from(new Set(Object.values(thresholds).concat(currentValue))).sort(
-		(a, b) => a - b,
-	);
+	const uniqueSortedValues = Array.from(
+		new Set(Object.values(thresholds).concat(currentValue)),
+	).sort((a, b) => a - b);
 
 	return (
 		<div className="flex flex-col items-center justify-center">

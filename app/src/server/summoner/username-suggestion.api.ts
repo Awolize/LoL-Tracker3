@@ -1,8 +1,8 @@
 // app/server/userSuggestions.ts
 import { createServerFn } from "@tanstack/react-start";
+import { and, desc, ilike } from "drizzle-orm";
 import { db } from "@/db";
 import { summoner } from "@/db/schema";
-import { ilike, and, desc } from "drizzle-orm";
 
 export const getUsernameSuggestions = createServerFn({
 	method: "POST",

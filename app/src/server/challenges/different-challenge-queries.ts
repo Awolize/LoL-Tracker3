@@ -7,8 +7,8 @@ import {
 	challengesAdaptToAllSituations,
 	challengesChampionOcean,
 	challengesChampionOcean2024Split3,
+	challengesDetails,
 	challengesInvincible,
-	challengesDetails
 } from "@/db/schema";
 import { regionToConstant } from "@/features/shared/champs";
 import type { ChampionDetails, Summoner } from "@/features/shared/types";
@@ -408,8 +408,8 @@ export const updateAllChallengeData = createServerFn()
 		// First, ensure we have the latest summoner and match data
 		await fullUpdateSummoner({
 			data: {
-				gameName: data.username.split('#')[0],
-				tagLine: data.username.split('#')[1] || '',
+				gameName: data.username.split("#")[0],
+				tagLine: data.username.split("#")[1] || "",
 				region: data.region,
 				includeMatches: true,
 			},
@@ -451,20 +451,26 @@ export const getPlayerChallengesProgress = createServerFn()
 			}
 
 			// Return challenges as a Record<number, any> where key is challengeId
-			const challengesMap = userChallengesDetails.challenges.reduce((map: Record<number, any>, challenge) => {
-				map[challenge.challengeId as number] = {
-					challengeId: challenge.challengeId,
-					percentile: challenge.percentile,
-					level: challenge.level,
-					value: challenge.value,
-					achievedTime: challenge.achievedTime,
-				};
-				return map;
-			}, {} as Record<number, any>);
+			const challengesMap = userChallengesDetails.challenges.reduce(
+				(map: Record<number, any>, challenge) => {
+					map[challenge.challengeId as number] = {
+						challengeId: challenge.challengeId,
+						percentile: challenge.percentile,
+						level: challenge.level,
+						value: challenge.value,
+						achievedTime: challenge.achievedTime,
+					};
+					return map;
+				},
+				{} as Record<number, any>,
+			);
 
 			return challengesMap;
 		} catch (error) {
-			console.error("Failed to fetch player challenges progress from database:", error);
+			console.error(
+				"Failed to fetch player challenges progress from database:",
+				error,
+			);
 			return null;
 		}
 	});

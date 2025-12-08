@@ -59,6 +59,19 @@ services:
     networks:
       - internal-net
 
+  valkey:
+    image: valkey/valkey:9-alpine
+    container_name: valkey-dev
+    ports:
+      - "6379:6379"
+    volumes:
+      - valkey_data:/data
+    networks:
+      - internal-net
+
 networks:
   internal-net:
     driver: bridge
+
+volumes:
+  valkey_data:

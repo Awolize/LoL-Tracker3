@@ -1,85 +1,45 @@
 import * as Sentry from "@sentry/tanstackstart-react";
 import { createServerFn } from "@tanstack/react-start";
-import type { Regions } from "twisted/dist/constants";
-import { regionToRegionGroupForAccountAPI } from "twisted/dist/constants";
-import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
-import { updateChallengesConfigServer } from "@/server/challenges/update-challenges-config";
-import { upsertChallenges } from "@/server/challenges/upsertChallenges";
-import { updateChampionDetails } from "@/server/champions/update-champion-details";
-import { upsertMastery } from "@/server/champions/upsertMastery";
-import { riotApi } from "@/server/lib/riot-api";
-import { updateGames } from "@/server/matches/updateGames";
-import { upsertSummoner } from "@/server/summoner/upsertSummoner";
+import { updateQueue, updateQueueEvents } from "@/server/queue"; // Ensure this path is correct
 
 export const fullUpdateSummoner = createServerFn({ method: "POST" })
 	.inputValidator(
-		(input: { gameName: string; tagLine: string; region: string; includeMatches?: boolean }) => input,
+		(input: {
+			gameName: string;
+			tagLine: string;
+			region: string;
+			includeMatches?: boolean;
+		}) => input,
 	)
 	.handler(async ({ data }) => {
-		return Sentry.startSpan({ name: "fullUpdateSummoner" }, async () => {
-			const { gameName, tagLine, region: rawRegion, includeMatches = true } = data;
-			const region = rawRegion as Regions;
-			const regionGroup = regionToRegionGroupForAccountAPI(region);
+		return Sentry.startSpan({ name: "queue-dispatch-update" }, async () => {
+			const { gameName, tagLine, region, includeMatches = true } = data;
+			console.log(`[API] Received update request for ${gameName}#${tagLine}`);
 
-			const user = (
-				await riotApi.Account.getByRiotId(gameName, tagLine, regionGroup)
-			).response;
+			const metaJob = await updateQueue.add("update-meta", data, {
+				priority: 1,
+			});
 
-			if (!user.puuid) {
-				console.log("This user does not exist", user);
+			try {
+				await metaJob.waitUntilFinished(updateQueueEvents, 20000);
+			} catch (error) {
+				console.error("Meta update timed out or failed", error);
 				return false;
 			}
 
-			await timeIt(
-				"updateChallengesConfig",
-				user,
-				updateChallengesConfigServer,
-				region,
-			);
-			await timeIt("updateChampionDetails", user, updateChampionDetails);
-
-			const updatedUser = await timeIt(
-				"upsertSummoner",
-				user,
-				upsertSummoner,
-				user.puuid,
-				region,
-			);
-
-			if (!updatedUser) {
-				console.log(`${user.gameName}#${user.tagLine}: Could not update user`);
-				return false;
-			}
-
-			await timeIt("upsertMastery", user, upsertMastery, updatedUser, region);
-			await timeIt(
-				"upsertChallenges",
-				user,
-				upsertChallenges,
-				region,
-				updatedUser,
-			);
-			
 			if (includeMatches) {
-				console.time(`${user.gameName}#${user.tagLine}: updateGames`);
-				await updateGames(updatedUser, region);
-				console.timeEnd(`${user.gameName}#${user.tagLine}: updateGames`);
+				try {
+					const matchJob = await updateQueue.add("update-matches", data, {
+						priority: 5,
+					});
+
+					await matchJob.waitUntilFinished(updateQueueEvents, 60000);
+				} catch (error) {
+					console.error("Match update timed out or failed", error);
+					return true;
+				}
 			}
 
 			return true;
 		});
 	});
-
-// Helper: time a function
-type AnyFunction = (...args: any[]) => Promise<any>;
-async function timeIt<T extends AnyFunction>(
-	functionName: string,
-	user: Pick<AccountDto, "gameName" | "tagLine">,
-	func: T,
-	...args: Parameters<T>
-): Promise<ReturnType<T>> {
-	console.time(`${user.gameName}#${user.tagLine}: ${functionName}`);
-	const result = await func(...args);
-	console.timeEnd(`${user.gameName}#${user.tagLine}: ${functionName}`);
-	return result;
-}

@@ -1,10 +1,10 @@
 import { useMemo } from "react";
+import { ChallengeHeaderProgress } from "@/features/challenges/challenge-header-progress";
+import { ChallengeHeaderThresholds } from "@/features/challenges/challenge-header-thresholds";
 import type {
 	ChampionDetails,
 	CompleteChampionInfo,
 } from "@/features/shared/types";
-import { ChallengeHeaderProgress } from "@/features/challenges/challenge-header-progress";
-import { ChallengeHeaderThresholds } from "@/features/challenges/challenge-header-thresholds";
 import { useChallengeContext } from "@/stores/challenge-store";
 import { DifferentHeaderCounter } from "./header-counter.tsx";
 
@@ -40,8 +40,13 @@ export function ChampionListHeader({
 		return new Set([...awotList, ...manualList]).size;
 	}, [selectedChallengeId, manuallyMarked, profileId, challengeChampions]);
 
-	const selectedChallengeProgress = selectedChallengeId && playerProgress ? playerProgress[selectedChallengeId] : null;
-	const selectedChallengeConfig = selectedChallengeId ? challenges.find((config) => config.config.id === selectedChallengeId) : null;
+	const selectedChallengeProgress =
+		selectedChallengeId && playerProgress
+			? playerProgress[selectedChallengeId]
+			: null;
+	const selectedChallengeConfig = selectedChallengeId
+		? challenges.find((config) => config.config.id === selectedChallengeId)
+		: null;
 
 	return (
 		<header className="flex h-24 w-full justify-evenly">

@@ -37,10 +37,12 @@
 		"@tanstack/react-router-ssr-query": "^1.139.14",
 		"@tanstack/react-start": "^1.139.14",
 		"@tanstack/router-plugin": "^1.139.14",
+		"bullmq": "^5.65.1",
 		"class-variance-authority": "^0.7.1",
 		"clsx": "^2.1.1",
 		"drizzle-kit": "^0.31.8",
 		"drizzle-orm": "^0.45.0",
+		"ioredis": "^5.8.2",
 		"lucide-react": "^0.556.0",
 		"minio": "^8.0.6",
 		"nitro": "3.0.1-alpha.1",
@@ -73,5 +75,6 @@
 		"vite": "^7.2.6",
 		"vitest": "^4.0.15",
 		"web-vitals": "^5.1.0"
-	}
+	},
+	"packageManager": "pnpm@10.24.0+sha512.01ff8ae71b4419903b65c60fb2dc9d34cf8bb6e06d03bde112ef38f7a34d6904c424ba66bea5cdcf12890230bf39f9580473140ed9c946fef328b6e5238a345a"
 }

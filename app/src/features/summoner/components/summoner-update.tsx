@@ -10,7 +10,10 @@ interface FullSummonerUpdateProps {
 	includeMatches?: boolean;
 }
 
-export const FullSummonerUpdate = ({ user, includeMatches = true }: FullSummonerUpdateProps) => {
+export const FullSummonerUpdate = ({
+	user,
+	includeMatches = true,
+}: FullSummonerUpdateProps) => {
 	const router = useRouter();
 	const [isUpdating, setIsUpdating] = useState(false);
 	const [error, setError] = useState<string | null>(null);

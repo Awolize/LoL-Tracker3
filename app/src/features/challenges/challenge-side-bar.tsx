@@ -2,9 +2,9 @@ import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import type { Summoner } from "@/features/shared/types";
 import { updateAllChallengeData } from "@/server/challenges/different-challenge-queries";
 import { updateChallengesConfig } from "@/server/challenges/update-challenges-config.api";
-import type { Summoner } from "@/features/shared/types";
 import { useChallengeContext } from "@/stores/challenge-store";
 
 interface ChallengeConfig {

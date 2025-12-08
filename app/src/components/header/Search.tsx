@@ -1,11 +1,11 @@
-import { useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { RegionListSelector, regions } from "@/components/region-list-selector";
-import { getUsernameSuggestions } from "@/server/summoner/username-suggestion.api";
-import { getDataDragonVersion } from "@/server/api/get-data-dragon-version.api";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
+import { getDataDragonVersion } from "@/server/api/get-data-dragon-version.api";
+import { getUsernameSuggestions } from "@/server/summoner/username-suggestion.api";
 
 type Suggestion = {
 	username: string;

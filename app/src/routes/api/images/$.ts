@@ -1,7 +1,7 @@
+import * as Sentry from "@sentry/tanstackstart-react";
 import { createFileRoute } from "@tanstack/react-router";
 import sharp from "sharp";
 import { minio } from "@/server/lib/minio";
-import * as Sentry from "@sentry/tanstackstart-react";
 
 // Toggle debug logs
 const DEBUG =

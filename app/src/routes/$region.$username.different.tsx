@@ -1,8 +1,11 @@
-import { createFileRoute, useSearch, useNavigate } from "@tanstack/react-router";
+import {
+	createFileRoute,
+	useNavigate,
+	useSearch,
+} from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
-
 
 import FooterLinks from "@/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
@@ -48,14 +51,14 @@ export const getSummonerByNameRegionDifferent = createServerFn({
 		const [completeChampionsData, challenges] = await Promise.all([
 			getCompleteChampionData(region, user),
 			getChallengesConfig(),
-		])
+		]);
 		return {
 			user,
 			playerChampionInfo: completeChampionsData.completeChampionsData,
 			challenges,
 			version:
 				completeChampionsData.completeChampionsData[0]?.version || "14.3.1",
-		}
+		};
 	});
 
 const searchSchema = z.object({
@@ -104,23 +107,22 @@ export const Route = createFileRoute("/$region/$username/different")({
 					].join(", "),
 				},
 			],
-		}
+		};
 	},
 });
 
-// Correct component
 export function RouteComponent() {
 	const { user, playerChampionInfo, challenges, version, username, region } =
 		Route.useLoaderData();
 
 	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) =>
 		a.name.localeCompare(b.name),
-	)
+	);
 
 	const queryParams = useMemo(
 		() => ({ username: `${user.gameName}#${user.tagLine}`, region }),
 		[user.gameName, user.tagLine, region],
-	)
+	);
 
 	const search = useSearch({ from: Route.id });
 	const navigate = useNavigate({ from: Route.id });
@@ -133,16 +135,17 @@ export function RouteComponent() {
 			(state) => state.setSelectedChallengeId,
 		);
 		const [challengeChampions, setChallengeChampions] = useState<any[]>([]);
-		const [playerProgress, setPlayerProgress] = useState<Record<number, any> | null>(null);
+		const [playerProgress, setPlayerProgress] = useState<Record<
+			number,
+			any
+		> | null>(null);
 
-		// Sync search params to Zustand on initial load
 		useEffect(() => {
 			if (search.challengeId !== undefined) {
 				setSelectedChallengeId(search.challengeId);
 			}
 		}, []);
 
-		// Sync Zustand to search params when state changes
 		useEffect(() => {
 			const currentSearchId = search.challengeId;
 			const currentStateId = selectedChallengeId;
@@ -154,7 +157,6 @@ export function RouteComponent() {
 						replace: true,
 					});
 				} else {
-					// Remove search param when no challenge selected
 					navigate({
 						search: {},
 						replace: true,
@@ -167,7 +169,7 @@ export function RouteComponent() {
 			async function fetchChallenge() {
 				if (!selectedChallengeId) {
 					setChallengeChampions([]);
-					return
+					return;
 				}
 				const challengeMap: { [key: number]: () => Promise<any[]> } = {
 					401106: () => getJackOfAllChamps({ data: queryParams }),
@@ -175,7 +177,7 @@ export function RouteComponent() {
 					2024308: () => getChampionOcean2024Split3({ data: queryParams }),
 					602002: () => getAdaptToAllSituations({ data: queryParams }),
 					202303: () => getInvincible({ data: queryParams }),
-				}
+				};
 				const fetchFn = challengeMap[selectedChallengeId];
 				if (fetchFn) {
 					const data = await fetchFn();
@@ -190,7 +192,9 @@ export function RouteComponent() {
 		useEffect(() => {
 			async function fetchPlayerProgress() {
 				try {
-					const progress = await getPlayerChallengesProgress({ data: queryParams });
+					const progress = await getPlayerChallengesProgress({
+						data: queryParams,
+					});
 					setPlayerProgress(progress);
 				} catch (error) {
 					console.error("Failed to fetch player progress:", error);
@@ -242,8 +246,8 @@ export function RouteComponent() {
 					<RiotGamesDisclaimer />
 				</footer>
 			</>
-		)
-	}
+		);
+	};
 
 	return (
 		<UserProvider user={user}>
@@ -253,5 +257,5 @@ export function RouteComponent() {
 				</ChallengeProvider>
 			</OptionsProvider>
 		</UserProvider>
-	)
+	);
 }
