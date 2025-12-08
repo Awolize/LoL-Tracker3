@@ -16,6 +16,8 @@ services:
       MINIO_PORT: ${MINIO_PORT}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      VALKEY_HOST: redis
+      VALKEY_PORT: 6379
       PORT: 3000
     ports:
       - "9103:3000"
@@ -32,6 +34,8 @@ services:
       db:
         condition: service_healthy
       minio:
+        condition: service_started
+      redis:
         condition: service_started
     networks:
       - lol-network
@@ -84,6 +88,21 @@ services:
       start_period: 10s
     networks:
       - lol-network
+
+  redis:
+    image: valkey/valkey:9-alpine
+    container_name: lol-redis2
+    pull_policy: always
+    ports:
+      - "9139:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    networks:
+      - lol-network
+
+volumes:
+  redis_data:
 
 networks:
   lol-network:
