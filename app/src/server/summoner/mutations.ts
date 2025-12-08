@@ -219,7 +219,7 @@ export const refreshSummonerDataFn = createServerFn({
 
 		const job = await updateQueue.add("update-summoner-only", jobData, {
 			priority: 1,
-			jobId: `update-summoner-only-${gameName}#${tagLine}`,
+			jobId: `update-summoner-only-${gameName}-${tagLine}`,
 		});
 
 		try {
@@ -330,7 +330,7 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 
 			const job = await updateQueue.add("update-meta", jobData, {
 				priority: 1,
-				jobId: `update-meta-${gameName}#${tagLine}`,
+				jobId: `update-meta-${gameName}-${tagLine}`,
 			});
 
 			try {
@@ -344,7 +344,7 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 				try {
 					const matchJob = await updateQueue.add("update-matches", jobData, {
 						priority: 5,
-						jobId: `update-matches-${gameName}#${tagLine}`,
+						jobId: `update-matches-${gameName}-${tagLine}`,
 					});
 
 					await matchJob.waitUntilFinished(updateQueueEvents);
