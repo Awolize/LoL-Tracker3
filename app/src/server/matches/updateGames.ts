@@ -35,13 +35,25 @@ export const fetchMatchIds = async (
 		);
 
 		if (matchIdsResponse.response.length === 0) break;
-
+	
 		matchIds.push(...matchIdsResponse.response);
 		start += count;
 		totalCount -= count;
 	}
 
-	return matchIds;
+	console.log(matchIds.length);
+
+	// Filter out already existing matches
+	if (matchIds.length === 0) return [];
+
+	const existingMatches = await db
+		.select({ gameId: matchTable.gameId })
+		.from(matchTable)
+		.where(inArray(matchTable.gameId, matchIds));
+
+	const existingGameIds = new Set(existingMatches.map(m => m.gameId));
+
+	return matchIds.filter(id => !existingGameIds.has(id));
 };
 
 export const updateGamesSingle = async (matchId: string, region: Regions) => {
