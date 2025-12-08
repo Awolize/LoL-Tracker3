@@ -1,8 +1,6 @@
-import type { InferSelectModel } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
 import { db } from "@/db";
-import type { summoner } from "@/db/schema";
 import {
 	categoryPoints,
 	challenge,

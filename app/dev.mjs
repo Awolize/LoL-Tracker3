@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 // Cross-platform dev script to set NODE_OPTIONS for server instrumentation
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 
 // Set NODE_OPTIONS for server instrumentation
 process.env.NODE_OPTIONS = "--import ./instrument.server.mjs";

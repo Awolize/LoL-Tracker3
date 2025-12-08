@@ -1,7 +1,6 @@
 import { eq, type InferSelectModel, inArray } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import { regionToRegionGroup } from "twisted/dist/constants";
-import type { RateLimitError } from "twisted/dist/errors";
 import { db } from "@/db";
 import {
 	matchInfo as matchInfoTable,
