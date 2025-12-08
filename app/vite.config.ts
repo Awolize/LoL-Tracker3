@@ -15,4 +15,12 @@ export default defineConfig({
 		nitro({ preset: "node-server" }),
 		viteReact(),
 	],
+	ssr: {
+		noExternal: ["ioredis", "bullmq"],
+	},
+	resolve: {
+		alias: {
+			"ioredis/built/utils": "ioredis/built/utils/index.js",
+		},
+	},
 });
