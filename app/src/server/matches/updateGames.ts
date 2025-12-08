@@ -62,7 +62,7 @@ export const updateGamesSingle = async (matchId: string, region: Regions) => {
 				.limit(1)
 				.then((rows) => rows[0] || null);
 
-				const gameDate = new Date(game.info.gameStartTimestamp);
+			const gameDate = new Date(game.info.gameStartTimestamp);
 			if (!summoner) {
 				const inserted = await db
 					.insert(summonerTable)
