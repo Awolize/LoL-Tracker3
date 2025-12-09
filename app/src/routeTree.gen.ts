@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as QueueRouteImport } from './routes/queue'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ApiSitemapRouteImport } from './routes/api/sitemap'
 import { Route as RegionUsernameIndexRouteImport } from './routes/$region.$username.index'
@@ -18,6 +19,11 @@ import { Route as RegionUsernameMatchesRouteImport } from './routes/$region.$use
 import { Route as RegionUsernameMasteryRouteImport } from './routes/$region.$username.mastery'
 import { Route as RegionUsernameDifferentRouteImport } from './routes/$region.$username.different'
 
+const QueueRoute = QueueRouteImport.update({
+  id: '/queue',
+  path: '/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -61,6 +67,7 @@ const RegionUsernameDifferentRoute = RegionUsernameDifferentRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/queue': typeof QueueRoute
   '/api/sitemap': typeof ApiSitemapRouteWithChildren
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/queue': typeof QueueRoute
   '/api/sitemap': typeof ApiSitemapRouteWithChildren
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
@@ -82,6 +90,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/queue': typeof QueueRoute
   '/api/sitemap': typeof ApiSitemapRouteWithChildren
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/queue'
     | '/api/sitemap'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/queue'
     | '/api/sitemap'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/queue'
     | '/api/sitemap'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
@@ -125,6 +137,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  QueueRoute: typeof QueueRoute
   ApiSitemapRoute: typeof ApiSitemapRouteWithChildren
   RegionUsernameDifferentRoute: typeof RegionUsernameDifferentRoute
   RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
@@ -135,6 +148,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/queue': {
+      id: '/queue'
+      path: '/queue'
+      fullPath: '/queue'
+      preLoaderRoute: typeof QueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -208,6 +228,7 @@ const ApiSitemapRouteWithChildren = ApiSitemapRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  QueueRoute: QueueRoute,
   ApiSitemapRoute: ApiSitemapRouteWithChildren,
   RegionUsernameDifferentRoute: RegionUsernameDifferentRoute,
   RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
