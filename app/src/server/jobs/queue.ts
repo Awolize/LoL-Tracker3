@@ -122,8 +122,8 @@ if (global.__riotWorker) {
 		},
 		{
 			connection,
-			concurrency: 3,
-			limiter: { max: 3, duration: 1200 },
+			concurrency: 2,
+			limiter: { max: 2, duration: 1200 },
 		},
 	);
 
