@@ -137,7 +137,7 @@ export const getInvincible = createServerFn()
 		);
 	});
 
-export const updateJackOfAllChamps = createServerFn()
+const updateJackOfAllChamps = createServerFn()
 	.inputValidator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
@@ -188,7 +188,7 @@ export const updateJackOfAllChamps = createServerFn()
 		};
 	});
 
-export const updateChampionOcean = createServerFn()
+const updateChampionOcean = createServerFn()
 	.inputValidator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
@@ -239,7 +239,7 @@ export const updateChampionOcean = createServerFn()
 		};
 	});
 
-export const updateChampionOcean2024Split3 = createServerFn()
+const updateChampionOcean2024Split3 = createServerFn()
 	.inputValidator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
@@ -292,7 +292,7 @@ export const updateChampionOcean2024Split3 = createServerFn()
 		};
 	});
 
-export const updateAdaptToAllSituations = createServerFn()
+const updateAdaptToAllSituations = createServerFn()
 	.inputValidator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;

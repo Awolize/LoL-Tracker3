@@ -1,0 +1,38 @@
+{
+	"$schema": "https://unpkg.com/knip@5/schema.json",
+	"entry": ["src/router.tsx", "**/index.ts", "**/index.tsx"],
+	"project": [
+		"**/*.ts",
+		"**/*.tsx",
+		"!**/*.test.*",
+		"!**/*.spec.*",
+		"!**/dist/**",
+		"!**/.output/**",
+		"!**/build/**",
+		"!**/node_modules/**"
+	],
+	"ignore": ["**/routeTree.gen.ts", "**/generated/**", "**/*.stories.*"],
+	"ignoreDependencies": [
+		"@types/*",
+		"typescript",
+		"tsx",
+		"vite",
+		"@tanstack/router-plugin",
+		"tailwindcss",
+		"autoprefixer",
+		"@tanstack/react-devtools",
+		"@tanstack/react-query-devtools",
+		"@tanstack/react-router-devtools",
+		"@vitest/*",
+		"@testing-library/*",
+		"@biomejs/biome",
+		"dotenv",
+		"knip",
+		"vitest",
+		"web-vitals",
+		"jsdom",
+		"@testing-library/dom",
+		"@testing-library/react",
+		"@vitejs/plugin-react"
+	]
+}

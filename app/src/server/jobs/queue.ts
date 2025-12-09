@@ -72,6 +72,36 @@ if (global.__riotWorker) {
 						return { success: true, puuid: userData.account.puuid };
 					}
 
+					if (job.name === "update-champion-details") {
+						await updateChampionDetails();
+						return { success: true };
+					}
+
+					if (job.name === "update-mastery") {
+						const userData = await getSummonerByUsernameRateLimit(
+							`${gameName}#${tagLine}`,
+							region,
+						);
+						if (!userData.summoner) throw new Error("Summoner not found");
+						await upsertMastery(userData.account, region);
+						return { success: true, puuid: userData.account.puuid };
+					}
+
+					if (job.name === "update-challenges-config") {
+						await updateChallengesConfigServer(region);
+						return { success: true };
+					}
+
+					if (job.name === "update-challenges") {
+						const userData = await getSummonerByUsernameRateLimit(
+							`${gameName}#${tagLine}`,
+							region,
+						);
+						if (!userData.summoner) throw new Error("Summoner not found");
+						await upsertChallenges(region, userData.account);
+						return { success: true, puuid: userData.account.puuid };
+					}
+
 					if (job.name === "process-single-match") {
 						await updateGamesSingle(matchId, region);
 						return { success: true };

@@ -231,69 +231,6 @@ export const refreshSummonerDataFn = createServerFn({
 		}
 	});
 
-// Helper function to check if username changed and get redirect info
-export const checkUsernameRedirectFn = createServerFn({
-	method: "GET",
-})
-	.inputValidator((input: { username: string; region: Regions }) => input)
-	.handler(async ({ data }) => {
-		const { username, region } = data;
-		const [gameName, tagLine] = username.toLowerCase().split("#");
-
-		try {
-			// Check if we have this user in cache by old username
-			const oldCachedUser = await db.query.summoner.findFirst({
-				where: and(
-					eq(summoner.gameName, gameName),
-					eq(summoner.tagLine, tagLine),
-					eq(summoner.region, region),
-				),
-			});
-
-			if (!oldCachedUser) {
-				return { shouldRedirect: false, newUsername: null };
-			}
-
-			// Try to fetch fresh data using the PUUID
-			const freshUser = await getSummonerByUsernameRateLimit(
-				oldCachedUser.puuid,
-				region,
-			);
-
-			if (!freshUser.summoner) {
-				return { shouldRedirect: false, newUsername: null };
-			}
-
-			// Check if username changed
-			const currentGameName = freshUser.account.gameName?.toLowerCase();
-			const currentTagLine = freshUser.account.tagLine?.toLowerCase();
-
-			if (currentGameName !== gameName || currentTagLine !== tagLine) {
-				// Update DB with new username
-				await db
-					.update(summoner)
-					.set({
-						gameName: currentGameName,
-						tagLine: currentTagLine,
-						profileIconId: freshUser.summoner.profileIconId,
-						summonerLevel: freshUser.summoner.summonerLevel,
-						updatedAt: new Date(),
-					})
-					.where(eq(summoner.puuid, oldCachedUser.puuid));
-
-				return {
-					shouldRedirect: true,
-					newUsername: `${currentGameName}-${currentTagLine}`,
-				};
-			}
-
-			return { shouldRedirect: false, newUsername: null };
-		} catch (err) {
-			console.error("Error checking username redirect:", err);
-			return { shouldRedirect: false, newUsername: null };
-		}
-	});
-
 export const getLastMasteryUpdate = createServerFn({
 	method: "GET",
 })
@@ -322,40 +259,87 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		return Sentry.startSpan({ name: "queue-dispatch-update" }, async () => {
-			const { gameName, tagLine, region, includeMatches = true } = data;
-			const regionEnum = regionToConstant(region);
-			const jobData = { gameName, tagLine, region: regionEnum };
-			console.log(`[API] Received update request for ${gameName}#${tagLine}`);
+		return Sentry.startSpan(
+			{ name: "queue-dispatch-full-update" },
+			async () => {
+				const { gameName, tagLine, region, includeMatches = true } = data;
+				const regionEnum = regionToConstant(region);
+				const jobData = { gameName, tagLine, region: regionEnum };
+				console.log(`[API] Full update request for ${gameName}#${tagLine}`);
 
-			const job = await updateQueue.add("update-meta", jobData, {
-				priority: 1,
-				jobId: `update-meta-${gameName}-${tagLine}`,
-			});
+				// Add all individual update jobs with proper priority order
+				const jobs = [];
 
-			try {
-				await job.waitUntilFinished(updateQueueEvents);
-			} catch (error) {
-				console.error("Meta update timed out or failed", error);
-				return false;
-			}
+				// Priority order (higher number = processed first):
+				// Champion details update (most critical for UI, affects many things)
+				const championJob = updateQueue.add(
+					"update-champion-details",
+					jobData,
+					{
+						priority: 100,
+						jobId: `update-champion-details-${gameName}-${tagLine}`,
+					},
+				);
+				jobs.push(championJob);
 
-			if (includeMatches) {
-				try {
-					const matchJob = await updateQueue.add("update-matches", jobData, {
-						priority: 5,
+				// Summoner data update (critical for profile display)
+				const summonerJob = updateQueue.add("update-summoner-only", jobData, {
+					priority: 80,
+					jobId: `update-summoner-only-${gameName}-${tagLine}`,
+				});
+				jobs.push(summonerJob);
+
+				// Matches update (get fresh match data first, needed for challenges)
+				if (includeMatches) {
+					const matchesJob = updateQueue.add("update-matches", jobData, {
+						priority: 60,
 						jobId: `update-matches-${gameName}-${tagLine}`,
 					});
-
-					await matchJob.waitUntilFinished(updateQueueEvents);
-				} catch (error) {
-					console.error("Match update timed out or failed", error);
-					return true;
+					jobs.push(matchesJob);
 				}
-			}
 
-			return true;
-		});
+				// Mastery data update (important for profile)
+				const masteryJob = updateQueue.add("update-mastery", jobData, {
+					priority: 50,
+					jobId: `update-mastery-${gameName}-${tagLine}`,
+				});
+				jobs.push(masteryJob);
+
+				// Challenges config update (needed for challenges data)
+				const challengesConfigJob = updateQueue.add(
+					"update-challenges-config",
+					jobData,
+					{
+						priority: 30,
+						jobId: `update-challenges-config-${gameName}-${tagLine}`,
+					},
+				);
+				jobs.push(challengesConfigJob);
+
+				// Challenges data update (higher priority now that we have fresh match data)
+				const challengesJob = updateQueue.add("update-challenges", jobData, {
+					priority: 20,
+					jobId: `update-challenges-${gameName}-${tagLine}`,
+				});
+				jobs.push(challengesJob);
+
+				try {
+					// Wait for all jobs to complete
+					await Promise.all(
+						jobs.map((jobPromise) =>
+							jobPromise.then((job) =>
+								job.waitUntilFinished(updateQueueEvents),
+							),
+						),
+					);
+					console.log(`[API] All updates completed for ${gameName}#${tagLine}`);
+					return true;
+				} catch (error) {
+					console.error("Some update jobs failed", error);
+					return false;
+				}
+			},
+		);
 	});
 
 export const getUsernameSuggestions = createServerFn({
