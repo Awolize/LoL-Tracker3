@@ -6,7 +6,7 @@ const UserThemeSchema = z.enum(["light", "dark", "system"]).catch("system");
 const AppThemeSchema = z.enum(["light", "dark"]).catch("light");
 
 export type UserTheme = z.infer<typeof UserThemeSchema>;
-export type AppTheme = z.infer<typeof AppThemeSchema>;
+type AppTheme = z.infer<typeof AppThemeSchema>;
 
 const themeStorageKey = "ui-theme";
 

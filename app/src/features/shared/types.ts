@@ -20,11 +20,11 @@ export type ChampionMasteryDTOWithoutExtras = Omit<
 >;
 
 // Database model types
-export type Match = InferSelectModel<typeof match>;
-export type MatchInfo = InferSelectModel<typeof matchInfo>;
+type Match = InferSelectModel<typeof match>;
+type MatchInfo = InferSelectModel<typeof matchInfo>;
 export type Summoner = InferSelectModel<typeof summoner>;
 export type ChampionDetails = InferSelectModel<typeof championDetails>;
-export type ChampionMastery = InferSelectModel<typeof championMastery>;
+type ChampionMastery = InferSelectModel<typeof championMastery>;
 export type ChallengesConfig = InferSelectModel<typeof challengesConfig>;
 
 // Composite types

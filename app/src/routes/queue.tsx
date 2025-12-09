@@ -1,6 +1,6 @@
 // routes/queue/dashboard.tsx
 
-import { type PointTooltipProps, ResponsiveLine, type Serie } from "@nivo/line";
+import { type PointTooltipProps, ResponsiveLine } from "@nivo/line";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import clsx from "clsx"; // Assuming you have clsx or cn utility
@@ -101,22 +101,6 @@ function useQueueHistory() {
 			const newHistory = [...prev, summary];
 			const now = Date.now();
 			const ONE_HOUR = 60 * 60 * 1000;
-
-			// Helper to process segments
-			const _processSegment = (
-				data: QueueDataSummary[],
-				cutoff: number,
-				_maxPoints: number,
-			) => {
-				const _segment = data.filter((h) => h.ts < cutoff);
-				// If we have data older than this cutoff that isn't merged yet...
-				// Note: This logic simplifies the original imperative splice logic
-				// by returning a processed array.
-				// For strict adherence to the original aggressive bucketing:
-
-				// ... (The original logic modified the array in place based on filters.
-				// Below is a cleaner implementation of the same "Keep X points" strategy).
-			};
 
 			// 1. High-res: Last 3 hours
 			// 2. Mid-res: 3-24 hours
@@ -308,7 +292,7 @@ interface MetricChartProps {
 }
 
 const MetricChart = React.memo(({ data, metric, color }: MetricChartProps) => {
-	const chartData: Serie[] = React.useMemo(
+	const chartData = React.useMemo(
 		() => [
 			{
 				id: metric,

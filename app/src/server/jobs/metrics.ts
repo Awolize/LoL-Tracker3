@@ -1,7 +1,7 @@
 // server/queue-metrics.ts
 import { updateQueue } from "./queue";
 
-export interface QueueMetrics {
+interface QueueMetrics {
 	counts: {
 		waiting?: number;
 		active?: number;

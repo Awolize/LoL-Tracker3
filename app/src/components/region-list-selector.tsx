@@ -5,7 +5,7 @@ import {
 	ListboxOptions,
 } from "@headlessui/react";
 
-export interface Region {
+interface Region {
 	id: number;
 	name: string;
 	disabled: boolean;
