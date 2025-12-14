@@ -1,14 +1,8 @@
-import type { InferSelectModel } from "drizzle-orm";
 import { eq } from "drizzle-orm";
-import type { Regions } from "twisted/dist/constants";
 import type { ChampionsDataDragonDetails } from "twisted/dist/models-dto";
 import { db } from "@/db";
-import type { summoner } from "@/db/schema";
 import { championDetails } from "@/db/schema";
-import type { CompleteChampionInfo } from "@/features/shared/types";
-import { masteryBySummoner } from "@/server/champions/mastery-by-summoner";
 import { lolApi } from "@/server/external/riot/lol-api";
-import rolesJson from "./roles.json";
 
 // Flatten champion data (Drizzle expects a flat object)
 const flattenChamp = (obj: ChampionsDataDragonDetails) => ({
@@ -59,33 +53,4 @@ export async function updateChampionDetails() {
 			}
 		}),
 	);
-}
-
-export async function getCompleteChampionData(
-	region: Regions,
-	user: InferSelectModel<typeof summoner>,
-) {
-	const championMasteries = await masteryBySummoner(region, user);
-	const champions = await db.select().from(championDetails);
-
-	const completeChampionsData: CompleteChampionInfo[] = champions.map(
-		(champion) => {
-			const role = rolesJson[champion.key] || "Bottom";
-			const mastery = championMasteries.find(
-				(m) => m.championId === champion.id,
-			) ?? {
-				championPoints: 0,
-				championLevel: 0,
-			};
-			return {
-				...champion,
-				...mastery,
-				role,
-				name: champion.name === "Nunu & Willump" ? "Nunu" : champion.name,
-			};
-		},
-	);
-
-	const version = champions.at(0)?.version ?? "";
-	return { completeChampionsData, version };
 }

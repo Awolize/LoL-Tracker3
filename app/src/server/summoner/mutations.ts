@@ -1,10 +1,12 @@
-import * as Sentry from "@sentry/tanstackstart-react";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ilike } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import { db } from "@/db";
 import { championMastery, summoner } from "@/db/schema";
 import { regionToConstant } from "@/features/shared/champs";
+import { getChallengesConfig } from "@/server/api/get-challenges-config";
+import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
+import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
 import { updateQueue, updateQueueEvents } from "@/server/jobs/queue";
 import { getSummonerByUsernameRateLimit } from "@/server/summoner/get-summoner-by-username-rate-limit";
 
@@ -206,31 +208,6 @@ export const getUserByNameAndRegionFn = createServerFn({
 		}
 	});
 
-export const refreshSummonerDataFn = createServerFn({
-	method: "POST",
-})
-	.inputValidator((input: { username: string; region: Regions }) => input)
-	.handler(async ({ data }) => {
-		const { username, region } = data;
-		const [gameName, tagLine] = username.split("#");
-
-		const jobData = { gameName, tagLine, region };
-		console.log(`[API] Refreshing summoner data for ${gameName}#${tagLine}`);
-
-		const job = await updateQueue.add("update-summoner-only", jobData, {
-			priority: 1,
-			jobId: `update-summoner-only-${gameName}-${tagLine}`,
-		});
-
-		try {
-			await job.waitUntilFinished(updateQueueEvents);
-			return { success: true };
-		} catch (error) {
-			console.error("Summoner update timed out or failed", error);
-			return { success: false };
-		}
-	});
-
 export const getLastMasteryUpdate = createServerFn({
 	method: "GET",
 })
@@ -255,91 +232,77 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 			gameName: string;
 			tagLine: string;
 			region: string;
-			includeMatches?: boolean;
+			awaitMatches?: boolean;
 		}) => input,
 	)
 	.handler(async ({ data }) => {
-		return Sentry.startSpan(
-			{ name: "queue-dispatch-full-update" },
-			async () => {
-				const { gameName, tagLine, region, includeMatches = true } = data;
-				const regionEnum = regionToConstant(region);
-				const jobData = { gameName, tagLine, region: regionEnum };
-				console.log(`[API] Full update request for ${gameName}#${tagLine}`);
+		const { gameName, tagLine, region, awaitMatches = true } = data;
+		const regionEnum = regionToConstant(region);
+		const jobData = { gameName, tagLine, region: regionEnum };
+		const makeId = (type: string) => `${type}-${gameName}-${tagLine}`;
 
-				// Add all individual update jobs with proper priority order
-				const jobs = [];
-
-				// Priority order (higher number = processed first):
-				// Champion details update (most critical for UI, affects many things)
-				const championJob = updateQueue.add(
-					"update-champion-details",
-					jobData,
-					{
-						priority: 100,
-						jobId: `update-champion-details-${gameName}-${tagLine}`,
-					},
-				);
-				jobs.push(championJob);
-
-				// Summoner data update (critical for profile display)
-				const summonerJob = updateQueue.add("update-summoner-only", jobData, {
-					priority: 80,
-					jobId: `update-summoner-only-${gameName}-${tagLine}`,
-				});
-				jobs.push(summonerJob);
-
-				// Matches update (get fresh match data first, needed for challenges)
-				if (includeMatches) {
-					const matchesJob = updateQueue.add("update-matches", jobData, {
-						priority: 60,
-						jobId: `update-matches-${gameName}-${tagLine}`,
-					});
-					jobs.push(matchesJob);
-				}
-
-				// Mastery data update (important for profile)
-				const masteryJob = updateQueue.add("update-mastery", jobData, {
-					priority: 50,
-					jobId: `update-mastery-${gameName}-${tagLine}`,
-				});
-				jobs.push(masteryJob);
-
-				// Challenges config update (needed for challenges data)
-				const challengesConfigJob = updateQueue.add(
-					"update-challenges-config",
-					jobData,
-					{
-						priority: 30,
-						jobId: `update-challenges-config-${gameName}-${tagLine}`,
-					},
-				);
-				jobs.push(challengesConfigJob);
-
-				// Challenges data update (higher priority now that we have fresh match data)
-				const challengesJob = updateQueue.add("update-challenges", jobData, {
-					priority: 20,
-					jobId: `update-challenges-${gameName}-${tagLine}`,
-				});
-				jobs.push(challengesJob);
-
-				try {
-					// Wait for all jobs to complete
-					await Promise.all(
-						jobs.map((jobPromise) =>
-							jobPromise.then((job) =>
-								job.waitUntilFinished(updateQueueEvents),
-							),
-						),
-					);
-					console.log(`[API] All updates completed for ${gameName}#${tagLine}`);
-					return true;
-				} catch (error) {
-					console.error("Some update jobs failed", error);
-					return false;
-				}
-			},
+		console.log(
+			`[API] Update request for ${gameName}#${tagLine} (Await Matches: ${awaitMatches})`,
 		);
+
+		const jobPromises = [
+			updateQueue.add("update-summoner-only", jobData, {
+				priority: 1,
+				jobId: makeId("update-summoner"),
+			}),
+			updateQueue.add("update-champion-details", jobData, {
+				priority: 2,
+				jobId: makeId("update-champion-details"),
+			}),
+			updateQueue.add("update-challenges-config", jobData, {
+				priority: 3,
+				jobId: makeId("update-challenges-config"),
+			}),
+			updateQueue.add("update-mastery", jobData, {
+				priority: 4,
+				jobId: makeId("update-mastery"),
+			}),
+			updateQueue.add("update-matches", jobData, {
+				priority: 5,
+				jobId: makeId("update-matches"),
+			}),
+			updateQueue.add("update-challenges", jobData, {
+				priority: 20,
+				jobId: makeId("update-challenges"),
+			}),
+			updateQueue.add("run-challenges-computation", jobData, {
+				priority: 21,
+				jobId: makeId("run-challenges-computation"),
+			}),
+		];
+
+		try {
+			const enqueuedJobs = await Promise.all(jobPromises);
+
+			const criticalJobNames = [
+				"update-summoner-only",
+				"update-champion-details",
+				"update-challenges-config",
+				"update-mastery",
+			];
+
+			if (awaitMatches) {
+				criticalJobNames.push("update-matches", "run-challenges-computation");
+			}
+
+			const jobsToAwait = enqueuedJobs.filter(
+				(job) => job && criticalJobNames.includes(job.name),
+			);
+
+			await Promise.all(
+				jobsToAwait.map((j) => j.waitUntilFinished(updateQueueEvents)),
+			);
+
+			return { success: true };
+		} catch (error) {
+			console.error("Update failed", error);
+			return { success: false };
+		}
 	});
 
 export const getUsernameSuggestions = createServerFn({
@@ -391,4 +354,29 @@ export const getUsernameSuggestions = createServerFn({
 			iconId: entry.profileIconId,
 			region: entry.region,
 		}));
+	});
+
+export const getSummonerByNameRegion = createServerFn({
+	method: "GET",
+})
+	.inputValidator((input: { username: string; region: string }) => input)
+	.handler(async ({ data }) => {
+		const { username: rawUsername, region: rawRegion } = data;
+
+		const username = rawUsername.replace("-", "#").toLowerCase();
+		const region = regionToConstant(rawRegion.toUpperCase());
+
+		const user = await getUserByNameAndRegion(username, region);
+
+		const [completeChampionsData, challenges] = await Promise.all([
+			getCompleteChampionData(region, user),
+			getChallengesConfig(),
+		]);
+		return {
+			user,
+			playerChampionInfo: completeChampionsData.completeChampionsData,
+			challenges,
+			version:
+				completeChampionsData.completeChampionsData[0]?.version || "latest",
+		};
 	});

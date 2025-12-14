@@ -10,7 +10,10 @@ import {
 } from "@/db/schema";
 import { lolApi } from "@/server/external/riot/lol-api";
 
-export const upsertChallenges = async (region: Regions, user: AccountDto) => {
+export const upsertPlayerChallenges = async (
+	region: Regions,
+	user: AccountDto,
+) => {
 	const response = (
 		await lolApi.Challenges.PlayerChallenges(user.puuid, region)
 	).response;

@@ -3,7 +3,6 @@ import {
 	useNavigate,
 	useSearch,
 } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
@@ -16,10 +15,7 @@ import { ThemeSelector } from "@/components/theme-toggle";
 import { DifferentSideBar } from "@/features/challenges/challenge-side-bar";
 import { ChampionListHeader } from "@/features/mastery/champion-list-header";
 import { RoleChampionList } from "@/features/mastery/role-champion-list";
-import { regionToConstant } from "@/features/shared/champs";
-import type { CompleteChampionInfo } from "@/features/shared/types";
-import { getChallengesConfig } from "@/server/api/get-challenges-config";
-import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
+import type { CompleteChampionInfo, Summoner } from "@/features/shared/types";
 import {
 	getAdaptToAllSituations,
 	getChampionOcean,
@@ -27,39 +23,14 @@ import {
 	getInvincible,
 	getJackOfAllChamps,
 	getPlayerChallengesProgress,
-} from "@/server/challenges/different-challenge-queries";
-import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
+} from "@/server/challenges/get-challenges";
+import { getSummonerByNameRegion } from "@/server/summoner/mutations";
 import {
 	ChallengeProvider,
 	useChallengeContext,
 } from "@/stores/challenge-store";
 import { OptionsProvider } from "@/stores/options-persistent-store";
 import { UserProvider } from "@/stores/user-store";
-
-export const getSummonerByNameRegionDifferent = createServerFn({
-	method: "GET",
-})
-	.inputValidator((input: { username: string; region: string }) => input)
-	.handler(async ({ data }) => {
-		const { username: rawUsername, region: rawRegion } = data;
-
-		const username = rawUsername.replace("-", "#").toLowerCase();
-		const region = regionToConstant(rawRegion.toUpperCase());
-
-		const user = await getUserByNameAndRegion(username, region);
-
-		const [completeChampionsData, challenges] = await Promise.all([
-			getCompleteChampionData(region, user),
-			getChallengesConfig(),
-		]);
-		return {
-			user,
-			playerChampionInfo: completeChampionsData.completeChampionsData,
-			challenges,
-			version:
-				completeChampionsData.completeChampionsData[0]?.version || "14.3.1",
-		};
-	});
 
 const searchSchema = z.object({
 	challengeId: z.number().optional(),
@@ -68,9 +39,14 @@ const searchSchema = z.object({
 export const Route = createFileRoute("/$region/$username/different")({
 	validateSearch: searchSchema,
 	loader: async ({ params: { username, region } }) => {
-		const result = (await getSummonerByNameRegionDifferent({
+		const result = (await getSummonerByNameRegion({
 			data: { username, region },
-		})) as any;
+		})) as {
+			user: Summoner;
+			playerChampionInfo: CompleteChampionInfo[];
+			challenges: any[];
+			version: string;
+		};
 
 		return {
 			user: result.user,

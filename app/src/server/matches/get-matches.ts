@@ -1,4 +1,6 @@
+import { and, desc, eq, gte, inArray, notInArray, sql } from "drizzle-orm";
 import { db } from "@/db";
+import { match, matchInfo, matchSummoners } from "@/db/schema";
 import type { Summoner } from "@/features/shared/types";
 
 export async function getMatches(
@@ -16,7 +18,57 @@ export async function getMatches(
 	const { mapIds, queueIdsNotIn, gameMode, gameType, gameStartTimestampGte } =
 		options;
 
-	const matches = await db.query.match.findMany({
+	// 1. Build the WHERE conditions dynamically
+	const filters = [];
+
+	// CORE FILTER: Join logic (User must be in the match)
+	// Based on your schema: matchSummoners.a = gameId, matchSummoners.b = puuid
+	filters.push(eq(matchSummoners.b, user.puuid));
+
+	// OPTIONAL FILTERS: Applied to matchInfo
+	if (mapIds?.length) {
+		filters.push(inArray(matchInfo.mapId, mapIds));
+	}
+	if (queueIdsNotIn?.length) {
+		filters.push(notInArray(matchInfo.queueId, queueIdsNotIn));
+	}
+	if (gameMode) {
+		filters.push(eq(matchInfo.gameMode, gameMode));
+	}
+	if (gameType) {
+		filters.push(eq(matchInfo.gameType, gameType));
+	}
+	if (gameStartTimestampGte) {
+		filters.push(gte(matchInfo.gameStartTimestamp, gameStartTimestampGte));
+	}
+
+	// 2. STEP ONE: Get the Game IDs
+	// This executes the logic in SQL (joins, where, sort, limit)
+	const validMatches = await db
+		.select({
+			gameId: match.gameId,
+			gameStartTimestamp: matchInfo.gameStartTimestamp,
+		})
+		.from(match)
+		// Join MatchInfo to filter by map/queue and sort by time
+		.innerJoin(matchInfo, eq(match.gameId, matchInfo.gameId))
+		// Join MatchSummoners to filter by specific user participation
+		.innerJoin(matchSummoners, eq(match.gameId, matchSummoners.a))
+		.where(and(...filters))
+		.orderBy(desc(matchInfo.gameStartTimestamp))
+		.limit(take);
+
+	// If no matches found, return early
+	if (validMatches.length === 0) {
+		return [];
+	}
+
+	const gameIds = validMatches.map((m) => m.gameId);
+
+	// 3. STEP TWO: Hydrate the data
+	// Fetch the full nested objects only for the specific IDs we found
+	const fullMatches = await db.query.match.findMany({
+		where: inArray(match.gameId, gameIds),
 		with: {
 			matchInfos: true,
 			matchSummoners: {
@@ -25,36 +77,20 @@ export async function getMatches(
 				},
 			},
 		},
-		limit: take,
 	});
 
-	// Filter matches where the user is a participant and by matchInfo fields
-	const filteredMatches = matches.filter((match) => {
-		const matchInfo = match.matchInfos?.[0];
-		const hasUser = match.matchSummoners?.some(
-			(ms) => ms.summoner.puuid === user.puuid,
-		);
-		const matchFilter =
-			(!mapIds || mapIds.includes(matchInfo?.mapId || 0)) &&
-			(!queueIdsNotIn || !queueIdsNotIn.includes(matchInfo?.queueId || 0)) &&
-			(!gameMode || matchInfo?.gameMode === gameMode) &&
-			(!gameType || matchInfo?.gameType === gameType) &&
-			(!gameStartTimestampGte ||
-				(matchInfo?.gameStartTimestamp || new Date(0)) >=
-					gameStartTimestampGte);
-
-		return hasUser && matchFilter;
+	// 4. Sort again in Memory
+	// (SQL 'IN' clauses do not preserve order, so we re-sort the small result set)
+	fullMatches.sort((a, b) => {
+		const aTime = a.matchInfos?.[0]?.gameStartTimestamp?.getTime() || 0;
+		const bTime = b.matchInfos?.[0]?.gameStartTimestamp?.getTime() || 0;
+		return bTime - aTime;
 	});
 
-	// Sort by gameStartTimestamp desc
-	filteredMatches.sort((a, b) => {
-		const aTime = a.matchInfos?.[0]?.gameStartTimestamp || new Date(0);
-		const bTime = b.matchInfos?.[0]?.gameStartTimestamp || new Date(0);
-		return bTime.getTime() - aTime.getTime();
-	});
-
-	return filteredMatches.slice(0, take);
+	return fullMatches;
 }
+
+// ... your helper functions (getArenaMatches, getSRMatches) stay exactly the same
 
 // Arena Map (https://static.developer.riotgames.com/docs/lol/maps.json)
 export async function getArenaMatches(user: Summoner) {

@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import FooterLinks from "@/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
 import { MainTitleLink } from "@/components/header/MainTitleLink";
@@ -8,46 +7,30 @@ import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import ChampionList from "@/features/mastery/champions-list";
 import SortedChampionList from "@/features/mastery/role-sorted-champion-list";
-import { regionToConstant } from "@/features/shared/champs";
 import type { CompleteChampionInfo, Summoner } from "@/features/shared/types";
 import Header from "@/features/summoner/components/summoner-header";
-import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
-import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
+import { getSummonerByNameRegion } from "@/server/summoner/mutations";
 import {
 	OptionsProvider,
 	useOptionsPersistentContext,
 } from "@/stores/options-persistent-store";
 import { UserProvider } from "@/stores/user-store";
 
-export const getSummonerByNameRegion = createServerFn({
-	method: "GET",
-})
-	.inputValidator((input: { username: string; region: string }) => input)
-	.handler(async ({ data }) => {
-		const { username: rawUsername, region: rawRegion } = data;
-
-		const username = rawUsername.replace("-", "#").toLowerCase();
-		const region = regionToConstant(rawRegion.toUpperCase());
-
-		const user = await getUserByNameAndRegion(username, region);
-
-		const completeChampionsData = await getCompleteChampionData(region, user);
-		return {
-			user,
-			playerChampionInfo: completeChampionsData.completeChampionsData,
-			version: "latest",
-		};
-	});
-
 export const Route = createFileRoute("/$region/$username/mastery")({
 	loader: async ({ params: { username, region } }) => {
-		const result = await getSummonerByNameRegion({
+		const result = (await getSummonerByNameRegion({
 			data: { username, region },
-		});
+		})) as {
+			user: Summoner;
+			playerChampionInfo: CompleteChampionInfo[];
+			challenges: any[];
+			version: string;
+		};
 
 		return {
 			user: result.user,
 			playerChampionInfo: result.playerChampionInfo,
+			challenges: result.challenges,
 			version: result.version,
 			region,
 			username,

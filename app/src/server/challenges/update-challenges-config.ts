@@ -6,7 +6,12 @@ import { challengeLocalization, challengesConfig } from "@/db/schema";
 import type { ChallengesConfig } from "@/features/shared/types";
 import { lolApi } from "@/server/external/riot/lol-api";
 
-// Converts your Prisma upserts to Drizzle logic
+export const updateChallengesConfigServer = async (region: Regions) => {
+	const configs: ConfigDTO.Config[] = (await lolApi.Challenges.Configs(region))
+		.response;
+	return Promise.all(configs.map((config) => updateConfig(config)));
+};
+
 const updateConfig = async (
 	config: ConfigDTO.Config,
 ): Promise<ChallengesConfig> => {
@@ -18,7 +23,7 @@ const updateConfig = async (
 
 	const rowData = {
 		id: config.id,
-		state: config.state ?? null, // convert undefined → null
+		state: config.state ?? null,
 		leaderboard: config.leaderboard,
 		endTimestamp: config.endTimestamp ? new Date(config.endTimestamp) : null,
 		thresholds: config.thresholds,
@@ -69,10 +74,4 @@ const updateConfig = async (
 	}
 
 	return { ...rowData };
-};
-
-export const updateChallengesConfigServer = async (region: Regions) => {
-	const configs: ConfigDTO.Config[] = (await lolApi.Challenges.Configs(region))
-		.response;
-	return Promise.all(configs.map((config) => updateConfig(config)));
 };

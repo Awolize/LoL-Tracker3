@@ -9,12 +9,12 @@ import {
 
 interface FullSummonerUpdateProps {
 	user: Summoner;
-	includeMatches?: boolean;
+	awaitMatches?: boolean;
 }
 
 export const FullSummonerUpdate = ({
 	user,
-	includeMatches = true,
+	awaitMatches = true,
 }: FullSummonerUpdateProps) => {
 	const router = useRouter();
 	const [isUpdating, setIsUpdating] = useState(false);
@@ -35,7 +35,7 @@ export const FullSummonerUpdate = ({
 					gameName: user.gameName,
 					tagLine: user.tagLine,
 					region: user.region,
-					includeMatches,
+					awaitMatches,
 				},
 			});
 

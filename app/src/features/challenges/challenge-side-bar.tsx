@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Summoner } from "@/features/shared/types";
-import { updateAllChallengeData } from "@/server/challenges/different-challenge-queries";
+import { FullSummonerUpdate } from "@/features/summoner/components/summoner-update";
 import { updateChallengesConfig } from "@/server/challenges/mutations";
 import { useChallengeContext } from "@/stores/challenge-store";
 
@@ -26,20 +26,16 @@ interface DifferentSideBarProps {
 	challenges: ChallengeConfig[];
 	username: string;
 	region: string;
-	user?: Summoner;
+	user: Summoner;
 }
 
 export const DifferentSideBar = ({
 	challenges,
-	username,
-	region,
 	user,
 }: DifferentSideBarProps) => {
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [showAll, setShowAll] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
-	const [isUpdating, setIsUpdating] = useState(false);
-	const [isUpdatingConfig, setIsUpdatingConfig] = useState(false);
 
 	const selectedChallengeId = useChallengeContext(
 		(state) => state.selectedChallengeId,
@@ -147,45 +143,7 @@ export const DifferentSideBar = ({
 						})}
 					</ul>
 					<div className="flex flex-col gap-2 mt-2">
-						<Button
-							variant="outline"
-							onClick={async () => {
-								setIsUpdating(true);
-								try {
-									const result = await updateAllChallengeData({
-										data: { username, region },
-									});
-									console.log("Update result:", result);
-								} catch (error) {
-									console.error("Update error:", error);
-								} finally {
-									setIsUpdating(false);
-								}
-							}}
-							disabled={isUpdating}
-							className="text-xs"
-						>
-							{isUpdating ? "Updating..." : "Update"}
-						</Button>
-						{user && user.tagLine === "dev" && (
-							<Button
-								variant="outline"
-								onClick={async () => {
-									setIsUpdatingConfig(true);
-									try {
-										await updateChallengesConfig({ data: { region: "EUW1" } });
-									} catch (error) {
-										console.error("Failed to update global config:", error);
-									} finally {
-										setIsUpdatingConfig(false);
-									}
-								}}
-								disabled={isUpdatingConfig}
-								className="text-xs"
-							>
-								{isUpdatingConfig ? "Updating..." : "Update global config"}
-							</Button>
-						)}
+						<FullSummonerUpdate user={user} awaitMatches={true} />
 					</div>
 				</div>
 			)}

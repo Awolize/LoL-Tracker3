@@ -11,17 +11,17 @@ export const filteredOut = (
 	let levelFiltered = false;
 	if (filterLevel > 0) {
 		if (filterLevelDirection === "above") {
-			levelFiltered = champ.championLevel < filterLevel;
+			levelFiltered = champ.championLevel <= filterLevel;
 		} else {
-			levelFiltered = champ.championLevel > filterLevel;
+			levelFiltered = champ.championLevel >= filterLevel;
 		}
 	}
 	let pointsFiltered = false;
 	if (filterPoints !== Number.MAX_SAFE_INTEGER) {
 		if (filterPointsDirection === "above") {
-			pointsFiltered = champ.championPoints > filterPoints;
+			pointsFiltered = champ.championPoints <= filterPoints;
 		} else {
-			pointsFiltered = champ.championPoints < filterPoints;
+			pointsFiltered = champ.championPoints >= filterPoints;
 		}
 	}
 	const disabled: boolean = pointsFiltered || levelFiltered;

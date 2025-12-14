@@ -17,8 +17,8 @@ import { ThemeSelector } from "@/components/theme-toggle";
 import { regionToConstant } from "@/features/shared/champs";
 import {
 	checkNameChangeFn,
+	fullUpdateSummoner,
 	getUserByNameAndRegionFn,
-	refreshSummonerDataFn,
 } from "@/server/summoner/mutations";
 
 export const Route = createFileRoute("/$region/$username/")({
@@ -39,16 +39,13 @@ export const Route = createFileRoute("/$region/$username/")({
 		});
 
 		if (result.error === "not_found") {
-			// Type is now inferred correctly
 			const migrationResult = await checkNameChangeFn({
 				data: { username, region },
 			});
 
-			// TS now knows if found is true, newUsername exists
 			if (migrationResult.found) {
 				throw redirect({
 					to: "/$region/$username",
-					// The ! is safe here, or TS usually understands the union automatically
 					params: { region: rawRegion, username: migrationResult.newUsername },
 				});
 			}
@@ -129,11 +126,19 @@ function Client() {
 	const handleRefresh = async () => {
 		setIsRefreshing(true);
 		try {
-			await refreshSummonerDataFn({
-				data: { username, region },
+			// 2. Split the username string back into GameName and TagLine
+			const [gameName, tagLine] = username.split("#");
+
+			// 3. Call the new unified function
+			await fullUpdateSummoner({
+				data: {
+					gameName,
+					tagLine,
+					region,
+					awaitMatches: false,
+				},
 			});
 
-			// Invalidate the route to trigger a re-fetch
 			await router.invalidate();
 		} catch (err) {
 			console.error("Failed to refresh:", err);
