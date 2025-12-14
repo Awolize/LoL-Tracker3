@@ -36,7 +36,5 @@ export const upsertMastery = async (user: AccountDto, region: Regions) => {
 			}),
 	);
 
-	console.log("hello");
-
 	await Promise.all(promises);
 };

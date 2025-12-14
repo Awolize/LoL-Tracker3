@@ -239,11 +239,14 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 		const { gameName, tagLine, region, awaitMatches = true } = data;
 		const regionEnum = regionToConstant(region);
 		const jobData = { gameName, tagLine, region: regionEnum };
-		const makeId = (type: string) => `${type}-${gameName}-${tagLine}`;
 
 		console.log(
 			`[API] Update request for ${gameName}#${tagLine} (Await Matches: ${awaitMatches})`,
 		);
+
+		// Make jobId unique per request to avoid collisions
+		const makeId = (type: string) =>
+			`${type}-${gameName}-${tagLine}-${Date.now()}`;
 
 		const jobPromises = [
 			updateQueue.add("update-summoner-only", jobData, {
@@ -278,6 +281,10 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 
 		try {
 			const enqueuedJobs = await Promise.all(jobPromises);
+
+			enqueuedJobs.forEach((job) => {
+				console.log(`[API] Job enqueued: ${job.id} (${job.name})`);
+			});
 
 			const criticalJobNames = [
 				"update-summoner-only",

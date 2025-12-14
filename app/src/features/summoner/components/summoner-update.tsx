@@ -1,5 +1,5 @@
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import type { Summoner } from "@/features/shared/types";
 import {
@@ -7,72 +7,57 @@ import {
 	getLastMasteryUpdate,
 } from "@/server/summoner/mutations";
 
+type SummonerUpdateInput = Pick<
+	Summoner,
+	"puuid" | "gameName" | "tagLine" | "region"
+>;
+
 interface FullSummonerUpdateProps {
-	user: Summoner;
+	user: SummonerUpdateInput;
 	awaitMatches?: boolean;
 }
+
+const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const FullSummonerUpdate = ({
 	user,
 	awaitMatches = true,
 }: FullSummonerUpdateProps) => {
 	const router = useRouter();
-	const [isUpdating, setIsUpdating] = useState(false);
-	const [error, setError] = useState<string | null>(null);
-	const [justCompleted, setJustCompleted] = useState(false);
-	// reprocess removed as per user request
+	const queryClient = useQueryClient();
 
-	const updateUser = async () => {
-		if (!user.gameName || !user.tagLine) return;
+	const lastUpdateQuery = useQuery({
+		queryKey: ["lastMasteryUpdate", user.puuid],
+		queryFn: () => getLastMasteryUpdate({ data: { puuid: user.puuid } }),
+		staleTime: 60000, // optional: cache for 1 min
+	});
 
-		setIsUpdating(true);
-		setError(null);
-		setJustCompleted(false);
-
-		try {
-			await fullUpdateSummoner({
-				data: {
-					gameName: user.gameName,
-					tagLine: user.tagLine,
-					region: user.region,
-					awaitMatches,
-				},
+	const refreshMutation = useMutation({
+		mutationFn: async () => {
+			await Promise.all([
+				fullUpdateSummoner({
+					data: {
+						gameName: user.gameName ?? "",
+						tagLine: user.tagLine ?? "",
+						region: user.region,
+						awaitMatches,
+					},
+				}),
+				delay(1000),
+			]);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["lastMasteryUpdate", user.puuid],
 			});
+			router.invalidate();
+		},
+	});
 
-			setJustCompleted(true);
-			// Invalidate and reload the current route to refresh data
-			await router.invalidate();
-
-			// Reset the just completed state after 3 seconds
-			setTimeout(() => setJustCompleted(false), 3000);
-		} catch (err: any) {
-			console.error("Failed to refresh summoner:", err);
-			setError(err.message || "Unknown error");
-		} finally {
-			setIsUpdating(false);
-		}
-	};
-
-	const [lastUpdatedDate, setLastUpdatedDate] = useState<Date | null>(null);
-
-	// Fetch the last mastery update timestamp on component mount
-	useEffect(() => {
-		const fetchLastMasteryUpdate = async () => {
-			try {
-				const lastUpdate = await getLastMasteryUpdate({
-					data: { puuid: user.puuid },
-				});
-				setLastUpdatedDate(lastUpdate ? new Date(lastUpdate) : null);
-			} catch (err) {
-				console.error("Failed to fetch mastery update date:", err);
-			}
-		};
-
-		fetchLastMasteryUpdate();
-	}, [user.puuid]);
-
-	const timeSinceUpdate = lastUpdatedDate
-		? Math.floor((Date.now() - lastUpdatedDate.getTime()) / 1000 / 60) // minutes
+	const timeSinceUpdate = lastUpdateQuery.data
+		? Math.floor(
+				(Date.now() - new Date(lastUpdateQuery.data).getTime()) / 60000,
+			)
 		: null;
 
 	return (
@@ -81,10 +66,10 @@ export const FullSummonerUpdate = ({
 				variant="outline"
 				size="sm"
 				className="px-3 py-1.5 text-sm transition-colors hover:bg-accent hover:text-accent-foreground disabled:cursor-not-allowed disabled:opacity-50"
-				onClick={updateUser}
-				disabled={isUpdating}
+				onClick={() => refreshMutation.mutate()}
+				disabled={refreshMutation.isPending}
 			>
-				{isUpdating ? (
+				{refreshMutation.isPending ? (
 					<span className="flex items-center gap-2">
 						<svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
 							<circle
@@ -104,7 +89,7 @@ export const FullSummonerUpdate = ({
 						</svg>
 						Refreshing...
 					</span>
-				) : justCompleted ? (
+				) : refreshMutation.isSuccess ? (
 					<span className="flex items-center gap-2 text-green-600">
 						<svg
 							className="h-4 w-4"
@@ -140,6 +125,7 @@ export const FullSummonerUpdate = ({
 					</span>
 				)}
 			</Button>
+
 			{timeSinceUpdate !== null && (
 				<span className="text-xs text-muted-foreground">
 					Last updated{" "}
@@ -152,7 +138,12 @@ export const FullSummonerUpdate = ({
 								: `${Math.floor(timeSinceUpdate / 1440)}d ago`}
 				</span>
 			)}
-			{error && <div className="text-red-500 text-xs">{error}</div>}
+
+			{refreshMutation.isError && (
+				<div className="text-red-500 text-xs">
+					{refreshMutation.error?.message || "Update failed"}
+				</div>
+			)}
 		</div>
 	);
 };

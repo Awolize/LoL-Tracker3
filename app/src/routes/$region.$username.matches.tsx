@@ -83,7 +83,7 @@ function RouteComponent() {
 									<div className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
 										{matches.length} matches loaded
 									</div>
-									<FullSummonerUpdate user={user} />
+									<FullSummonerUpdate user={user} awaitMatches={true} />
 								</div>
 							</div>
 

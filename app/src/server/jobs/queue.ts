@@ -1,7 +1,7 @@
-// server/queue.ts
+// jobs/queue.ts
 import { Queue, QueueEvents, Worker } from "bullmq";
 import type { Regions } from "twisted/dist/constants";
-import { runAllChallengeUpdates } from "@/server/challenges/update-challenges";
+import { runAllChallengeUpdatesWorker } from "@/server/challenges/update-challenges";
 import { updateChallengesConfigServer } from "@/server/challenges/update-challenges-config";
 import { upsertPlayerChallenges } from "@/server/challenges/update-player-challenges";
 import { updateChampionDetails } from "@/server/champions/update-champion-details";
@@ -15,141 +15,128 @@ const QUEUE_NAME = "riot-updates";
 
 export const updateQueue = new Queue(QUEUE_NAME, {
 	connection,
-	defaultJobOptions: { removeOnComplete: 100, removeOnFail: 500 },
+	defaultJobOptions: { removeOnComplete: true, removeOnFail: true },
 });
 
 export const updateQueueEvents = new QueueEvents(QUEUE_NAME, { connection });
+
+updateQueueEvents.on("error", (err) =>
+	console.error("[QueueEvents] Error:", err),
+);
+
+// --- Helper ---
+async function ensureSummoner(
+	gameName: string,
+	tagLine: string,
+	region: Regions,
+) {
+	const data = await getSummonerByUsernameRateLimit(
+		`${gameName}#${tagLine}`,
+		region,
+	);
+	if (!data.summoner)
+		throw new Error(`Summoner not found: ${gameName}#${tagLine}`);
+
+	// Always update the DB with the latest account info
+	await upsertSummoner(data.summoner, data.account, region);
+	return data;
+}
 
 declare global {
 	var __riotWorker: Worker | undefined;
 }
 
-let worker: Worker;
-
-if (global.__riotWorker) {
-	worker = global.__riotWorker;
-} else {
-	worker = new Worker(
+if (!global.__riotWorker) {
+	global.__riotWorker = new Worker(
 		QUEUE_NAME,
 		async (job) => {
-			console.log(
-				`[Worker]      Processing ${job.name} for ${job.data.gameName || job.data.matchId}`,
-			);
-
-			const { gameName, tagLine, region: rawRegion, matchId } = job.data;
+			const { name, data } = job;
+			const { gameName, tagLine, region: rawRegion, matchId } = data;
 			const region = rawRegion as Regions;
 
-			console.log("Hello");
+			// "Name#Tag" OR "MatchID"
+			const identifier = gameName ? `${gameName}#${tagLine}` : matchId;
+			console.log(`[Worker] Start: ${name} (${identifier})`);
 
-			if (job.name === "update-meta") {
-				const userData = await getSummonerByUsernameRateLimit(
-					`${gameName}#${tagLine}`,
-					region,
-				);
-				if (!userData.summoner) throw new Error("Summoner not found");
-				await upsertSummoner(userData.summoner, userData.account, region);
+			try {
+				switch (name) {
+					case "update-meta": {
+						const { account } = await ensureSummoner(gameName, tagLine, region);
+						await Promise.all([
+							upsertMastery(account, region),
+							upsertPlayerChallenges(region, account),
+							updateChallengesConfigServer(region),
+							updateChampionDetails(),
+						]);
+						return { success: true, puuid: account.puuid };
+					}
 
-				await Promise.all([
-					upsertMastery(userData.account, region),
-					upsertPlayerChallenges(region, userData.account),
-					updateChallengesConfigServer(region),
-					updateChampionDetails(),
-				]);
+					case "update-summoner-only": {
+						const { account } = await ensureSummoner(gameName, tagLine, region);
+						return { success: true, puuid: account.puuid };
+					}
 
-				return { success: true, puuid: userData.account.puuid };
-			}
+					case "update-champion-details": {
+						await updateChampionDetails();
+						return { success: true };
+					}
 
-			if (job.name === "update-summoner-only") {
-				const userData = await getSummonerByUsernameRateLimit(
-					`${gameName}#${tagLine}`,
-					region,
-				);
-				if (!userData.summoner) throw new Error("Summoner not found");
-				await upsertSummoner(userData.summoner, userData.account, region);
+					case "update-mastery": {
+						const { account } = await ensureSummoner(gameName, tagLine, region);
+						await upsertMastery(account, region);
+						return { success: true, puuid: account.puuid };
+					}
 
-				return { success: true, puuid: userData.account.puuid };
-			}
+					case "update-challenges-config": {
+						await updateChallengesConfigServer(region);
+						return { success: true };
+					}
 
-			if (job.name === "update-champion-details") {
-				await updateChampionDetails();
-				return { success: true };
-			}
+					case "update-challenges": {
+						const { account } = await ensureSummoner(gameName, tagLine, region);
+						await upsertPlayerChallenges(region, account);
+						return { success: true, puuid: account.puuid };
+					}
 
-			if (job.name === "update-mastery") {
-				const userData = await getSummonerByUsernameRateLimit(
-					`${gameName}#${tagLine}`,
-					region,
-				);
-				if (!userData.summoner) throw new Error("Summoner not found");
-				console.log(upsertMastery);
+					case "process-single-match": {
+						await updateGamesSingle(matchId, region);
+						return { success: true };
+					}
 
-				await upsertMastery(userData.account, region);
-				return { success: true, puuid: userData.account.puuid };
-			}
+					case "update-matches": {
+						const { account } = await ensureSummoner(gameName, tagLine, region);
+						const matchIds = await fetchMatchIds(account.puuid, region);
 
-			if (job.name === "update-challenges-config") {
-				await updateChallengesConfigServer(region);
-				return { success: true };
-			}
+						// Optimization: Add all jobs in parallel
+						const jobs = await Promise.all(
+							matchIds.map((id) =>
+								updateQueue.add(
+									"process-single-match",
+									{ matchId: id, region },
+									{ priority: 50, jobId: id },
+								),
+							),
+						);
 
-			if (job.name === "update-challenges") {
-				const userData = await getSummonerByUsernameRateLimit(
-					`${gameName}#${tagLine}`,
-					region,
-				);
-				if (!userData.summoner) throw new Error("Summoner not found");
-				await upsertPlayerChallenges(region, userData.account);
-				return { success: true, puuid: userData.account.puuid };
-			}
+						await Promise.all(
+							jobs.map((j) => j.waitUntilFinished(updateQueueEvents)),
+						);
+						return { success: true, processedMatches: matchIds.length };
+					}
 
-			if (job.name === "process-single-match") {
-				await updateGamesSingle(matchId, region);
-				return { success: true };
-			}
+					case "run-challenges-computation": {
+						return await runAllChallengeUpdatesWorker({
+							username: `${gameName}#${tagLine}`,
+							region,
+						});
+					}
 
-			if (job.name === "update-matches") {
-				const userData = await getSummonerByUsernameRateLimit(
-					`${gameName}#${tagLine}`,
-					region,
-				);
-				if (!userData.summoner) throw new Error("Summoner not found");
-				await upsertSummoner(userData.summoner, userData.account, region);
-
-				const matchIds = await fetchMatchIds(userData.account.puuid, region);
-
-				const jobs = [];
-
-				for (const id of matchIds) {
-					const job = await updateQueue.add(
-						"process-single-match",
-						{ matchId: id, region },
-						{ priority: 50, jobId: id },
-					);
-
-					jobs.push(job);
+					default:
+						throw new Error(`Unknown job name: ${name}`);
 				}
-
-				try {
-					await Promise.all(
-						jobs.map((j) => j.waitUntilFinished(updateQueueEvents)),
-					);
-					return { success: true, processedMatches: matchIds.length };
-				} catch (error) {
-					console.error("Summoner update timed out or failed", error);
-					return { success: false, processedMatches: null };
-				}
+			} finally {
+				console.log(`[Worker] Done:  ${name} (${identifier})`);
 			}
-
-			if (job.name === "run-challenges-computation") {
-				return await runAllChallengeUpdates({
-					username: `${gameName}#${tagLine}`,
-					region,
-				});
-			}
-
-			console.log(
-				`[Worker] Done processing ${job.name} for ${job.data.gameName || job.data.matchId}`,
-			);
 		},
 		{
 			connection,
@@ -157,8 +144,6 @@ if (global.__riotWorker) {
 			limiter: { max: 2, duration: 1200 },
 		},
 	);
-
-	global.__riotWorker = worker;
 }
 
-export { worker };
+export const worker = global.__riotWorker;
