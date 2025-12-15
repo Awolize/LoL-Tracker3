@@ -270,6 +270,9 @@ export default function ChallengeLeaderboard({
 
 			{/* Leaderboard List */}
 			<section>
+				<h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-widest mb-3 px-1">
+					Leaderboard
+				</h3>
 				<div className="rounded-xl border bg-background/50 overflow-hidden shadow-sm">
 					<div className="flex flex-col">
 						{renderEntries(topSection)}
