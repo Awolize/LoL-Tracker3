@@ -265,10 +265,14 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 				priority: 4,
 				jobId: makeId("update-mastery"),
 			}),
-			updateQueue.add("update-matches", { ...jobData, waitForMatches: awaitMatches }, {
-				priority: 5,
-				jobId: makeId("update-matches"),
-			}),
+			updateQueue.add(
+				"update-matches",
+				{ ...jobData, waitForMatches: awaitMatches },
+				{
+					priority: 5,
+					jobId: makeId("update-matches"),
+				},
+			),
 			updateQueue.add("update-challenges", jobData, {
 				priority: 20,
 				jobId: makeId("update-challenges"),

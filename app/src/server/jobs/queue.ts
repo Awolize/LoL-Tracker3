@@ -51,7 +51,13 @@ if (!global.__riotWorker) {
 		QUEUE_NAME,
 		async (job) => {
 			const { name, data } = job;
-			const { gameName, tagLine, region: rawRegion, matchId, waitForMatches = false } = data;
+			const {
+				gameName,
+				tagLine,
+				region: rawRegion,
+				matchId,
+				waitForMatches = false,
+			} = data;
 			const region = rawRegion as Regions;
 
 			// "Name#Tag" OR "MatchID"
@@ -114,8 +120,8 @@ if (!global.__riotWorker) {
 									"process-single-match",
 									{ matchId: id, region },
 									{ priority: waitForMatches ? 10 : 50, jobId: id },
-								)
-							)
+								),
+							),
 						);
 
 						await Promise.all(

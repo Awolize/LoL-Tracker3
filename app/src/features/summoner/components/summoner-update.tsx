@@ -1,126 +1,178 @@
-import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
-import { Loader2, Check, RefreshCw } from "lucide-react"; // Standard icons for Shadcn
+import { Check, Loader2, type LucideIcon, RefreshCw } from "lucide-react";
+import { AnimatePresence, motion } from "motion/react";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/components/utils";
 import type { Summoner } from "@/features/shared/types";
 import {
-  fullUpdateSummoner,
-  getLastMasteryUpdate,
+	fullUpdateSummoner,
+	getLastMasteryUpdate,
 } from "@/server/summoner/mutations";
 
 type SummonerUpdateInput = Pick<
-  Summoner,
-  "puuid" | "gameName" | "tagLine" | "region"
+	Summoner,
+	"puuid" | "gameName" | "tagLine" | "region"
 >;
 
 interface FullSummonerUpdateProps {
-  user: SummonerUpdateInput;
-  awaitMatches?: boolean;
+	user: SummonerUpdateInput;
+	awaitMatches?: boolean;
 }
 
-// Helper to format time (cleaner than doing math in JSX)
-const formatTimeAgo = (dateString: string | Date | null) => {
-  if (!dateString) return null;
-  
-  const now = new Date();
-  const date = new Date(dateString);
-  const diffInMinutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+const MIN_LOADING_TIME = 1000;
+const SUCCESS_MSG_DURATION = 2000;
 
-  if (diffInMinutes < 1) return "just now";
-  if (diffInMinutes < 60) return `${diffInMinutes}m ago`;
-  if (diffInMinutes < 1440) return `${Math.floor(diffInMinutes / 60)}h ago`;
-  return `${Math.floor(diffInMinutes / 1440)}d ago`;
+const formatTimeAgo = (date: string | Date | null) => {
+	if (!date) return null;
+	const diff = Math.floor((Date.now() - new Date(date).getTime()) / 60000);
+	if (diff < 1) return "just now";
+	if (diff < 60) return `${diff}m ago`;
+	if (diff < 1440) return `${Math.floor(diff / 60)}h ago`;
+	return `${Math.floor(diff / 1440)}d ago`;
 };
 
-const MIN_LOADING_TIME = 1000; // ms
-const SUCCESS_MSG_DURATION = 2000; // ms
+type Status = "idle" | "loading" | "success";
+
+const STATUS_UI: Record<
+	Status,
+	{ label: string; Icon: LucideIcon; className?: string }
+> = {
+	idle: { label: "Refresh", Icon: RefreshCw },
+	loading: {
+		label: "Refreshing...",
+		Icon: Loader2,
+		className: "opacity-80",
+	},
+	success: {
+		label: "Updated",
+		Icon: Check,
+		className: "text-green-600 dark:text-green-500",
+	},
+};
 
 export const FullSummonerUpdate = ({
-  user,
-  awaitMatches = true,
+	user,
+	awaitMatches = true,
 }: FullSummonerUpdateProps) => {
-  const router = useRouter();
-  const queryClient = useQueryClient();
+	const router = useRouter();
+	const queryClient = useQueryClient();
 
-  const lastUpdateQuery = useQuery({
-    queryKey: ["lastMasteryUpdate", user.puuid],
-    queryFn: () => getLastMasteryUpdate({ data: { puuid: user.puuid } }),
-    staleTime: 60 * 1000, 
-  });
+	const lastUpdateQuery = useQuery({
+		queryKey: ["lastMasteryUpdate", user.puuid],
+		queryFn: () => getLastMasteryUpdate({ data: { puuid: user.puuid } }),
+		staleTime: 60_000,
+	});
 
-  const refreshMutation = useMutation({
-    mutationFn: async () => {
-      await Promise.all([
-        fullUpdateSummoner({
-          data: {
-            gameName: user.gameName ?? "",
-            tagLine: user.tagLine ?? "",
-            region: user.region,
-            awaitMatches,
-          },
-        }),
-        new Promise((r) => setTimeout(r, MIN_LOADING_TIME)),
-      ]);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["lastMasteryUpdate", user.puuid],
-      });
-      router.invalidate();
-    },
-  });
+	const refreshMutation = useMutation({
+		mutationFn: async () => {
+			await Promise.all([
+				fullUpdateSummoner({
+					data: {
+						gameName: user.gameName ?? "",
+						tagLine: user.tagLine ?? "",
+						region: user.region,
+						awaitMatches,
+					},
+				}),
+				new Promise((r) => setTimeout(r, MIN_LOADING_TIME)),
+			]);
+		},
+		onSuccess: () => {
+			queryClient.invalidateQueries({
+				queryKey: ["lastMasteryUpdate", user.puuid],
+			});
+			router.invalidate();
+		},
+	});
 
-  useEffect(() => {
-    if (refreshMutation.isSuccess) {
-      const timer = setTimeout(() => {
-        refreshMutation.reset();
-      }, SUCCESS_MSG_DURATION);
+	useEffect(() => {
+		if (!refreshMutation.isSuccess) return;
+		const t = setTimeout(() => refreshMutation.reset(), SUCCESS_MSG_DURATION);
+		return () => clearTimeout(t);
+	}, [refreshMutation.isSuccess, refreshMutation]);
 
-      return () => clearTimeout(timer);
-    }
-  }, [refreshMutation.isSuccess, refreshMutation]);
+	const status: Status = refreshMutation.isPending
+		? "loading"
+		: refreshMutation.isSuccess
+			? "success"
+			: "idle";
 
-  return (
-    <div className="flex flex-col items-center gap-1">
-      <Button
-        variant="outline"
-        size="sm"
-        className="px-3 py-1.5 text-sm transition-all min-w-[120px]" 
-        onClick={() => refreshMutation.mutate()}
-        disabled={refreshMutation.isPending}
-      >
-        {refreshMutation.isPending ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Refreshing...
-          </>
-        ) : refreshMutation.isSuccess ? (
-          <span className="flex items-center text-green-600 dark:text-green-500">
-            <Check className="mr-2 h-4 w-4" />
-            Updated
-          </span>
-        ) : (
-          <>
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Refresh
-          </>
-        )}
-      </Button>
+	const { label, Icon, className } = STATUS_UI[status];
 
-      {/* Timestamp Display */}
-      {lastUpdateQuery.data && (
-        <span className="text-xs text-muted-foreground">
-          Last updated {formatTimeAgo(lastUpdateQuery.data)}
-        </span>
-      )}
+	return (
+		<div className="flex flex-col items-center gap-1">
+			<Button
+				variant="outline"
+				size="sm"
+				className="px-3 py-1.5 text-sm min-w-[130px] relative overflow-hidden"
+				onClick={() => refreshMutation.mutate()}
+				disabled={status === "loading"}
+			>
+				<AnimatePresence mode="wait" initial={false}>
+					<motion.div
+						key={status}
+						initial={{ opacity: 0, y: 8 }}
+						animate={{ opacity: 1, y: 0 }}
+						exit={{ opacity: 0, y: -8 }}
+						transition={{ duration: 0.18, ease: "easeOut" }}
+						className={cn(
+							"absolute inset-0 flex items-center justify-center gap-2",
+							className,
+						)}
+					>
+						<motion.div
+							animate={status === "loading" ? { rotate: 360 } : { rotate: 0 }}
+							transition={
+								status === "loading"
+									? { repeat: Infinity, duration: 1, ease: "linear" }
+									: { duration: 0.2 }
+							}
+						>
+							<Icon className="h-4 w-4" />
+						</motion.div>
+						<span>{label}</span>
+					</motion.div>
+				</AnimatePresence>
+			</Button>
 
-      {/* Error Message */}
-      {refreshMutation.isError && (
-        <div className="text-red-500 text-xs text-center px-2">
-          {refreshMutation.error?.message || "Update failed"}
-        </div>
-      )}
-    </div>
-  );
+			<div className="h-4 flex items-center justify-center">
+				<AnimatePresence mode="wait" presenceAffectsLayout={false}>
+					{lastUpdateQuery.data && (
+						<motion.span
+							key={String(lastUpdateQuery.data)}
+							initial={{ opacity: 0, y: 4 }}
+							animate={{ opacity: 1, y: 0 }}
+							exit={{ opacity: 0, y: -4 }}
+							transition={{ duration: 0.18 }}
+							className="text-xs text-muted-foreground"
+						>
+							Last updated{" "}
+							<span
+								className="font-mono px-1.5 py-0.5 rounded-sm shadow-sm 
+                       bg-gray-200 text-gray-900 dark:bg-primary-foreground dark:text-white"
+							>
+								{formatTimeAgo(lastUpdateQuery.data)}
+							</span>
+						</motion.span>
+					)}
+				</AnimatePresence>
+			</div>
+
+			<AnimatePresence>
+				{refreshMutation.isError && (
+					<motion.div
+						layout
+						initial={{ opacity: 0 }}
+						animate={{ opacity: 1 }}
+						exit={{ opacity: 0 }}
+						className="text-red-500 text-xs text-center px-2 overflow-hidden"
+					>
+						{refreshMutation.error?.message || "Update failed"}
+					</motion.div>
+				)}
+			</AnimatePresence>
+		</div>
+	);
 };
