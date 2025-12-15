@@ -2,44 +2,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { StarIcon } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { regionToDisplay } from "@/features/shared/champs";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
+import type {
+	ChallengeConfig,
+	LeaderboardEntry,
+} from "@/features/shared/types";
 import { getDataDragonVersion } from "@/server/api/mutations";
-
-// ... [Interfaces remain the same] ...
-interface ChallengeConfig {
-	config: {
-		id: number;
-		state: string | null;
-		leaderboard: boolean;
-		endTimestamp: Date | null;
-		thresholds: Record<string, number>;
-	};
-	localization: {
-		id: number;
-		language: string;
-		description: string;
-		name: string;
-		shortDescription: string;
-	} | null;
-}
-
-interface LeaderboardEntry {
-	challenge: {
-		challengeId: number;
-		percentile: number | null;
-		level: string | null;
-		value: number | null;
-		achievedTime: Date | null;
-	};
-	summoner: {
-		gameName: string | null;
-		tagLine: string | null;
-		region: string;
-		profileIconId: number;
-	};
-}
 
 interface ChallengeLeaderboardProps {
 	config: ChallengeConfig;
@@ -52,33 +21,36 @@ interface ChallengeLeaderboardProps {
 	};
 }
 
-// --- IMPROVEMENT 1: Consolidated Style Helpers ---
-
 // Helper to get the CSS variable string for a tier
 const getTierVar = (tier: string) => `var(--tier-${tier.toLowerCase()})`;
 
-// Tier Card (Updated to use cleaner style logic)
-const TierCard = ({ tier, points }: { tier: string; points: number }) => {
+// --- Tier Badge (White Text & Larger Points) ---
+const TierBadge = ({ tier, points }: { tier: string; points: number }) => {
 	const tierColor = getTierVar(tier);
 	return (
 		<div
-			className="p-4 border rounded-lg transition-colors"
+			className="flex flex-col items-center justify-center py-3 px-3 rounded-md border transition-all"
 			style={{
 				borderColor: tierColor,
-				backgroundColor: `color-mix(in oklab, ${tierColor} 10%, transparent)`,
+				// Increased opacity slightly to support white text better
+				backgroundColor: `color-mix(in oklab, ${tierColor} 20%, transparent)`,
 			}}
 		>
-			<div className="font-semibold text-lg capitalize">
-				{tier.toLowerCase()}
+			<div
+				className="font-bold text-sm uppercase tracking-wider mb-1 text-white"
+				style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+			>
+				{tier}
 			</div>
-			<div className="text-sm text-muted-foreground">
-				{points.toLocaleString()} points
+			<div
+				className="font-mono font-bold text-sm text-white"
+				style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+			>
+				{points.toLocaleString()}
 			</div>
 		</div>
 	);
 };
-
-// --- IMPROVEMENT 2: Refactored Row Component ---
 
 interface LeaderboardRowProps {
 	entry: LeaderboardEntry;
@@ -90,6 +62,7 @@ interface LeaderboardRowProps {
 	getProfileImage: (id: string) => string;
 }
 
+// --- Leaderboard Row (Background Tint Only) ---
 const LeaderboardRow = ({
 	entry,
 	index,
@@ -103,7 +76,6 @@ const LeaderboardRow = ({
 	const actualIndex = offset + index;
 	const entryUsername = `${entry.summoner.gameName}#${entry.summoner.tagLine}`;
 
-	// Determine highlighting
 	const isHighlighted =
 		highlightedUsername &&
 		highlightedRegion &&
@@ -120,82 +92,105 @@ const LeaderboardRow = ({
 		}
 	}, [isHighlighted]);
 
-	// --- LOGIC IMPROVEMENT ---
-	// We calculate the specific background style here.
-	// 1. Normal: 5% opacity of the tier color.
-	// 2. Highlighted: 15% opacity + a subtle white mix to make it "glow",
-	//    plus a shadow defined in the className below.
-	const backgroundStyle = isHighlighted
-		? `color-mix(in oklab, ${tierVar} 15%, rgba(255,255,255,0.1))`
-		: `color-mix(in oklab, ${tierVar} 5%, transparent)`;
+	// --- STYLE LOGIC ---
+	// Removed the box-shadow (left color strip).
+	// Kept the background tint.
+	const rowStyle = {
+		backgroundColor: isHighlighted
+			? `color-mix(in oklab, ${tierVar} 15%, transparent)`
+			: `color-mix(in oklab, ${tierVar} 3%, transparent)`,
+		borderTopColor: isHighlighted
+			? `color-mix(in oklab, ${tierVar} 50%, transparent)`
+			: undefined,
+		borderBottomColor: isHighlighted
+			? `color-mix(in oklab, ${tierVar} 50%, transparent)`
+			: undefined,
+	};
 
 	return (
 		<div
 			ref={rowRef}
 			className={`
-				flex items-center justify-between p-4 border rounded-lg transition-all duration-300
-				${isHighlighted ? "scale-[1.01] shadow-md z-10 relative" : ""}
+				group flex items-center justify-between px-4 py-2 text-sm transition-all duration-200
+				${
+					isHighlighted
+						? "z-10 relative border-y"
+						: "hover:brightness-105 border-b border-border/40 last:border-0"
+				}
 			`}
-			style={{
-				backgroundColor: backgroundStyle,
-				borderColor: tierVar,
-				// If highlighted, add a colored glow using the tier color
-				boxShadow: isHighlighted
-					? `0 4px 20px -5px color-mix(in oklab, ${tierVar} 50%, transparent)`
-					: undefined,
-			}}
+			style={rowStyle}
 		>
 			<div className="flex items-center gap-4">
+				{/* Rank */}
 				<div
-					className={`text-lg font-bold w-8 ${
+					className={`font-mono text-sm w-6 text-center ${
 						isHighlighted
-							? "text-primary scale-110 origin-left transition-transform"
-							: "text-muted-foreground"
+							? "font-bold text-foreground"
+							: "text-muted-foreground/70"
 					}`}
 				>
-					#{actualIndex + 1}
+					{actualIndex + 1}
 				</div>
-				<div className="flex items-center gap-2">
-					<img
-						src={getProfileImage(String(entry.summoner.profileIconId))}
-						alt="Profile icon"
-						className={`w-8 h-8 rounded-full border ${isHighlighted ? "border-primary" : "border-border"}`}
-					/>
-					<div>
-						<div className="flex items-center gap-1">
+
+				{/* Avatar & Info */}
+				<div className="flex items-center gap-3">
+					<div className="relative">
+						<img
+							src={getProfileImage(String(entry.summoner.profileIconId))}
+							alt=""
+							className="w-8 h-8 rounded-full bg-muted object-cover border-2"
+							style={{
+								// Avatar always gets a border matching their tier
+								borderColor: tierVar,
+							}}
+						/>
+					</div>
+
+					<div className="flex flex-col justify-center">
+						<div className="flex items-center gap-1.5">
 							<Link
 								to="/$region/$username"
 								params={{
 									region: entry.summoner.region,
 									username: `${entry.summoner.gameName || "Unknown"}-${entry.summoner.tagLine || ""}`,
 								}}
-								className={`font-semibold transition-colors hover:text-primary ${
-									isHighlighted ? "text-primary" : ""
+								className={`font-medium transition-colors hover:text-primary hover:underline truncate max-w-[200px] ${
+									isHighlighted
+										? "text-foreground font-bold"
+										: "text-foreground/90"
 								}`}
 							>
 								{entry.summoner.gameName || "Unknown"}
-								<span className="text-muted-foreground opacity-50">
-									#{entry.summoner.tagLine || ""}
-								</span>
 							</Link>
 							{isHighlighted && (
-								<StarIcon className="w-4 h-4 text-yellow-500 fill-yellow-500 animate-pulse" />
+								<StarIcon className="w-3 h-3 text-yellow-500 fill-yellow-500" />
 							)}
 						</div>
-						<div className="text-xs text-muted-foreground uppercase tracking-wide">
-							{regionToDisplay(entry.summoner.region)}
+						<div className="flex items-center gap-1.5 text-[10px] text-muted-foreground leading-none mt-1">
+							<span className="uppercase font-semibold tracking-wider text-[9px]">
+								{regionToDisplay(entry.summoner.region)}
+							</span>
+							<span className="text-border">|</span>
+							<span className="opacity-80">#{entry.summoner.tagLine}</span>
 						</div>
 					</div>
 				</div>
 			</div>
+
+			{/* Points & Tier Name */}
 			<div className="text-right">
 				<div
-					className={`font-bold font-mono ${isHighlighted ? "text-primary text-lg" : ""}`}
+					className={`font-mono font-medium ${
+						isHighlighted ? "text-foreground" : "text-foreground/80"
+					}`}
 				>
 					{(entry.challenge.value ?? 0).toLocaleString()}
 				</div>
 				{entry.challenge.level && (
-					<div className="text-xs text-muted-foreground capitalize">
+					<div
+						className="text-[10px] capitalize leading-none mt-0.5 font-bold tracking-wide"
+						style={{ color: tierVar }}
+					>
 						{entry.challenge.level.toLowerCase()}
 					</div>
 				)}
@@ -203,8 +198,6 @@ const LeaderboardRow = ({
 		</div>
 	);
 };
-
-// --- Main Component (Structure cleaned up) ---
 
 export default function ChallengeLeaderboard({
 	config,
@@ -220,7 +213,9 @@ export default function ChallengeLeaderboard({
 
 	const sortedThresholds = useMemo(
 		() =>
-			Object.entries(config.config.thresholds).sort(([, a], [, b]) => b - a),
+			Object.entries(config.config.thresholds as Record<string, number>).sort(
+				([, a], [, b]) => b - a,
+			),
 		[config.config.thresholds],
 	);
 
@@ -242,7 +237,6 @@ export default function ChallengeLeaderboard({
 	const renderEntries = (entries: LeaderboardEntry[], offset = 0) =>
 		entries.map((entry, index) => (
 			<LeaderboardRow
-				// Use a composite key that is guaranteed to be unique
 				key={`${entry.summoner.region}-${entry.summoner.gameName}-${entry.summoner.tagLine}-${offset + index}`}
 				entry={entry}
 				index={index}
@@ -261,48 +255,43 @@ export default function ChallengeLeaderboard({
 	const bottomSection = shouldShowSections ? leaderboard.slice(75) : [];
 
 	return (
-		<div className="space-y-6">
-			{/* Tiers */}
-			<Card>
-				<CardHeader>
-					<CardTitle>Tiers & Requirements</CardTitle>
-				</CardHeader>
-				<CardContent>
-					<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-						{sortedThresholds.map(([tier, points]) => (
-							<TierCard key={tier} tier={tier} points={points} />
-						))}
+		<div className="flex flex-col gap-6">
+			{/* Tiers Grid */}
+			<section>
+				<h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-widest mb-3 px-1">
+					Thresholds
+				</h3>
+				<div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+					{sortedThresholds.map(([tier, points]) => (
+						<TierBadge key={tier} tier={tier} points={points} />
+					))}
+				</div>
+			</section>
+
+			{/* Leaderboard List */}
+			<section>
+				<div className="rounded-xl border bg-background/50 overflow-hidden shadow-sm">
+					<div className="flex flex-col">
+						{renderEntries(topSection)}
+
+						{shouldShowSections && (
+							<div className="flex items-center justify-center py-3 bg-muted/20 border-y border-border/40">
+								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
+								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
+								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
+							</div>
+						)}
+
+						{renderEntries(bottomSection, shouldShowSections ? 75 : 0)}
+
+						{leaderboard.length === 0 && (
+							<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+								<p className="text-sm">No players found</p>
+							</div>
+						)}
 					</div>
-				</CardContent>
-			</Card>
-
-			{/* Leaderboard */}
-			<Card>
-				<CardHeader>
-					<CardTitle>
-						{config.localization?.name || `Challenge ${challengeId}`}{" "}
-						Leaderboard
-					</CardTitle>
-				</CardHeader>
-				<CardContent className="space-y-2">
-					{renderEntries(topSection)}
-
-					{shouldShowSections && (
-						<div className="flex flex-col items-center py-6 text-muted-foreground gap-2">
-							<span className="text-xl tracking-widest">•••</span>
-							<span className="text-xs">Skipping to your position</span>
-						</div>
-					)}
-
-					{renderEntries(bottomSection, shouldShowSections ? 75 : 0)}
-
-					{leaderboard.length === 0 && (
-						<div className="text-center py-12 text-muted-foreground bg-muted/20 rounded-lg border border-dashed">
-							No players found for this challenge yet.
-						</div>
-					)}
-				</CardContent>
-			</Card>
+				</div>
+			</section>
 		</div>
 	);
 }
