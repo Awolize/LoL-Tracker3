@@ -1,7 +1,15 @@
 import { Label } from "@radix-ui/react-label";
 import { Switch } from "@radix-ui/react-switch";
 
-export const ToggleEye = ({ label, checked, onChange }: { label: string; checked: boolean; onChange: (checked: boolean) => void }) => {
+export const ToggleEye = ({
+	label,
+	checked,
+	onChange,
+}: {
+	label: string;
+	checked: boolean;
+	onChange: (checked: boolean) => void;
+}) => {
 	return (
 		<div className="flex flex-row items-center gap-2">
 			<Switch

@@ -134,6 +134,7 @@ export default function Search() {
 						<button
 							type="submit"
 							className="h-12 min-w-12 max-w-12 rounded-r bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center transition-colors"
+							aria-label="Search summoner"
 						>
 							<ArrowRight className="w-5 h-5" />
 						</button>

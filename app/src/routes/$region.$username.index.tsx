@@ -213,7 +213,6 @@ function Header() {
 			</div>
 
 			<div className="flex items-center w-full relative">
-
 				<div className="flex-1">
 					<Search />
 				</div>
