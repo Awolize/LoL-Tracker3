@@ -204,18 +204,23 @@ function Client() {
 
 function Header() {
 	return (
-		<header className="sticky top-0 z-30 grid w-full grid-cols-3 items-center justify-between bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-4 py-2 border-b md:px-8">
-			<div className="flex justify-start">
+		<header className="sticky top-0 z-30 grid w-full grid-cols-3 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-4 py-2 border-b">
+			<div className="flex justify-center items-center">
 				<MainTitleLink />
 			</div>
-			<div className="flex justify-center">
+			<div className="flex justify-center items-center">
 				<Profile />
 			</div>
-			<div className="flex justify-end gap-2 items-center">
-				<div className="hidden md:block">
+
+			<div className="flex items-center w-full relative">
+
+				<div className="flex-1">
 					<Search />
 				</div>
-				<ThemeSelector />
+
+				<div className="absolute top-0 right-0">
+					<ThemeSelector />
+				</div>
 			</div>
 		</header>
 	);
