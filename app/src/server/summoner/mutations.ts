@@ -1,3 +1,4 @@
+import * as Sentry from "@sentry/tanstackstart-react";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ilike } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
@@ -215,7 +216,6 @@ export const getLastMasteryUpdate = createServerFn({
 	.handler(async ({ data }) => {
 		const { puuid } = data;
 
-		// Use Drizzle's aggregate function to get MAX updatedAt
 		const result = await db
 			.select({ max: championMastery.updatedAt })
 			.from(championMastery)
@@ -308,6 +308,14 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 			await Promise.all(
 				jobsToAwait.map((j) => j.waitUntilFinished(updateQueueEvents)),
 			);
+
+			Sentry.metrics.count("profile_update_server", 1, {
+				attributes: {
+					region,
+					username: `${gameName}#${tagLine}`,
+					awaitMatches: awaitMatches.toString(),
+				},
+			});
 
 			return { success: true };
 		} catch (error) {

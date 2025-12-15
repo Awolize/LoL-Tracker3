@@ -66,7 +66,14 @@ export const FullSummonerUpdate = ({
 	const refreshMutation = useMutation({
 		mutationFn: async () => {
 			await Promise.all([
-				fullUpdateSummoner({ data: { ...user, awaitMatches } }),
+				fullUpdateSummoner({
+					data: {
+						gameName: user.gameName!,
+						tagLine: user.tagLine!,
+						region: user.region,
+						awaitMatches
+					}
+				}),
 				new Promise((r) => setTimeout(r, MIN_LOADING_TIME)),
 			]);
 		},
