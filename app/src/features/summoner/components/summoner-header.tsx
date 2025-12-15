@@ -161,6 +161,7 @@ export default function Header({
 					size="sm"
 					onClick={toggleFilterPointsDirection}
 					className="px-1"
+					aria-label={`Filter ${filterPointsDirection === "above" ? "above" : "below"} points`}
 				>
 					{filterPointsDirection === "above" ? (
 						<ArrowUpIcon className="h-4 w-4" />
@@ -180,6 +181,7 @@ export default function Header({
 					size="sm"
 					onClick={toggleFilterLevelDirection}
 					className="px-1"
+					aria-label={`Filter ${filterLevelDirection === "above" ? "above" : "below"} levels`}
 				>
 					{filterLevelDirection === "above" ? (
 						<ArrowUpIcon className="h-4 w-4" />

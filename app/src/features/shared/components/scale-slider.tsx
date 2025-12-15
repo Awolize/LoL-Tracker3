@@ -7,7 +7,7 @@ export function ScaleSlider() {
 		(s) => s.setChampionsScale,
 	);
 
-	const handleSliderChange = (value) => {
+	const handleSliderChange = (value: number[]) => {
 		setChampionsScale(value[0]);
 	};
 
@@ -19,6 +19,7 @@ export function ScaleSlider() {
 			value={[championsScale]}
 			onValueChange={handleSliderChange}
 			className="h-2 w-40 cursor-pointer appearance-none rounded-lg bg-gray-200 dark:bg-gray-700"
+			aria-label="Champion image size"
 		/>
 	);
 }

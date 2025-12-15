@@ -51,13 +51,21 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 	};
 
 	return (
-		// biome-ignore lint/a11y/useKeyWithClickEvents: Not sure how to solve this. Putting it off until later date, more pressing matters
-		<li
+		<div
 			key={champ.key as React.Key}
 			className="flex flex-col pb-2"
 			onClick={() => handleChampionClick(champ.id)}
 			draggable={isDraggingEnabled}
 			onDragStart={isDraggingEnabled ? handleDragStart : undefined}
+			role="button"
+			tabIndex={0}
+			onKeyDown={(e) => {
+				if (e.key === 'Enter' || e.key === ' ') {
+					e.preventDefault();
+					handleChampionClick(champ.id);
+				}
+			}}
+			aria-label={`Champion ${champ.name}, level ${champ.championLevel}, ${champ.championPoints} points`}
 		>
 			<div className="relative z-10">
 				<img
@@ -93,7 +101,7 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 					{champ.championPoints}
 				</div>
 			)}
-		</li>
+		</div>
 	);
 };
 
