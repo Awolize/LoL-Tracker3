@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { Check, Loader2, type LucideIcon, RefreshCw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/utils";
 import type { Summoner } from "@/features/shared/types";
@@ -21,6 +21,7 @@ interface FullSummonerUpdateProps {
 	awaitMatches?: boolean;
 }
 
+const FAKE_STEPS = ["Fetching...", "Calculating...", "Updating..."];
 const MIN_LOADING_TIME = 1000;
 const SUCCESS_MSG_DURATION = 2000;
 
@@ -40,11 +41,7 @@ const STATUS_UI: Record<
 	{ label: string; Icon: LucideIcon; className?: string }
 > = {
 	idle: { label: "Refresh", Icon: RefreshCw },
-	loading: {
-		label: "Refreshing...",
-		Icon: Loader2,
-		className: "opacity-80",
-	},
+	loading: { label: "Refreshing...", Icon: Loader2, className: "opacity-80" },
 	success: {
 		label: "Updated",
 		Icon: Check,
@@ -58,6 +55,7 @@ export const FullSummonerUpdate = ({
 }: FullSummonerUpdateProps) => {
 	const router = useRouter();
 	const queryClient = useQueryClient();
+	const [stepIndex, setStepIndex] = useState(0);
 
 	const lastUpdateQuery = useQuery({
 		queryKey: ["lastMasteryUpdate", user.puuid],
@@ -68,14 +66,7 @@ export const FullSummonerUpdate = ({
 	const refreshMutation = useMutation({
 		mutationFn: async () => {
 			await Promise.all([
-				fullUpdateSummoner({
-					data: {
-						gameName: user.gameName ?? "",
-						tagLine: user.tagLine ?? "",
-						region: user.region,
-						awaitMatches,
-					},
-				}),
+				fullUpdateSummoner({ data: { ...user, awaitMatches } }),
 				new Promise((r) => setTimeout(r, MIN_LOADING_TIME)),
 			]);
 		},
@@ -85,13 +76,24 @@ export const FullSummonerUpdate = ({
 			});
 			router.invalidate();
 		},
+		onSettled: () => {
+			setTimeout(() => {
+				setStepIndex(0);
+				refreshMutation.reset();
+			}, SUCCESS_MSG_DURATION);
+		},
 	});
 
 	useEffect(() => {
-		if (!refreshMutation.isSuccess) return;
-		const t = setTimeout(() => refreshMutation.reset(), SUCCESS_MSG_DURATION);
-		return () => clearTimeout(t);
-	}, [refreshMutation.isSuccess, refreshMutation]);
+		if (!refreshMutation.isPending) return;
+		setStepIndex(0);
+
+		const interval = setInterval(() => {
+			setStepIndex((i) => Math.min(i + 1, FAKE_STEPS.length - 1));
+		}, 1000);
+
+		return () => clearInterval(interval);
+	}, [refreshMutation.isPending]);
 
 	const status: Status = refreshMutation.isPending
 		? "loading"
@@ -100,19 +102,20 @@ export const FullSummonerUpdate = ({
 			: "idle";
 
 	const { label, Icon, className } = STATUS_UI[status];
+	const stepText = status === "loading" ? FAKE_STEPS[stepIndex] : label;
 
 	return (
 		<div className="flex flex-col items-center gap-1">
 			<Button
 				variant="outline"
 				size="sm"
-				className="px-3 py-1.5 text-sm min-w-[130px] relative overflow-hidden"
+				className="px-3 py-1.5 text-sm min-w-[150px] relative overflow-hidden"
 				onClick={() => refreshMutation.mutate()}
 				disabled={status === "loading"}
 			>
 				<AnimatePresence mode="wait" initial={false}>
 					<motion.div
-						key={status}
+						key={status + stepText}
 						initial={{ opacity: 0, y: 8 }}
 						animate={{ opacity: 1, y: 0 }}
 						exit={{ opacity: 0, y: -8 }}
@@ -132,7 +135,7 @@ export const FullSummonerUpdate = ({
 						>
 							<Icon className="h-4 w-4" />
 						</motion.div>
-						<span>{label}</span>
+						<span>{stepText}</span>
 					</motion.div>
 				</AnimatePresence>
 			</Button>
@@ -149,10 +152,7 @@ export const FullSummonerUpdate = ({
 							className="text-xs text-muted-foreground"
 						>
 							Last updated{" "}
-							<span
-								className="font-mono px-1.5 py-0.5 rounded-sm shadow-sm 
-                       bg-gray-200 text-gray-900 dark:bg-primary-foreground dark:text-white"
-							>
+							<span className="font-mono px-1.5 py-0.5 rounded-sm shadow-sm bg-gray-200 text-gray-900 dark:bg-primary-foreground dark:text-white">
 								{formatTimeAgo(lastUpdateQuery.data)}
 							</span>
 						</motion.span>
