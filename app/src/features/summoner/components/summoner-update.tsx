@@ -71,8 +71,8 @@ export const FullSummonerUpdate = ({
 						gameName: user.gameName!,
 						tagLine: user.tagLine!,
 						region: user.region,
-						awaitMatches
-					}
+						awaitMatches,
+					},
 				}),
 				new Promise((r) => setTimeout(r, MIN_LOADING_TIME)),
 			]);

@@ -4,7 +4,7 @@ import { sql } from "drizzle-orm";
 import { db } from "@/db";
 import { summoner } from "@/db/schema";
 
-export const Route = createFileRoute("/api/sitemap")({
+export const Route = createFileRoute("/api/sitemap.xml")({
 	server: {
 		handlers: {
 			GET: async () => {
@@ -26,7 +26,7 @@ export const Route = createFileRoute("/api/sitemap")({
 					{ length: totalPages },
 					(_, i) => `
   <sitemap>
-    <loc>${base}/api/sitemap/${i + 1}</loc>
+    <loc>${base}/api/sitemap/${i + 1}.xml</loc>
   </sitemap>`,
 				).join("");
 

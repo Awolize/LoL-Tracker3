@@ -11,9 +11,9 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ApiSitemapRouteImport } from './routes/api/sitemap'
+import { Route as ApiSitemapDotxmlRouteImport } from './routes/api/sitemap[.]xml'
 import { Route as RegionUsernameIndexRouteImport } from './routes/$region.$username.index'
-import { Route as ApiSitemapPageRouteImport } from './routes/api/sitemap.$page'
+import { Route as ApiSitemapPageDotxmlRouteImport } from './routes/api/sitemap.$page[.]xml'
 import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
 import { Route as RegionUsernameMatchesRouteImport } from './routes/$region.$username.matches'
 import { Route as RegionUsernameMasteryRouteImport } from './routes/$region.$username.mastery'
@@ -29,9 +29,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSitemapRoute = ApiSitemapRouteImport.update({
-  id: '/api/sitemap',
-  path: '/api/sitemap',
+const ApiSitemapDotxmlRoute = ApiSitemapDotxmlRouteImport.update({
+  id: '/api/sitemap.xml',
+  path: '/api/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegionUsernameIndexRoute = RegionUsernameIndexRouteImport.update({
@@ -39,10 +39,10 @@ const RegionUsernameIndexRoute = RegionUsernameIndexRouteImport.update({
   path: '/$region/$username/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSitemapPageRoute = ApiSitemapPageRouteImport.update({
-  id: '/$page',
-  path: '/$page',
-  getParentRoute: () => ApiSitemapRoute,
+const ApiSitemapPageDotxmlRoute = ApiSitemapPageDotxmlRouteImport.update({
+  id: '/api/sitemap/$page.xml',
+  path: '/api/sitemap/$page.xml',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
   id: '/api/images/$',
@@ -68,35 +68,35 @@ const RegionUsernameDifferentRoute = RegionUsernameDifferentRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/queue': typeof QueueRoute
-  '/api/sitemap': typeof ApiSitemapRouteWithChildren
+  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
   '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/sitemap/$page': typeof ApiSitemapPageRoute
+  '/api/sitemap/$page.xml': typeof ApiSitemapPageDotxmlRoute
   '/$region/$username': typeof RegionUsernameIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/queue': typeof QueueRoute
-  '/api/sitemap': typeof ApiSitemapRouteWithChildren
+  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
   '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/sitemap/$page': typeof ApiSitemapPageRoute
+  '/api/sitemap/$page.xml': typeof ApiSitemapPageDotxmlRoute
   '/$region/$username': typeof RegionUsernameIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/queue': typeof QueueRoute
-  '/api/sitemap': typeof ApiSitemapRouteWithChildren
+  '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
   '/api/images/$': typeof ApiImagesSplatRoute
-  '/api/sitemap/$page': typeof ApiSitemapPageRoute
+  '/api/sitemap/$page.xml': typeof ApiSitemapPageDotxmlRoute
   '/$region/$username/': typeof RegionUsernameIndexRoute
 }
 export interface FileRouteTypes {
@@ -104,45 +104,46 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/queue'
-    | '/api/sitemap'
+    | '/api/sitemap.xml'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
     | '/api/images/$'
-    | '/api/sitemap/$page'
+    | '/api/sitemap/$page.xml'
     | '/$region/$username'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/queue'
-    | '/api/sitemap'
+    | '/api/sitemap.xml'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
     | '/api/images/$'
-    | '/api/sitemap/$page'
+    | '/api/sitemap/$page.xml'
     | '/$region/$username'
   id:
     | '__root__'
     | '/'
     | '/queue'
-    | '/api/sitemap'
+    | '/api/sitemap.xml'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
     | '/api/images/$'
-    | '/api/sitemap/$page'
+    | '/api/sitemap/$page.xml'
     | '/$region/$username/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   QueueRoute: typeof QueueRoute
-  ApiSitemapRoute: typeof ApiSitemapRouteWithChildren
+  ApiSitemapDotxmlRoute: typeof ApiSitemapDotxmlRoute
   RegionUsernameDifferentRoute: typeof RegionUsernameDifferentRoute
   RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
   RegionUsernameMatchesRoute: typeof RegionUsernameMatchesRoute
   ApiImagesSplatRoute: typeof ApiImagesSplatRoute
+  ApiSitemapPageDotxmlRoute: typeof ApiSitemapPageDotxmlRoute
   RegionUsernameIndexRoute: typeof RegionUsernameIndexRoute
 }
 
@@ -162,11 +163,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/sitemap': {
-      id: '/api/sitemap'
-      path: '/api/sitemap'
-      fullPath: '/api/sitemap'
-      preLoaderRoute: typeof ApiSitemapRouteImport
+    '/api/sitemap.xml': {
+      id: '/api/sitemap.xml'
+      path: '/api/sitemap.xml'
+      fullPath: '/api/sitemap.xml'
+      preLoaderRoute: typeof ApiSitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$region/$username/': {
@@ -176,12 +177,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionUsernameIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/sitemap/$page': {
-      id: '/api/sitemap/$page'
-      path: '/$page'
-      fullPath: '/api/sitemap/$page'
-      preLoaderRoute: typeof ApiSitemapPageRouteImport
-      parentRoute: typeof ApiSitemapRoute
+    '/api/sitemap/$page.xml': {
+      id: '/api/sitemap/$page.xml'
+      path: '/api/sitemap/$page.xml'
+      fullPath: '/api/sitemap/$page.xml'
+      preLoaderRoute: typeof ApiSitemapPageDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/api/images/$': {
       id: '/api/images/$'
@@ -214,26 +215,15 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface ApiSitemapRouteChildren {
-  ApiSitemapPageRoute: typeof ApiSitemapPageRoute
-}
-
-const ApiSitemapRouteChildren: ApiSitemapRouteChildren = {
-  ApiSitemapPageRoute: ApiSitemapPageRoute,
-}
-
-const ApiSitemapRouteWithChildren = ApiSitemapRoute._addFileChildren(
-  ApiSitemapRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   QueueRoute: QueueRoute,
-  ApiSitemapRoute: ApiSitemapRouteWithChildren,
+  ApiSitemapDotxmlRoute: ApiSitemapDotxmlRoute,
   RegionUsernameDifferentRoute: RegionUsernameDifferentRoute,
   RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
   RegionUsernameMatchesRoute: RegionUsernameMatchesRoute,
   ApiImagesSplatRoute: ApiImagesSplatRoute,
+  ApiSitemapPageDotxmlRoute: ApiSitemapPageDotxmlRoute,
   RegionUsernameIndexRoute: RegionUsernameIndexRoute,
 }
 export const routeTree = rootRouteImport

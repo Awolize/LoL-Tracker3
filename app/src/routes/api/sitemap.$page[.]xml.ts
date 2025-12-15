@@ -4,7 +4,7 @@ import { db } from "@/db";
 import { summoner } from "@/db/schema";
 import { regionToDisplay } from "@/features/shared/champs";
 
-export const Route = createFileRoute("/api/sitemap/$page")({
+export const Route = createFileRoute("/api/sitemap/$page.xml")({
 	server: {
 		handlers: {
 			GET: async ({ params }) => {
