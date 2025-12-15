@@ -10,7 +10,7 @@ export default defineConfig(({ mode }) => ({
 		viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
 		tailwindcss(),
 		tanstackStart({
-			srcDirectory: "src"
+			srcDirectory: "src",
 		}),
 		nitro({ preset: "node-server" }),
 		viteReact(),
@@ -18,15 +18,15 @@ export default defineConfig(({ mode }) => ({
 	ssr:
 		mode === "production"
 			? {
-				noExternal: ["ioredis", "bullmq"],
-			}
+					noExternal: ["ioredis", "bullmq"],
+				}
 			: undefined,
 	resolve:
 		mode === "production"
 			? {
-				alias: {
-					"ioredis/built/utils": "ioredis/built/utils/index.js",
-				},
-			}
+					alias: {
+						"ioredis/built/utils": "ioredis/built/utils/index.js",
+					},
+				}
 			: undefined,
 }));

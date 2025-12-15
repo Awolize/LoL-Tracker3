@@ -6,6 +6,6 @@ export const getDataDragonVersion = createServerFn({ method: "GET" }).handler(
 		const result = await db.query.championDetails.findFirst({
 			columns: { version: true },
 		});
-		return result?.version ?? "13.24.1";
+		return result?.version ?? "15.24.1";
 	},
 );

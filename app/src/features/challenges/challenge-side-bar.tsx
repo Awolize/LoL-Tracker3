@@ -1,10 +1,10 @@
-import { ChevronLeftIcon, ChevronRightIcon } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { ChevronLeftIcon, ChevronRightIcon, TrophyIcon } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Summoner } from "@/features/shared/types";
 import { FullSummonerUpdate } from "@/features/summoner/components/summoner-update";
-import { updateChallengesConfig } from "@/server/challenges/mutations";
 import { useChallengeContext } from "@/stores/challenge-store";
 
 interface ChallengeConfig {
@@ -24,13 +24,15 @@ interface ChallengeConfig {
 
 interface DifferentSideBarProps {
 	challenges: ChallengeConfig[];
-	username: string;
-	region: string;
+	username?: string;
+	region?: string;
 	user: Summoner;
 }
 
 export const DifferentSideBar = ({
 	challenges,
+	username,
+	region,
 	user,
 }: DifferentSideBarProps) => {
 	const [drawerOpen, setDrawerOpen] = useState(true);
@@ -70,18 +72,18 @@ export const DifferentSideBar = ({
 
 	return (
 		<nav
-			className={`sticky top-[84px] left-0 max-h-[calc(100vh-168px)] bg-primary-foreground py-4 ${
+			className={`sticky top-21 left-0 max-h-[calc(100vh-168px)] bg-primary-foreground py-4 ${
 				drawerOpen ? "w-72 pr-2 pl-2" : "w-0 px-2"
 			} relative border-t-2 duration-300 overflow-y-auto`}
 		>
 			{drawerOpen ? (
 				<ChevronLeftIcon
-					className="absolute top-[52px] right-[-16px] w-8 h-8 cursor-pointer rounded-full border-2 border-background bg-primary-foreground p-1 text-foreground"
+					className="absolute top-13 -right-4 w-8 h-8 cursor-pointer rounded-full border-2 border-background bg-primary-foreground p-1 text-foreground"
 					onClick={() => setDrawerOpen(!drawerOpen)}
 				/>
 			) : (
 				<ChevronRightIcon
-					className="absolute top-[52px] right-[-16px] w-8 h-8 cursor-pointer rounded-full border-2 border-background bg-primary-foreground p-1 text-foreground"
+					className="absolute top-13 -right-4 w-8 h-8 cursor-pointer rounded-full border-2 border-background bg-primary-foreground p-1 text-foreground"
 					onClick={() => setDrawerOpen(!drawerOpen)}
 				/>
 			)}
@@ -137,6 +139,19 @@ export const DifferentSideBar = ({
 													item.config.description}
 											</p>
 										</div>
+										<Link
+											to="/challenge/$id"
+											params={{ id: item.config.id.toString() }}
+											search={
+												username && region
+													? { username: username.replace("#", "-"), region }
+													: undefined
+											}
+											className="text-muted-foreground hover:text-primary transition-colors"
+											onClick={(e) => e.stopPropagation()}
+										>
+											<TrophyIcon className="w-4 h-4" />
+										</Link>
 									</div>
 								</li>
 							);

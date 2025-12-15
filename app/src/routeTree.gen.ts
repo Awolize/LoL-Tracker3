@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ChallengeIdRouteImport } from './routes/challenge.$id'
 import { Route as ApiSitemapDotxmlRouteImport } from './routes/api/sitemap[.]xml'
 import { Route as RegionUsernameIndexRouteImport } from './routes/$region.$username.index'
 import { Route as ApiSitemapPageDotxmlRouteImport } from './routes/api/sitemap.$page[.]xml'
@@ -27,6 +28,11 @@ const QueueRoute = QueueRouteImport.update({
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengeIdRoute = ChallengeIdRouteImport.update({
+  id: '/challenge/$id',
+  path: '/challenge/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSitemapDotxmlRoute = ApiSitemapDotxmlRouteImport.update({
@@ -69,6 +75,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
+  '/challenge/$id': typeof ChallengeIdRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
@@ -80,6 +87,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
+  '/challenge/$id': typeof ChallengeIdRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
@@ -92,6 +100,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
+  '/challenge/$id': typeof ChallengeIdRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
@@ -105,6 +114,7 @@ export interface FileRouteTypes {
     | '/'
     | '/queue'
     | '/api/sitemap.xml'
+    | '/challenge/$id'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
@@ -116,6 +126,7 @@ export interface FileRouteTypes {
     | '/'
     | '/queue'
     | '/api/sitemap.xml'
+    | '/challenge/$id'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
@@ -127,6 +138,7 @@ export interface FileRouteTypes {
     | '/'
     | '/queue'
     | '/api/sitemap.xml'
+    | '/challenge/$id'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
@@ -139,6 +151,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   QueueRoute: typeof QueueRoute
   ApiSitemapDotxmlRoute: typeof ApiSitemapDotxmlRoute
+  ChallengeIdRoute: typeof ChallengeIdRoute
   RegionUsernameDifferentRoute: typeof RegionUsernameDifferentRoute
   RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
   RegionUsernameMatchesRoute: typeof RegionUsernameMatchesRoute
@@ -161,6 +174,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenge/$id': {
+      id: '/challenge/$id'
+      path: '/challenge/$id'
+      fullPath: '/challenge/$id'
+      preLoaderRoute: typeof ChallengeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/sitemap.xml': {
@@ -219,6 +239,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   QueueRoute: QueueRoute,
   ApiSitemapDotxmlRoute: ApiSitemapDotxmlRoute,
+  ChallengeIdRoute: ChallengeIdRoute,
   RegionUsernameDifferentRoute: RegionUsernameDifferentRoute,
   RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
   RegionUsernameMatchesRoute: RegionUsernameMatchesRoute,

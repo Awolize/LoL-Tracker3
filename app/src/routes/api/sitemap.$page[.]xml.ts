@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { and, desc, isNull, not } from "drizzle-orm";
+import { and, desc, eq, isNull, not } from "drizzle-orm";
 import { db } from "@/db";
-import { summoner } from "@/db/schema";
+import { challengesConfig, summoner } from "@/db/schema";
 import { regionToDisplay } from "@/features/shared/champs";
 
 export const Route = createFileRoute("/api/sitemap/$page.xml")({
@@ -29,6 +29,26 @@ export const Route = createFileRoute("/api/sitemap/$page.xml")({
 
 				const baseUrl = "https://lol2.awot.dev";
 
+				let challengeUrls = "";
+				if (page === 1) {
+					// Add challenge leaderboard URLs on first page
+					const challenges = await db
+						.select({ id: challengesConfig.id })
+						.from(challengesConfig)
+						.where(eq(challengesConfig.leaderboard, true));
+
+					challengeUrls = challenges
+						.map(
+							(c) => `
+  <url>
+    <loc>${baseUrl}/challenge/${c.id}</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.7</priority>
+  </url>`,
+						)
+						.join("");
+				}
+
 				const urls = users
 					.map(
 						(u) => `
@@ -48,7 +68,7 @@ export const Route = createFileRoute("/api/sitemap/$page.xml")({
     <loc>${baseUrl}</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
-  </url>${urls}
+  </url>${challengeUrls}${urls}
 </urlset>`,
 					{
 						headers: {

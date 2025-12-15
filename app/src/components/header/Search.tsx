@@ -27,7 +27,7 @@ export default function Search() {
 		queryFn: () => getDataDragonVersion(),
 	});
 
-	const { getProfileImage } = useDataDragonPath(version ?? "13.24.1");
+	const { getProfileImage } = useDataDragonPath(version ?? "15.24.1");
 
 	useEffect(() => {
 		if (username.trim().length < 2) {
