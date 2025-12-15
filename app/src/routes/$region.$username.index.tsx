@@ -4,8 +4,7 @@ import * as Sentry from "@sentry/tanstackstart-react";
 import {
 	createFileRoute,
 	Link,
-	redirect,
-	useRouter,
+	redirect
 } from "@tanstack/react-router";
 import FooterLinks from "@/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
@@ -114,9 +113,7 @@ function Client() {
 		rawRegion,
 		summonerData,
 		profileIconUrl,
-		error,
-		isCached,
-		lastUpdated,
+		error
 	} = Route.useLoaderData();
 
 	if (error === "rate_limit") {
@@ -147,10 +144,7 @@ function Client() {
 
 	const { summonerLevel } = summonerData;
 
-	const lastUpdateDate = lastUpdated ? new Date(lastUpdated) : null;
-	const timeSinceUpdate = lastUpdateDate
-		? Math.floor((Date.now() - lastUpdateDate.getTime()) / 1000 / 60) // minutes
-		: null;
+
 
 	return (
 		<div className="flex w-full justify-center px-4 py-8">
@@ -164,7 +158,7 @@ function Client() {
 							className="h-24 w-24 rounded-full border-4 border-primary shadow-lg"
 						/>
 						<div className="flex flex-col items-center sm:items-start">
-							<h1 className="bg-gradient-to-r from-green-600 via-sky-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent md:text-6xl">
+							<h1 className="bg-linear-to-r from-green-600 via-sky-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent md:text-6xl">
 								{username}
 							</h1>
 							<div className="flex items-center gap-4 text-sm font-bold text-muted-foreground">
@@ -175,13 +169,11 @@ function Client() {
 						</div>
 					</div>
 
-					{/* Cache Status & Refresh Button */}
-					<div className="flex flex-col items-center gap-2 text-xs text-muted-foreground">
 						<FullSummonerUpdate
 							user={{ ...summonerData, region }}
 							awaitMatches={false}
-						/>
-					</div>
+							/>
+							
 				</div>
 
 				{/* Navigation Cards */}
