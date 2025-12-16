@@ -12,7 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as QueueRouteImport } from './routes/queue'
 import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ChallengeIdRouteImport } from './routes/challenge.$id'
+import { Route as ChallengeChallengeIdRouteImport } from './routes/challenge.$challengeId'
 import { Route as ApiSitemapDotxmlRouteImport } from './routes/api/sitemap[.]xml'
 import { Route as RegionUsernameIndexRouteImport } from './routes/$region.$username.index'
 import { Route as ApiSitemapPageDotxmlRouteImport } from './routes/api/sitemap.$page[.]xml'
@@ -36,9 +36,9 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChallengeIdRoute = ChallengeIdRouteImport.update({
-  id: '/challenge/$id',
-  path: '/challenge/$id',
+const ChallengeChallengeIdRoute = ChallengeChallengeIdRouteImport.update({
+  id: '/challenge/$challengeId',
+  path: '/challenge/$challengeId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSitemapDotxmlRoute = ApiSitemapDotxmlRouteImport.update({
@@ -82,7 +82,7 @@ export interface FileRoutesByFullPath {
   '/challenges': typeof ChallengesRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
-  '/challenge/$id': typeof ChallengeIdRoute
+  '/challenge/$challengeId': typeof ChallengeChallengeIdRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
@@ -95,7 +95,7 @@ export interface FileRoutesByTo {
   '/challenges': typeof ChallengesRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
-  '/challenge/$id': typeof ChallengeIdRoute
+  '/challenge/$challengeId': typeof ChallengeChallengeIdRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
@@ -109,7 +109,7 @@ export interface FileRoutesById {
   '/challenges': typeof ChallengesRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
-  '/challenge/$id': typeof ChallengeIdRoute
+  '/challenge/$challengeId': typeof ChallengeChallengeIdRoute
   '/$region/$username/different': typeof RegionUsernameDifferentRoute
   '/$region/$username/mastery': typeof RegionUsernameMasteryRoute
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
@@ -124,7 +124,7 @@ export interface FileRouteTypes {
     | '/challenges'
     | '/queue'
     | '/api/sitemap.xml'
-    | '/challenge/$id'
+    | '/challenge/$challengeId'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
@@ -137,7 +137,7 @@ export interface FileRouteTypes {
     | '/challenges'
     | '/queue'
     | '/api/sitemap.xml'
-    | '/challenge/$id'
+    | '/challenge/$challengeId'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
@@ -150,7 +150,7 @@ export interface FileRouteTypes {
     | '/challenges'
     | '/queue'
     | '/api/sitemap.xml'
-    | '/challenge/$id'
+    | '/challenge/$challengeId'
     | '/$region/$username/different'
     | '/$region/$username/mastery'
     | '/$region/$username/matches'
@@ -164,7 +164,7 @@ export interface RootRouteChildren {
   ChallengesRoute: typeof ChallengesRoute
   QueueRoute: typeof QueueRoute
   ApiSitemapDotxmlRoute: typeof ApiSitemapDotxmlRoute
-  ChallengeIdRoute: typeof ChallengeIdRoute
+  ChallengeChallengeIdRoute: typeof ChallengeChallengeIdRoute
   RegionUsernameDifferentRoute: typeof RegionUsernameDifferentRoute
   RegionUsernameMasteryRoute: typeof RegionUsernameMasteryRoute
   RegionUsernameMatchesRoute: typeof RegionUsernameMatchesRoute
@@ -196,11 +196,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/challenge/$id': {
-      id: '/challenge/$id'
-      path: '/challenge/$id'
-      fullPath: '/challenge/$id'
-      preLoaderRoute: typeof ChallengeIdRouteImport
+    '/challenge/$challengeId': {
+      id: '/challenge/$challengeId'
+      path: '/challenge/$challengeId'
+      fullPath: '/challenge/$challengeId'
+      preLoaderRoute: typeof ChallengeChallengeIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/sitemap.xml': {
@@ -260,7 +260,7 @@ const rootRouteChildren: RootRouteChildren = {
   ChallengesRoute: ChallengesRoute,
   QueueRoute: QueueRoute,
   ApiSitemapDotxmlRoute: ApiSitemapDotxmlRoute,
-  ChallengeIdRoute: ChallengeIdRoute,
+  ChallengeChallengeIdRoute: ChallengeChallengeIdRoute,
   RegionUsernameDifferentRoute: RegionUsernameDifferentRoute,
   RegionUsernameMasteryRoute: RegionUsernameMasteryRoute,
   RegionUsernameMatchesRoute: RegionUsernameMatchesRoute,

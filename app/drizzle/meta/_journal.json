@@ -15,6 +15,13 @@
 			"when": 1765887224498,
 			"tag": "0001_tranquil_tempest",
 			"breakpoints": true
+		},
+		{
+			"idx": 2,
+			"version": "7",
+			"when": 1765910929640,
+			"tag": "0002_graceful_human_fly",
+			"breakpoints": true
 		}
 	]
 }

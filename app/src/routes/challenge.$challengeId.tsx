@@ -20,7 +20,6 @@ interface ChallengeConfig {
 		leaderboard: boolean;
 		endTimestamp: Date | null;
 		thresholds: Record<string, number>;
-		parentId: number | null;
 	};
 	localization: {
 		id: number;
@@ -36,11 +35,11 @@ const searchSchema = z.object({
 	region: z.string().optional(),
 });
 
-export const Route = createFileRoute("/challenge/$id")({
+export const Route = createFileRoute("/challenge/$challengeId")({
 	validateSearch: searchSchema,
 	loaderDeps: ({ search }) => ({ search }),
 	loader: async ({
-		params: { id },
+		params: { challengeId: challengeIdRaw },
 		deps: { search },
 	}): Promise<{
 		config: ChallengeConfig;
@@ -49,7 +48,7 @@ export const Route = createFileRoute("/challenge/$id")({
 		challengeId: number;
 		search: { username?: string; region?: string };
 	}> => {
-		const challengeId = parseInt(id, 10);
+		const challengeId = parseInt(challengeIdRaw, 10);
 		if (isNaN(challengeId)) {
 			throw new Error("Invalid challenge ID");
 		}

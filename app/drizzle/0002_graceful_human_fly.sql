@@ -1,0 +1,1 @@
+ALTER TABLE "ChallengesConfig" DROP COLUMN "parentId";

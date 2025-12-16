@@ -1,6 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
-import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { SearchIcon, XIcon } from "lucide-react";
+import { useMemo, useState } from "react";
+
+// Local imports (assuming these exist based on your code)
 import { MainTitleLink } from "@/components/header/MainTitleLink";
 import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
@@ -11,216 +14,410 @@ import {
 	getDataDragonVersion,
 } from "@/server/api/mutations";
 
+// --- Types ---
+type Challenge = Awaited<ReturnType<typeof getChallengesConfig>>[0];
+type CategoryMap = Record<string, Challenge[]>;
+
+// --- Constants ---
+const CATEGORY_CONFIG: Record<string, string> = {
+	"1": "Veterancy",
+	"2": "Expertise",
+	"3": "Teamwork",
+	"4": "Imagination",
+	"5": "Collection",
+	"0": "Legacy & Events",
+};
+
+const ORDERED_CATEGORY_IDS = ["1", "2", "3", "4", "5", "0"];
+
+// --- Logic / Utilities ---
+
+/**
+ * Pure function to sort and bucket challenges.
+ * Moved out of the loader for testability and cleanliness.
+ */
+function processChallenges(challenges: Challenge[]): CategoryMap {
+	const categories: CategoryMap = {
+		"1": [],
+		"2": [],
+		"3": [],
+		"4": [],
+		"5": [],
+		"0": [],
+	};
+
+	challenges.forEach((challenge) => {
+		const { id } = challenge.config;
+		const idStr = id.toString();
+
+		// Skip Crystal (0) and Headers (1-5)
+		if (id <= 5) return;
+
+		// 7-digit IDs are Legacy/Seasonal
+		if (idStr.length === 7) {
+			categories["0"].push(challenge);
+			return;
+		}
+
+		// Standard categorization based on first digit
+		const firstDigit = idStr[0];
+		if (Object.hasOwn(categories, firstDigit)) {
+			categories[firstDigit].push(challenge);
+		} else {
+			categories["0"].push(challenge);
+		}
+	});
+
+	// Sort buckets alphabetically
+	Object.values(categories).forEach((list) => {
+		list.sort((a, b) =>
+			(a.localization?.name || "").localeCompare(b.localization?.name || ""),
+		);
+	});
+
+	return categories;
+}
+
+// --- Route Definition ---
+
 export const Route = createFileRoute("/challenges")({
 	loader: async () => {
 		const challenges = await getChallengesConfig();
-
-		// Create a map for quick lookup
-		const challengeMap = new Map<number, (typeof challenges)[0]>();
-		challenges.forEach((challenge) => {
-			challengeMap.set(challenge.config.id, challenge);
-		});
-
-		// Categorize challenges based on ID patterns
-		// From what I can see, challenge IDs seem to follow patterns:
-		// 1xxxxx - Collection (510008, 510009)
-		// 2xxxxx - Expertise (203101)
-		// 3xxxxx - Teamwork (303500, 303506)
-		// 4xxxxx - Veterancy (402500-402503)
-		// 5xxxxx - Imagination
-		const categorizeById = (id: number): string | null => {
-			const idStr = id.toString();
-			if (idStr.startsWith("1")) return "4"; // Collection
-			if (idStr.startsWith("2")) return "2"; // Expertise
-			if (idStr.startsWith("3")) return "3"; // Teamwork
-			if (idStr.startsWith("4")) return "1"; // Veterancy
-			if (idStr.startsWith("5")) return "5"; // Imagination
-			return null;
-		};
-
-		// Group challenges by category
-		const categories: Record<string, typeof challenges> = {
-			"1": [], // Veterancy
-			"2": [], // Expertise
-			"3": [], // Teamwork
-			"4": [], // Collection
-			"5": [], // Imagination
-		};
-
-		// Filter out capstones (IDs 1-5) and group challenges
-		let filteredCount = 0;
-		challenges.forEach((challenge) => {
-			// Skip capstones (IDs 1-5)
-			if (challenge.config.id >= 1 && challenge.config.id <= 5) return;
-
-			filteredCount++;
-
-			// Categorize by ID pattern
-			const category = categorizeById(challenge.config.id);
-			if (category && categories[category]) {
-				categories[category].push(challenge);
-			} else {
-				console.log(
-					"Challenge without category:",
-					challenge.config.id,
-					challenge.localization?.name,
-				);
-			}
-		});
-
-		console.log("Filtered challenges:", filteredCount);
-		console.log(
-			"Categories counts:",
-			Object.fromEntries(
-				Object.entries(categories).map(([k, v]) => [k, v.length]),
-			),
-		);
-
-		return {
-			categories,
-		};
+		return { categories: processChallenges(challenges) };
 	},
 	component: ChallengesPage,
 });
 
+// --- Components ---
+
 export default function ChallengesPage() {
 	return (
-		<div className="flex min-h-screen flex-col">
+		<div className="flex min-h-screen flex-col bg-background text-foreground">
 			<Header />
 			<main className="flex-1">
-				<Client />
+				<ChallengesView />
 			</main>
-		</div>
-	);
-}
-
-function Client() {
-	const { categories } = Route.useLoaderData();
-	const [activeCategory, setActiveCategory] = useState("1");
-	const [searchQuery, setSearchQuery] = useState("");
-
-	const { data: version = "15.24.1" } = useQuery({
-		queryKey: ["dd-version"],
-		queryFn: getDataDragonVersion,
-	});
-	const { getChallengeIcon } = useDataDragonPath(version);
-
-	const categoryNames: Record<string, string> = {
-		"1": "Veterancy",
-		"2": "Expertise",
-		"3": "Teamwork",
-		"4": "Collection",
-		"5": "Imagination",
-	};
-
-	// Filter challenges based on search query
-	const filteredChallenges =
-		categories[activeCategory]?.filter((challenge) => {
-			if (!searchQuery) return true;
-			const name = challenge.localization?.name?.toLowerCase() || "";
-			const description =
-				challenge.localization?.description?.toLowerCase() || "";
-			const query = searchQuery.toLowerCase();
-			return name.includes(query) || description.includes(query);
-		}) || [];
-
-	return (
-		<div className="min-h-screen bg-background">
-			<div className="container mx-auto px-4 py-8">
-				<div className="max-w-6xl mx-auto">
-					<h1 className="text-4xl font-bold text-center mb-8">Challenges</h1>
-
-					{/* Search Bar */}
-					<div className="flex justify-center mb-8">
-						<input
-							type="text"
-							placeholder="Search challenges..."
-							value={searchQuery}
-							onChange={(e) => setSearchQuery(e.target.value)}
-							className="px-4 py-2 border border-input bg-background rounded-lg w-full max-w-md focus:outline-none focus:ring-2 focus:ring-ring"
-						/>
-					</div>
-
-					{/* Category Tabs */}
-					<div className="flex flex-wrap justify-center gap-2 mb-8">
-						{Object.entries(categories).map(([categoryId, challenges]) => (
-							<button
-								key={categoryId}
-								onClick={() => setActiveCategory(categoryId)}
-								className={`px-4 py-2 rounded-lg transition-colors ${
-									activeCategory === categoryId
-										? "bg-primary text-primary-foreground"
-										: "bg-muted text-muted-foreground hover:bg-muted/80"
-								}`}
-							>
-								{categoryNames[categoryId]}
-								<span className="ml-2 text-sm opacity-75">
-									({challenges.length})
-								</span>
-							</button>
-						))}
-					</div>
-
-					{/* Challenges Grid */}
-					<div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-						{filteredChallenges.map((challenge) => (
-							<a
-								key={challenge.config.id}
-								href={`/challenge/${challenge.config.id}`}
-								className="bg-card rounded-lg p-4 border hover:shadow-lg transition-shadow block"
-							>
-								<div className="flex items-start gap-3">
-									<img
-										src={getChallengeIcon(
-											challenge.config.id,
-											challenge.config.thresholds as Record<string, number>,
-										)}
-										alt={
-											challenge.localization?.name ||
-											`Challenge ${challenge.config.id}`
-										}
-										className="w-12 h-12 rounded object-cover shrink-0"
-									/>
-									<div className="flex-1 min-w-0">
-										<h3 className="font-semibold text-sm leading-tight mb-1">
-											{challenge.localization?.name ||
-												`Challenge ${challenge.config.id}`}
-										</h3>
-										<p className="text-xs text-muted-foreground line-clamp-2">
-											{challenge.localization?.shortDescription ||
-												challenge.localization?.description ||
-												"Complete this challenge to earn rewards"}
-										</p>
-									</div>
-								</div>
-							</a>
-						))}
-					</div>
-				</div>
-			</div>
 		</div>
 	);
 }
 
 function Header() {
 	return (
-		<header className="sticky top-0 z-30 grid w-full grid-cols-3 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-4 py-2 border-b">
-			<div className="flex justify-center items-center">
+		<header className="sticky top-0 z-30 grid w-full grid-cols-3 bg-background/95 backdrop-blur px-4 py-2 border-b">
+			<div className="flex justify-start items-center">
 				<MainTitleLink />
 			</div>
 			<div className="flex justify-center items-center">
 				<Profile />
 			</div>
-
-			<div className="flex items-center w-full relative">
-				<div className="flex-1">
+			<div className="flex items-center w-full justify-end gap-2">
+				<div className="flex-1 max-w-sm">
 					<Search />
 				</div>
-
-				<div className="absolute top-0 right-0">
-					<ThemeSelector />
-				</div>
+				<ThemeSelector />
 			</div>
 		</header>
 	);
+}
+
+/**
+ * Main View Component
+ * Orchestrates data fetching and state
+ */
+function ChallengesView() {
+	const { categories } = Route.useLoaderData();
+
+	// Data Dragon Version
+	const { data: version = "15.24.1" } = useQuery({
+		queryKey: ["dd-version"],
+		queryFn: getDataDragonVersion,
+	});
+
+	const { getChallengeIcon } = useDataDragonPath(version);
+
+	// Filter Logic
+	const {
+		activeCategory,
+		setActiveCategory,
+		searchQuery,
+		setSearchQuery,
+		filteredCategories,
+		displayList,
+	} = useChallengeFilters(categories);
+
+	return (
+		<div className="min-h-screen container mx-auto px-4 py-8">
+			<div className="max-w-7xl mx-auto space-y-8">
+				{/* Page Title */}
+				<div className="text-center space-y-4">
+					<h1 className="text-4xl font-bold tracking-tight">Challenges</h1>
+					<p className="text-muted-foreground max-w-2xl mx-auto">
+						Browse all available challenges, view tier requirements, and see
+						global leaderboards.
+					</p>
+				</div>
+
+				{/* Controls */}
+				<div className="sticky top-16 z-20 bg-background/95 backdrop-blur py-4 -mx-4 px-4 border-b md:border-none md:static md:bg-transparent md:p-0">
+					<div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+						<CategoryTabs
+							activeId={activeCategory}
+							onSelect={setActiveCategory}
+							counts={filteredCategories}
+							hasSearch={!!searchQuery}
+						/>
+						<SearchBar value={searchQuery} onChange={setSearchQuery} />
+					</div>
+				</div>
+
+				{/* Results */}
+				<ChallengeGrid
+					challenges={displayList}
+					getIcon={getChallengeIcon}
+					searchQuery={searchQuery}
+					onClearSearch={() => setSearchQuery("")}
+				/>
+			</div>
+		</div>
+	);
+}
+
+// --- Sub-Components (Cleaned & Focused) ---
+
+function CategoryTabs({
+	activeId,
+	onSelect,
+	counts,
+	hasSearch,
+}: {
+	activeId: string;
+	onSelect: (id: string) => void;
+	counts: CategoryMap;
+	hasSearch: boolean;
+}) {
+	return (
+		<div className="flex overflow-x-auto p-2 gap-2 w-full md:w-auto scrollbar-hide">
+			{ORDERED_CATEGORY_IDS.map((id) => {
+				const count = counts[id]?.length || 0;
+				const isActive = activeId === id;
+				const isDimmed = count === 0 && hasSearch;
+
+				return (
+					<button
+						key={id}
+						onClick={() => onSelect(id)}
+						className={`
+							whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-medium transition-all relative
+							${
+								isActive
+									? "bg-primary text-primary-foreground shadow-md"
+									: "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+							}
+							${isDimmed ? "opacity-50" : ""}
+						`}
+					>
+						{CATEGORY_CONFIG[id]}
+						<span
+							className={`ml-2 text-xs font-mono transition-colors ${isActive ? "opacity-80" : "opacity-60"}`}
+						>
+							{count}
+						</span>
+						{hasSearch && count > 0 && !isActive && (
+							<span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background z-10" />
+						)}
+					</button>
+				);
+			})}
+		</div>
+	);
+}
+
+function SearchBar({
+	value,
+	onChange,
+}: {
+	value: string;
+	onChange: (v: string) => void;
+}) {
+	return (
+		<div className="relative w-full md:w-72 shrink-0">
+			<div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+				<SearchIcon className="w-4 h-4" />
+			</div>
+			<input
+				type="text"
+				placeholder="Filter challenges..."
+				value={value}
+				onChange={(e) => onChange(e.target.value)}
+				className="w-full pl-9 pr-8 py-2 bg-muted/30 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+			/>
+			{value && (
+				<button
+					onClick={() => onChange("")}
+					className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+				>
+					<XIcon className="w-3 h-3" />
+				</button>
+			)}
+		</div>
+	);
+}
+
+function ChallengeGrid({
+	challenges,
+	getIcon,
+	searchQuery,
+	onClearSearch,
+}: {
+	challenges: Challenge[];
+	getIcon: any;
+	searchQuery: string;
+	onClearSearch: () => void;
+}) {
+	if (challenges.length === 0) {
+		return (
+			<div className="text-center py-20 text-muted-foreground bg-muted/10 rounded-xl border border-dashed">
+				<p>No challenges found matching "{searchQuery}"</p>
+				<button
+					onClick={onClearSearch}
+					className="mt-2 text-primary hover:underline text-sm"
+				>
+					Clear filter
+				</button>
+			</div>
+		);
+	}
+
+	return (
+		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+			{challenges.map((challenge) => (
+				<ChallengeCard
+					key={challenge.config.id}
+					challenge={challenge}
+					getIcon={getIcon}
+				/>
+			))}
+		</div>
+	);
+}
+
+function ChallengeCard({
+	challenge,
+	getIcon,
+}: {
+	challenge: Challenge;
+	getIcon: any;
+}) {
+	const { id, thresholds } = challenge.config;
+	const { name, shortDescription, description } = challenge.localization || {};
+
+	const tiers = [
+		"IRON",
+		"BRONZE",
+		"SILVER",
+		"GOLD",
+		"PLATINUM",
+		"DIAMOND",
+		"MASTER",
+		"GRANDMASTER",
+		"CHALLENGER",
+	];
+
+	return (
+		<Link
+			to="/challenge/$challengeId"
+			params={{ challengeId: id.toString() }}
+			className="group relative flex flex-col bg-card border rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+		>
+			<div className="p-4 flex gap-4 items-start h-full">
+				<div className="relative shrink-0">
+					<div className="w-14 h-14 rounded-lg bg-muted/20 overflow-hidden">
+						<img
+							src={getIcon(id, thresholds)}
+							alt=""
+							loading="lazy"
+							className="w-full h-full object-contain p-1 transition-transform group-hover:scale-110"
+						/>
+					</div>
+				</div>
+
+				<div className="flex-1 min-w-0 flex flex-col h-full">
+					<h3 className="font-semibold text-sm leading-tight text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
+						{name || "Unknown Challenge"}
+					</h3>
+					<p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+						{shortDescription || description}
+					</p>
+
+					{/* Tier Indicators */}
+					<div className="mt-auto pt-3 flex items-center gap-1">
+						{tiers.map((tier) => {
+							const isActive = thresholds?.[tier] !== undefined;
+
+							return (
+								<div
+									key={tier}
+									className={`h-2 flex-1 rounded-full relative transition-colors ${
+										isActive ? "" : "bg-muted/40"
+									}`}
+									style={{
+										backgroundColor: isActive
+											? `var(--tier-${tier.toLowerCase()})`
+											: undefined,
+									}}
+									title={
+										isActive
+											? `${tier}: ${thresholds[tier]?.toLocaleString()}`
+											: `${tier} (Not tracked)`
+									}
+								/>
+							);
+						})}
+					</div>
+				</div>
+			</div>
+		</Link>
+	);
+}
+
+// --- Hooks ---
+
+/**
+ * Custom hook to handle category selection and search filtering
+ */
+function useChallengeFilters(categories: CategoryMap) {
+	const initialCategory = useMemo(
+		() => Object.keys(categories).find((k) => categories[k].length > 0) || "1",
+		[categories],
+	);
+
+	const [activeCategory, setActiveCategory] = useState(initialCategory);
+	const [searchQuery, setSearchQuery] = useState("");
+
+	const filteredCategories = useMemo(() => {
+		const query = searchQuery.trim().toLowerCase();
+		if (!query) return categories;
+
+		const result: CategoryMap = {};
+		Object.keys(categories).forEach((key) => {
+			result[key] = categories[key].filter((c) => {
+				const name = c.localization?.name?.toLowerCase() || "";
+				const desc = c.localization?.description?.toLowerCase() || "";
+				const idStr = c.config.id.toString();
+				return name.includes(query) || desc.includes(query) || idStr === query;
+			});
+		});
+		return result;
+	}, [categories, searchQuery]);
+
+	const displayList = filteredCategories[activeCategory] || [];
+
+	return {
+		activeCategory,
+		setActiveCategory,
+		searchQuery,
+		setSearchQuery,
+		filteredCategories,
+		displayList,
+	};
 }
