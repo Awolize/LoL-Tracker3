@@ -126,7 +126,7 @@ interface LeaderboardRowProps {
 	offset?: number;
 	highlightedUsername?: string | null;
 	highlightedRegion?: string | null;
-	getPlayerTier: (value: number) => string;
+	getPlayerTier: (value: number) => string | null;
 	getProfileImage: (id: string) => string;
 }
 
@@ -150,8 +150,8 @@ const LeaderboardRow = ({
 		regionToDisplay(entry.summoner.region).toUpperCase() === highlightedRegion;
 
 	const tier = getPlayerTier(entry.challenge.value ?? 0);
-	const tierKey = tier.toLowerCase();
-	const tierVar = `var(--tier-${tierKey})`;
+	const tierKey = tier?.toLowerCase() || "iron";
+	const tierVar = tier ? `var(--tier-${tierKey})` : "var(--muted-foreground)";
 
 	useEffect(() => {
 		if (isHighlighted && rowRef.current) {
@@ -268,14 +268,12 @@ const LeaderboardRow = ({
 				>
 					{(entry.challenge.value ?? 0).toLocaleString()}
 				</div>
-				{entry.challenge.level && (
-					<div
-						className="text-[10px] capitalize leading-none mt-0.5 font-bold tracking-wide"
-						style={{ color: tierVar }}
-					>
-						{entry.challenge.level.toLowerCase()}
-					</div>
-				)}
+				<div
+					className="text-[10px] capitalize leading-none mt-0.5 font-bold tracking-wide"
+					style={{ color: tierVar }}
+				>
+					{tier?.toLowerCase()}
+				</div>
 			</div>
 		</motion.div>
 	);
@@ -311,7 +309,7 @@ export default function ChallengeLeaderboard({
 				const [tier, threshold] = activeThresholds[i];
 				if (value >= threshold) return tier;
 			}
-			return activeThresholds[0]?.[0] || "IRON";
+			return null; // Below minimum threshold
 		},
 		[activeThresholds],
 	);

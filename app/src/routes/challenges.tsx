@@ -179,7 +179,7 @@ function Client() {
 											challenge.localization?.name ||
 											`Challenge ${challenge.config.id}`
 										}
-										className="w-12 h-12 rounded object-cover flex-shrink-0"
+										className="w-12 h-12 rounded object-cover shrink-0"
 									/>
 									<div className="flex-1 min-w-0">
 										<h3 className="font-semibold text-sm leading-tight mb-1">
