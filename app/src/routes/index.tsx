@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { MainText } from "@/components/header/MainText";
 import Search from "@/components/header/Search";
 import { SubText } from "@/components/header/SubText";
@@ -15,6 +15,13 @@ export function Home() {
 				</div>
 
 				<Search />
+
+				<Link
+					to="/challenges"
+					className="mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+				>
+					Browse Challenges
+				</Link>
 			</div>
 		</main>
 	);

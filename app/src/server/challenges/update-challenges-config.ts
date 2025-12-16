@@ -27,6 +27,7 @@ const updateConfig = async (
 		leaderboard: config.leaderboard,
 		endTimestamp: config.endTimestamp ? new Date(config.endTimestamp) : null,
 		thresholds: config.thresholds,
+		parentId: (config as any).parentId ?? null,
 	};
 
 	if (existing) {

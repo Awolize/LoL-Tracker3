@@ -1,0 +1,1 @@
+ALTER TABLE "ChallengesConfig" ADD COLUMN "parentId" integer;

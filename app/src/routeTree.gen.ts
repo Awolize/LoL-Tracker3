@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as QueueRouteImport } from './routes/queue'
+import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChallengeIdRouteImport } from './routes/challenge.$id'
 import { Route as ApiSitemapDotxmlRouteImport } from './routes/api/sitemap[.]xml'
@@ -23,6 +24,11 @@ import { Route as RegionUsernameDifferentRouteImport } from './routes/$region.$u
 const QueueRoute = QueueRouteImport.update({
   id: '/queue',
   path: '/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChallengesRoute = ChallengesRouteImport.update({
+  id: '/challenges',
+  path: '/challenges',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -73,6 +79,7 @@ const RegionUsernameDifferentRoute = RegionUsernameDifferentRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/challenges': typeof ChallengesRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/challenge/$id': typeof ChallengeIdRoute
@@ -85,6 +92,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/challenges': typeof ChallengesRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/challenge/$id': typeof ChallengeIdRoute
@@ -98,6 +106,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/challenges': typeof ChallengesRoute
   '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/challenge/$id': typeof ChallengeIdRoute
@@ -112,6 +121,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/challenges'
     | '/queue'
     | '/api/sitemap.xml'
     | '/challenge/$id'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/challenges'
     | '/queue'
     | '/api/sitemap.xml'
     | '/challenge/$id'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/challenges'
     | '/queue'
     | '/api/sitemap.xml'
     | '/challenge/$id'
@@ -149,6 +161,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChallengesRoute: typeof ChallengesRoute
   QueueRoute: typeof QueueRoute
   ApiSitemapDotxmlRoute: typeof ApiSitemapDotxmlRoute
   ChallengeIdRoute: typeof ChallengeIdRoute
@@ -167,6 +180,13 @@ declare module '@tanstack/react-router' {
       path: '/queue'
       fullPath: '/queue'
       preLoaderRoute: typeof QueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/challenges': {
+      id: '/challenges'
+      path: '/challenges'
+      fullPath: '/challenges'
+      preLoaderRoute: typeof ChallengesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -237,6 +257,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChallengesRoute: ChallengesRoute,
   QueueRoute: QueueRoute,
   ApiSitemapDotxmlRoute: ApiSitemapDotxmlRoute,
   ChallengeIdRoute: ChallengeIdRoute,

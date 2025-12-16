@@ -20,10 +20,11 @@ interface ChallengeConfig {
 		leaderboard: boolean;
 		endTimestamp: Date | null;
 		thresholds: Record<string, number>;
+		parentId: number | null;
 	};
 	localization: {
 		id: number;
-		language: string;
+		language: "en_US";
 		description: string;
 		name: string;
 		shortDescription: string;

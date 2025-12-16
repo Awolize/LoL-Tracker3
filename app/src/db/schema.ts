@@ -147,6 +147,7 @@ export const challengesConfig = pgTable("ChallengesConfig", {
 	leaderboard: boolean().notNull(),
 	endTimestamp: timestamp({ precision: 3, mode: "date" }),
 	thresholds: jsonb().notNull(),
+	parentId: integer(),
 });
 
 export const challengeLocalization = pgTable(

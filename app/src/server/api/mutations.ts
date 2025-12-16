@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { db } from "@/db";
+import { getChallengesConfig as getChallengesConfigDb } from "./get-challenges-config";
 
 export const getDataDragonVersion = createServerFn({ method: "GET" }).handler(
 	async () => {
@@ -9,3 +10,8 @@ export const getDataDragonVersion = createServerFn({ method: "GET" }).handler(
 		return result?.version ?? "15.24.1";
 	},
 );
+
+export const getChallengesConfig = createServerFn().handler(
+	async () => {
+		return getChallengesConfigDb();
+	});
