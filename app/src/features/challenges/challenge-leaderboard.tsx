@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { StarIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
+
 import { regionToDisplay } from "@/features/shared/champs";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
 import type {
@@ -38,38 +39,87 @@ const itemVariants = {
 	show: { opacity: 1, y: 0 },
 };
 
+// --- Constants ---
+const TIER_ORDER = [
+	"IRON",
+	"BRONZE",
+	"SILVER",
+	"GOLD",
+	"PLATINUM",
+	"DIAMOND",
+	"MASTER",
+	"GRANDMASTER",
+	"CHALLENGER",
+];
+
 // Helper to get the CSS variable string for a tier
 const getTierVar = (tier: string) => `var(--tier-${tier.toLowerCase()})`;
 
-// --- Tier Badge (Animated) ---
-const TierBadge = ({ tier, points }: { tier: string; points: number }) => {
-	const tierColor = getTierVar(tier);
+// --- Tier Badge Component ---
+interface TierBadgeProps {
+	tier: string;
+	points: number;
+	iconUrl: string;
+	exists: boolean;
+}
+
+const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
+	// If the tier doesn't exist, use a muted gray. If it does, use the tier color.
+	const tierColor = exists ? getTierVar(tier) : "var(--border)";
+
 	return (
 		<motion.div
 			variants={itemVariants}
-			whileHover={{ scale: 1.05, y: -2 }}
-			className="flex flex-col items-center justify-center py-3 px-3 rounded-md border transition-colors"
+			// Snappy, lightweight spring configuration for high-performance feel
+			transition={{ type: "spring", stiffness: 700, damping: 25, mass: 0.5 }}
+			// Subtle scale + lift to avoid "floating" or blurry look
+			whileHover={exists ? { scale: 1.02, y: -3 } : undefined}
+			className={`
+				flex flex-col items-center justify-center py-3 px-3 rounded-md border
+				transition-colors duration-200
+				${exists ? "opacity-100" : "opacity-40 grayscale-[0.8]"}
+			`}
 			style={{
 				borderColor: tierColor,
-				backgroundColor: `color-mix(in oklab, ${tierColor} 20%, transparent)`,
+				// If disabled, very subtle background. If active, tinted background.
+				backgroundColor: exists
+					? `color-mix(in oklab, ${tierColor} 10%, transparent)`
+					: "rgba(0,0,0,0.02)",
 			}}
 		>
+			<img
+				src={iconUrl}
+				alt={tier}
+				className="w-8 h-8 object-contain mb-2 drop-shadow-md"
+				onError={(e) => {
+					// Fallback for missing images
+					e.currentTarget.style.display = "none";
+					e.currentTarget.parentElement?.classList.add("no-icon");
+				}}
+			/>
+
 			<div
-				className="font-bold text-sm uppercase tracking-wider mb-1 text-white"
-				style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+				className={`font-bold text-xs uppercase tracking-wider mb-0.5 ${
+					exists ? "text-white" : "text-muted-foreground"
+				}`}
+				style={exists ? { textShadow: "0 1px 2px rgba(0,0,0,0.5)" } : undefined}
 			>
 				{tier}
 			</div>
+
 			<div
-				className="font-mono font-bold text-sm text-white"
-				style={{ textShadow: "0 1px 2px rgba(0,0,0,0.5)" }}
+				className={`font-mono font-bold text-sm ${
+					exists ? "text-white" : "text-muted-foreground"
+				}`}
+				style={exists ? { textShadow: "0 1px 2px rgba(0,0,0,0.5)" } : undefined}
 			>
-				{points.toLocaleString()}
+				{exists ? points.toLocaleString() : "—"}
 			</div>
 		</motion.div>
 	);
 };
 
+// --- Leaderboard Row Component ---
 interface LeaderboardRowProps {
 	entry: LeaderboardEntry;
 	index: number;
@@ -80,7 +130,6 @@ interface LeaderboardRowProps {
 	getProfileImage: (id: string) => string;
 }
 
-// --- Leaderboard Row (Animated) ---
 const LeaderboardRow = ({
 	entry,
 	index,
@@ -125,11 +174,11 @@ const LeaderboardRow = ({
 	return (
 		<motion.div
 			ref={rowRef}
-			// Use whileInView to animate rows as they scroll into screen
+			// Fade in from left
 			initial={{ opacity: 0, x: -10 }}
 			whileInView={{ opacity: 1, x: 0 }}
 			viewport={{ once: true, margin: "-5%" }}
-			transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }} // Cap delay so deep lists don't lag
+			transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
 			className={`
 				group flex items-center justify-between px-4 py-2 text-sm transition-colors duration-200
 				${
@@ -169,9 +218,7 @@ const LeaderboardRow = ({
 							src={getProfileImage(String(entry.summoner.profileIconId))}
 							alt=""
 							className="w-8 h-8 rounded-full bg-muted object-cover border-2"
-							style={{
-								borderColor: tierVar,
-							}}
+							style={{ borderColor: tierVar }}
 						/>
 					</div>
 
@@ -234,6 +281,7 @@ const LeaderboardRow = ({
 	);
 };
 
+// --- Main Export ---
 export default function ChallengeLeaderboard({
 	config,
 	leaderboard,
@@ -244,23 +292,28 @@ export default function ChallengeLeaderboard({
 		queryKey: ["dd-version"],
 		queryFn: getDataDragonVersion,
 	});
-	const { getProfileImage } = useDataDragonPath(version);
 
-	const sortedThresholds = useMemo(
-		() =>
-			Object.entries(config.config.thresholds as Record<string, number>).sort(
-				([, a], [, b]) => b - a,
-			),
-		[config.config.thresholds],
-	);
+	const { getProfileImage, getChallengeIcon } = useDataDragonPath(version);
 
+	// Determine logic for tier calculation
+	const activeThresholds = useMemo(() => {
+		const thresholds = config.config.thresholds as Record<string, number>;
+		return Object.entries(thresholds).sort(
+			([tierA], [tierB]) =>
+				TIER_ORDER.indexOf(tierA) - TIER_ORDER.indexOf(tierB),
+		);
+	}, [config.config.thresholds]);
+
+	// Find the player's current tier based on their points
 	const getPlayerTier = useCallback(
 		(value: number) => {
-			for (const [tier, threshold] of sortedThresholds)
+			for (let i = activeThresholds.length - 1; i >= 0; i--) {
+				const [tier, threshold] = activeThresholds[i];
 				if (value >= threshold) return tier;
-			return sortedThresholds[sortedThresholds.length - 1]?.[0] || "IRON";
+			}
+			return activeThresholds[0]?.[0] || "IRON";
 		},
-		[sortedThresholds],
+		[activeThresholds],
 	);
 
 	const normalizedUsername =
@@ -296,16 +349,32 @@ export default function ChallengeLeaderboard({
 				<h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-widest mb-3 px-1">
 					Thresholds
 				</h3>
-				{/* Staggered Container */}
 				<motion.div
 					variants={containerVariants}
 					initial="hidden"
 					animate="show"
 					className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2"
 				>
-					{sortedThresholds.map(([tier, points]) => (
-						<TierBadge key={tier} tier={tier} points={points} />
-					))}
+					{/* Display Tiers Highest to Lowest (Challenger -> Iron) */}
+					{[...TIER_ORDER].reverse().map((tier) => {
+						const thresholds = config.config.thresholds as Record<
+							string,
+							number
+						>;
+						const points = thresholds[tier];
+						const exists = points !== undefined;
+
+						return (
+							<TierBadge
+								key={tier}
+								tier={tier}
+								points={points || 0}
+								exists={exists}
+								// Pass a single-entry object to force the hook to return this tier's icon
+								iconUrl={getChallengeIcon(challengeId, { [tier]: 1 })}
+							/>
+						);
+					})}
 				</motion.div>
 			</section>
 

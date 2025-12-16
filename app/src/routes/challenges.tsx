@@ -1,20 +1,22 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { MainTitleLink } from "@/components/header/MainTitleLink";
 import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
-import { getChallengesConfig } from "@/server/api/mutations";
-import { getDataDragonVersion } from "@/server/api/mutations";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
+import {
+	getChallengesConfig,
+	getDataDragonVersion,
+} from "@/server/api/mutations";
 
 export const Route = createFileRoute("/challenges")({
 	loader: async () => {
 		const challenges = await getChallengesConfig();
 
 		// Create a map for quick lookup
-		const challengeMap = new Map<number, typeof challenges[0]>();
+		const challengeMap = new Map<number, (typeof challenges)[0]>();
 		challenges.forEach((challenge) => {
 			challengeMap.set(challenge.config.id, challenge);
 		});
@@ -28,11 +30,11 @@ export const Route = createFileRoute("/challenges")({
 		// 5xxxxx - Imagination
 		const categorizeById = (id: number): string | null => {
 			const idStr = id.toString();
-			if (idStr.startsWith('1')) return '4'; // Collection
-			if (idStr.startsWith('2')) return '2'; // Expertise
-			if (idStr.startsWith('3')) return '3'; // Teamwork
-			if (idStr.startsWith('4')) return '1'; // Veterancy
-			if (idStr.startsWith('5')) return '5'; // Imagination
+			if (idStr.startsWith("1")) return "4"; // Collection
+			if (idStr.startsWith("2")) return "2"; // Expertise
+			if (idStr.startsWith("3")) return "3"; // Teamwork
+			if (idStr.startsWith("4")) return "1"; // Veterancy
+			if (idStr.startsWith("5")) return "5"; // Imagination
 			return null;
 		};
 
@@ -58,14 +60,21 @@ export const Route = createFileRoute("/challenges")({
 			if (category && categories[category]) {
 				categories[category].push(challenge);
 			} else {
-				console.log("Challenge without category:", challenge.config.id, challenge.localization?.name);
+				console.log(
+					"Challenge without category:",
+					challenge.config.id,
+					challenge.localization?.name,
+				);
 			}
 		});
 
 		console.log("Filtered challenges:", filteredCount);
-		console.log("Categories counts:", Object.fromEntries(
-			Object.entries(categories).map(([k, v]) => [k, v.length])
-		));
+		console.log(
+			"Categories counts:",
+			Object.fromEntries(
+				Object.entries(categories).map(([k, v]) => [k, v.length]),
+			),
+		);
 
 		return {
 			categories,
@@ -105,22 +114,21 @@ function Client() {
 	};
 
 	// Filter challenges based on search query
-	const filteredChallenges = categories[activeCategory]?.filter((challenge) => {
-		if (!searchQuery) return true;
-		const name = challenge.localization?.name?.toLowerCase() || "";
-		const description =
-			challenge.localization?.description?.toLowerCase() || "";
-		const query = searchQuery.toLowerCase();
-		return name.includes(query) || description.includes(query);
-	}) || [];
+	const filteredChallenges =
+		categories[activeCategory]?.filter((challenge) => {
+			if (!searchQuery) return true;
+			const name = challenge.localization?.name?.toLowerCase() || "";
+			const description =
+				challenge.localization?.description?.toLowerCase() || "";
+			const query = searchQuery.toLowerCase();
+			return name.includes(query) || description.includes(query);
+		}) || [];
 
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="container mx-auto px-4 py-8">
 				<div className="max-w-6xl mx-auto">
-					<h1 className="text-4xl font-bold text-center mb-8">
-						Challenges
-					</h1>
+					<h1 className="text-4xl font-bold text-center mb-8">Challenges</h1>
 
 					{/* Search Bar */}
 					<div className="flex justify-center mb-8">
@@ -163,13 +171,20 @@ function Client() {
 							>
 								<div className="flex items-start gap-3">
 									<img
-										src={getChallengeIcon(challenge.config.id)}
-										alt={challenge.localization?.name || `Challenge ${challenge.config.id}`}
+										src={getChallengeIcon(
+											challenge.config.id,
+											challenge.config.thresholds as Record<string, number>,
+										)}
+										alt={
+											challenge.localization?.name ||
+											`Challenge ${challenge.config.id}`
+										}
 										className="w-12 h-12 rounded object-cover flex-shrink-0"
 									/>
 									<div className="flex-1 min-w-0">
 										<h3 className="font-semibold text-sm leading-tight mb-1">
-											{challenge.localization?.name || `Challenge ${challenge.config.id}`}
+											{challenge.localization?.name ||
+												`Challenge ${challenge.config.id}`}
 										</h3>
 										<p className="text-xs text-muted-foreground line-clamp-2">
 											{challenge.localization?.shortDescription ||

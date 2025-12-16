@@ -11,7 +11,6 @@ export const getDataDragonVersion = createServerFn({ method: "GET" }).handler(
 	},
 );
 
-export const getChallengesConfig = createServerFn().handler(
-	async () => {
-		return getChallengesConfigDb();
-	});
+export const getChallengesConfig = createServerFn().handler(async () => {
+	return getChallengesConfigDb();
+});

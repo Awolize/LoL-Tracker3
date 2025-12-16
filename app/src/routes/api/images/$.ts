@@ -3,7 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import sharp from "sharp";
 import { minio } from "@/server/external/minio";
 
-const DEBUG = process.env.IMAGE_DEBUG === "true" || process.env.IMAGE_DEBUG === "1";
+const DEBUG =
+	process.env.IMAGE_DEBUG === "true" || process.env.IMAGE_DEBUG === "1";
 const log = (...args: any[]) => {
 	if (DEBUG) console.log(...args);
 };
@@ -87,7 +88,9 @@ export const Route = createFileRoute("/api/images/$")({
 						};
 
 						if (ASSET_REDIRECTS[challengeId]) {
-							log(`Redirecting asset lookup: ${challengeId} -> ${ASSET_REDIRECTS[challengeId]}`);
+							log(
+								`Redirecting asset lookup: ${challengeId} -> ${ASSET_REDIRECTS[challengeId]}`,
+							);
 							challengeId = ASSET_REDIRECTS[challengeId];
 						}
 
@@ -105,15 +108,19 @@ export const Route = createFileRoute("/api/images/$")({
 						// B. Fallback: If failed and we aren't already asking for iron, try 'iron'
 						// (Many seasonal/single-state challenges only have an 'iron.png' asset)
 						if (!buf && requestedTier !== "iron") {
-							log(`Tier '${requestedTier}' not found for ${challengeId}, trying 'iron' fallback...`);
+							log(
+								`Tier '${requestedTier}' not found for ${challengeId}, trying 'iron' fallback...`,
+							);
 							buf = await fetchTier("iron");
 						}
 
-						if (!buf) throw new Error(`CommunityDragon 404 for ${challengeId} (checked ${requestedTier} & iron)`);
+						if (!buf)
+							throw new Error(
+								`CommunityDragon 404 for ${challengeId} (checked ${requestedTier} & iron)`,
+							);
 
 						original = buf;
 						log("Fetched challenge from CommunityDragon");
-
 					} else {
 						// Fetch from DDragon
 						const riotPath = path.endsWith(".webp")

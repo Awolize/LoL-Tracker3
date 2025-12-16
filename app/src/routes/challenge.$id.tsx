@@ -155,9 +155,9 @@ function Client() {
 			<div className="container mx-auto px-4 py-8">
 				<div className="max-w-4xl mx-auto space-y-6">
 					{/* Page Title */}
-					<div className="text-center flex flex-row items-center justify-center gap-4">
+					<div className="text-center flex flex-row justify-center gap-4">
 						<img
-							src={getChallengeIcon(challengeId)}
+							src={getChallengeIcon(challengeId, config.config.thresholds)}
 							alt={config.localization?.name || `Challenge ${challengeId}`}
 							className="w-24 h-24 rounded-lg object-cover"
 						/>

@@ -10,8 +10,35 @@ export const useDataDragonPath = (version: string) => {
 		return `/api/images/cdn/${version}/img/profileicon/${iconId}.webp`;
 	};
 
-	const getChallengeIcon = (challengeId: number) => {
-		return `/api/images/cdn/${version}/img/challenges/${challengeId}-master.webp`;
+	const getChallengeIcon = (
+		challengeId: number,
+		thresholds?: Record<string, number>,
+	) => {
+		// Determine the highest achievable tier
+		let highestTier = "CHALLENGER"; // default fallback
+
+		if (thresholds) {
+			const tierOrder = [
+				"IRON",
+				"BRONZE",
+				"SILVER",
+				"GOLD",
+				"PLATINUM",
+				"DIAMOND",
+				"MASTER",
+				"GRANDMASTER",
+				"CHALLENGER",
+			];
+
+			for (const tier of tierOrder.reverse()) {
+				if (thresholds[tier] !== undefined && thresholds[tier] > 0) {
+					highestTier = tier.toLowerCase();
+					break;
+				}
+			}
+		}
+
+		return `/api/images/cdn/${version}/img/challenges/${challengeId}-${highestTier}.webp`;
 	};
 
 	return { getChampionImage, getProfileImage, getChallengeIcon };
