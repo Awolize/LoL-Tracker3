@@ -262,7 +262,7 @@ const LeaderboardRow = ({
 			{/* Points & Tier Name */}
 			<div className="text-right relative z-10">
 				<div
-					className={`font-mono font-medium ${
+					className={`font-mono font-medium tracking-tight ${
 						isHighlighted ? "text-foreground" : "text-foreground/80"
 					}`}
 				>
@@ -351,7 +351,7 @@ export default function ChallengeLeaderboard({
 					variants={containerVariants}
 					initial="hidden"
 					animate="show"
-					className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2"
+					className="grid grid-cols-2 tracking-tight select-none xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2"
 				>
 					{/* Display Tiers Highest to Lowest (Challenger -> Iron) */}
 					{[...TIER_ORDER].reverse().map((tier) => {
