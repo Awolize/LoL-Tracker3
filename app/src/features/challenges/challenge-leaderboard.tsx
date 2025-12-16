@@ -144,7 +144,7 @@ const LeaderboardRow = ({
 			{isHighlighted && (
 				<motion.div
 					className="absolute inset-0 pointer-events-none"
-					animate={{ opacity: [0.1, 0.3, 0.1] }}
+					animate={{ opacity: [0.1, 0.2, 0.1] }}
 					transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
 					style={{ backgroundColor: tierVar }}
 				/>
