@@ -10,5 +10,9 @@ export const useDataDragonPath = (version: string) => {
 		return `/api/images/cdn/${version}/img/profileicon/${iconId}.webp`;
 	};
 
-	return { getChampionImage, getProfileImage };
+	const getChallengeIcon = (challengeId: number) => {
+		return `/api/images/cdn/${version}/img/challenges/${challengeId}-master.webp`;
+	};
+
+	return { getChampionImage, getProfileImage, getChallengeIcon };
 };

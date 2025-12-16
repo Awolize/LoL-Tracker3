@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import FooterLinks from "@/components/footer/FooterLinks";
@@ -7,8 +8,10 @@ import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import ChallengeLeaderboard from "@/features/challenges/challenge-leaderboard";
+import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
 import { getChallengeConfig } from "@/server/api/get-challenge-config.api";
 import { getChallengeLeaderboardWithHighlight } from "@/server/api/get-challenge-leaderboard.api";
+import { getDataDragonVersion } from "@/server/api/mutations";
 
 interface ChallengeConfig {
 	config: {
@@ -140,21 +143,33 @@ function Client() {
 	const { config, leaderboard, hasSections, challengeId } =
 		Route.useLoaderData();
 	const search = Route.useSearch();
+	const { data: version = "15.24.1" } = useQuery({
+		queryKey: ["dd-version"],
+		queryFn: getDataDragonVersion,
+	});
+	const { getChallengeIcon } = useDataDragonPath(version);
 
 	return (
 		<div className="min-h-screen bg-background">
 			<div className="container mx-auto px-4 py-8">
 				<div className="max-w-4xl mx-auto space-y-6">
 					{/* Page Title */}
-					<div className="text-center">
-						<h1 className="text-4xl font-bold mb-2">
-							{config.localization?.name || `Challenge ${challengeId}`}
-						</h1>
-						{config.localization?.description && (
-							<p className="text-lg text-muted-foreground">
-								{config.localization.description}
-							</p>
-						)}
+					<div className="text-center flex flex-row items-center justify-center gap-4">
+						<img
+							src={getChallengeIcon(challengeId)}
+							alt={config.localization?.name || `Challenge ${challengeId}`}
+							className="w-24 h-24 rounded-lg object-cover"
+						/>
+						<div>
+							<h1 className="text-4xl font-bold mb-2">
+								{config.localization?.name || `Challenge ${challengeId}`}
+							</h1>
+							{config.localization?.description && (
+								<p className="text-lg text-muted-foreground">
+									{config.localization.description}
+								</p>
+							)}
+						</div>
 					</div>
 
 					<ChallengeLeaderboard
