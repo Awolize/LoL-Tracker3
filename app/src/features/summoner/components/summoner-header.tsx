@@ -61,8 +61,9 @@ export default function Header({
 		{ text: "10,000", value: 10000 },
 		{ text: "12,600 (Level 4)", value: 12600 },
 		{ text: "21,600 (Level 5)", value: 21600 },
+		{ text: "42,600 (Level 7)", value: 42600 },
 		{ text: "50,000", value: 50000 },
-		{ text: "75,600", value: 76500 },
+		{ text: "75,600 (Level 10)", value: 76500 },
 		{ text: "100,000", value: 100000 },
 		{
 			text: "All",
