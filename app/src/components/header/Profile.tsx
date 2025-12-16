@@ -1,3 +1,4 @@
+import { regionToDisplay } from "@/features/shared/champs";
 import { Link, useRouterState } from "@tanstack/react-router";
 
 export default function Profile() {
@@ -11,7 +12,7 @@ export default function Profile() {
 				params={{ region: server, username: username }}
 				className="rounded p-1 hover:bg-gray-600"
 			>
-				{username?.replace("-", "#")} ({server})
+				{username?.replace("-", "#")} ({regionToDisplay(server)})
 			</Link>
 		</div>
 	);
