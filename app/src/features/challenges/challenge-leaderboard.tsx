@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { StarIcon } from "lucide-react";
+import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 import { regionToDisplay } from "@/features/shared/champs";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
@@ -21,18 +22,35 @@ interface ChallengeLeaderboardProps {
 	};
 }
 
+// --- Animation Variants ---
+const containerVariants = {
+	hidden: { opacity: 0 },
+	show: {
+		opacity: 1,
+		transition: {
+			staggerChildren: 0.05,
+		},
+	},
+};
+
+const itemVariants = {
+	hidden: { opacity: 0, y: 10 },
+	show: { opacity: 1, y: 0 },
+};
+
 // Helper to get the CSS variable string for a tier
 const getTierVar = (tier: string) => `var(--tier-${tier.toLowerCase()})`;
 
-// --- Tier Badge (White Text & Larger Points) ---
+// --- Tier Badge (Animated) ---
 const TierBadge = ({ tier, points }: { tier: string; points: number }) => {
 	const tierColor = getTierVar(tier);
 	return (
-		<div
-			className="flex flex-col items-center justify-center py-3 px-3 rounded-md border transition-all"
+		<motion.div
+			variants={itemVariants}
+			whileHover={{ scale: 1.05, y: -2 }}
+			className="flex flex-col items-center justify-center py-3 px-3 rounded-md border transition-colors"
 			style={{
 				borderColor: tierColor,
-				// Increased opacity slightly to support white text better
 				backgroundColor: `color-mix(in oklab, ${tierColor} 20%, transparent)`,
 			}}
 		>
@@ -48,7 +66,7 @@ const TierBadge = ({ tier, points }: { tier: string; points: number }) => {
 			>
 				{points.toLocaleString()}
 			</div>
-		</div>
+		</motion.div>
 	);
 };
 
@@ -62,7 +80,7 @@ interface LeaderboardRowProps {
 	getProfileImage: (id: string) => string;
 }
 
-// --- Leaderboard Row (Background Tint Only) ---
+// --- Leaderboard Row (Animated) ---
 const LeaderboardRow = ({
 	entry,
 	index,
@@ -92,9 +110,6 @@ const LeaderboardRow = ({
 		}
 	}, [isHighlighted]);
 
-	// --- STYLE LOGIC ---
-	// Removed the box-shadow (left color strip).
-	// Kept the background tint.
 	const rowStyle = {
 		backgroundColor: isHighlighted
 			? `color-mix(in oklab, ${tierVar} 15%, transparent)`
@@ -108,10 +123,15 @@ const LeaderboardRow = ({
 	};
 
 	return (
-		<div
+		<motion.div
 			ref={rowRef}
+			// Use whileInView to animate rows as they scroll into screen
+			initial={{ opacity: 0, x: -10 }}
+			whileInView={{ opacity: 1, x: 0 }}
+			viewport={{ once: true, margin: "-5%" }}
+			transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }} // Cap delay so deep lists don't lag
 			className={`
-				group flex items-center justify-between px-4 py-2 text-sm transition-all duration-200
+				group flex items-center justify-between px-4 py-2 text-sm transition-colors duration-200
 				${
 					isHighlighted
 						? "z-10 relative border-y"
@@ -120,7 +140,17 @@ const LeaderboardRow = ({
 			`}
 			style={rowStyle}
 		>
-			<div className="flex items-center gap-4">
+			{/* Pulse Effect for Highlighted User */}
+			{isHighlighted && (
+				<motion.div
+					className="absolute inset-0 pointer-events-none"
+					animate={{ opacity: [0.1, 0.3, 0.1] }}
+					transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+					style={{ backgroundColor: tierVar }}
+				/>
+			)}
+
+			<div className="flex items-center gap-4 relative z-10">
 				{/* Rank */}
 				<div
 					className={`font-mono text-sm w-6 text-center ${
@@ -140,7 +170,6 @@ const LeaderboardRow = ({
 							alt=""
 							className="w-8 h-8 rounded-full bg-muted object-cover border-2"
 							style={{
-								// Avatar always gets a border matching their tier
 								borderColor: tierVar,
 							}}
 						/>
@@ -163,7 +192,13 @@ const LeaderboardRow = ({
 								{entry.summoner.gameName || "Unknown"}
 							</Link>
 							{isHighlighted && (
-								<StarIcon className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+								<motion.div
+									initial={{ scale: 0, rotate: -180 }}
+									animate={{ scale: 1, rotate: 0 }}
+									transition={{ type: "spring", stiffness: 200 }}
+								>
+									<StarIcon className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+								</motion.div>
 							)}
 						</div>
 						<div className="flex items-center gap-1.5 text-[10px] text-muted-foreground leading-none mt-1">
@@ -178,7 +213,7 @@ const LeaderboardRow = ({
 			</div>
 
 			{/* Points & Tier Name */}
-			<div className="text-right">
+			<div className="text-right relative z-10">
 				<div
 					className={`font-mono font-medium ${
 						isHighlighted ? "text-foreground" : "text-foreground/80"
@@ -195,7 +230,7 @@ const LeaderboardRow = ({
 					</div>
 				)}
 			</div>
-		</div>
+		</motion.div>
 	);
 };
 
@@ -261,11 +296,17 @@ export default function ChallengeLeaderboard({
 				<h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-widest mb-3 px-1">
 					Thresholds
 				</h3>
-				<div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2">
+				{/* Staggered Container */}
+				<motion.div
+					variants={containerVariants}
+					initial="hidden"
+					animate="show"
+					className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2"
+				>
 					{sortedThresholds.map(([tier, points]) => (
 						<TierBadge key={tier} tier={tier} points={points} />
 					))}
-				</div>
+				</motion.div>
 			</section>
 
 			{/* Leaderboard List */}
@@ -278,11 +319,15 @@ export default function ChallengeLeaderboard({
 						{renderEntries(topSection)}
 
 						{shouldShowSections && (
-							<div className="flex items-center justify-center py-3 bg-muted/20 border-y border-border/40">
+							<motion.div
+								initial={{ opacity: 0 }}
+								whileInView={{ opacity: 1 }}
+								className="flex items-center justify-center py-3 bg-muted/20 border-y border-border/40"
+							>
 								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
 								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
 								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
-							</div>
+							</motion.div>
 						)}
 
 						{renderEntries(bottomSection, shouldShowSections ? 75 : 0)}
