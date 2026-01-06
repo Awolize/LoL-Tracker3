@@ -11,6 +11,7 @@ import type { CompleteChampionInfo } from "@/features/shared/types";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 import { useUserContext } from "@/stores/user-store";
 import { FullSummonerUpdate } from "./summoner-update";
+import { TogglePill } from "@/features/shared/components/toggle-pill";
 
 export enum SortOrder2 {
 	Points = 0,
@@ -129,8 +130,8 @@ export default function Header({
 			<div className="flex flex-row items-center justify-center gap-2 mx-auto">
 				<FullSummonerUpdate user={user} awaitMatches={false} />
 				<div className="h-8 w-px bg-gray-500" />
-				<SwitchWithLabel
-					label={"By role"}
+				<TogglePill
+					label={"By Role"}
 					checked={byRole}
 					onChange={toggleSortedByRole}
 				/>
@@ -211,18 +212,17 @@ export default function Header({
 					onChange={toggleShowSelectedChampions}
 				/>
 				<div className="h-8 w-px bg-gray-500" />
-				<SwitchWithLabel
+				<TogglePill
 					label={"Mastery Points"}
 					checked={showMasteryPoints}
 					onChange={toggleMasteryPoints}
 				/>
-				<div className="h-8 w-px bg-gray-500" />
-				<SwitchWithLabel
+				<TogglePill
 					label={"Show Levels"}
 					checked={showChampionLevels}
 					onChange={toggleChampionLevels}
 				/>
-				<SwitchWithLabel
+				<TogglePill
 					label={"Mastery Borders"}
 					checked={showMasteryBorders}
 					onChange={toggleMasteryBorders}
