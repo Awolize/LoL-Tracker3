@@ -66,25 +66,13 @@ export const DifferentSideBar = ({
 		.sort((a, b) => a.config.id - b.config.id);
 
 	return (
-		<nav
-			className={`sticky top-21 left-0 max-h-[calc(100vh-168px)] bg-primary-foreground py-4 ${
-				drawerOpen ? "w-72 pr-2 pl-2" : "w-0 px-2"
-			} relative border-t-2 duration-300 overflow-y-auto`}
-		>
-			{drawerOpen ? (
-				<ChevronLeftIcon
-					className="absolute top-13 -right-4 w-8 h-8 cursor-pointer rounded-full border-2 border-background bg-primary-foreground p-1 text-foreground"
-					onClick={() => setDrawerOpen(!drawerOpen)}
-				/>
-			) : (
-				<ChevronRightIcon
-					className="absolute top-13 -right-4 w-8 h-8 cursor-pointer rounded-full border-2 border-background bg-primary-foreground p-1 text-foreground"
-					onClick={() => setDrawerOpen(!drawerOpen)}
-				/>
-			)}
-
-			{drawerOpen && (
-				<div className="flex h-full flex-col gap-1">
+		<div className="sticky top-21 left-0 z-20 flex flex-row">
+			<nav
+				className={`max-h-[calc(100vh-168px)] bg-primary-foreground py-4 ${
+					drawerOpen ? "w-72" : "w-4"
+				} border-t-2 duration-300 overflow-hidden`}
+			>
+				<div className="flex h-full flex-col gap-1 overflow-y-auto max-h-[calc(100vh-200px)] w-68 px-2">
 					<h3 className="text-center font-bold">Challenges</h3>
 					<hr className="border-gray-600" />
 					<div className="flex justify-evenly gap-1 py-1">
@@ -156,7 +144,18 @@ export const DifferentSideBar = ({
 						<FullSummonerUpdate user={user} awaitMatches={true} />
 					</div>
 				</div>
-			)}
-		</nav>
+			</nav>
+			<button
+				type="button"
+				onClick={() => setDrawerOpen(!drawerOpen)}
+				className="relative -ml-4 mt-2 z-10 w-8 h-8 cursor-pointer rounded-full border-2 border-background bg-primary-foreground p-1 text-foreground hover:bg-background transition-colors flex items-center justify-center"
+			>
+				{drawerOpen ? (
+					<ChevronLeftIcon className="w-5 h-5" />
+				) : (
+					<ChevronRightIcon className="w-5 h-5" />
+				)}
+			</button>
+		</div>
 	);
 };

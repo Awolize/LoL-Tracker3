@@ -184,7 +184,7 @@ export function RouteComponent() {
 								region={region}
 								user={user}
 							/>
-							<main className="flex flex-col flex-1 p-4">
+							<main className="flex flex-col flex-1 p-4 z-0">
 								<ChampionListHeader
 									challengeChampions={challengeChampions}
 									champions={playerChampionInfo}
