@@ -6,6 +6,7 @@ import type {
 	CompleteChampionInfo,
 } from "@/features/shared/types";
 import { useChallengeContext } from "@/stores/challenge-store";
+import { useSelectedChallenge } from "@/stores/selected-challenge-context";
 import { DifferentHeaderCounter } from "./header-counter.tsx";
 
 interface ChampionListHeaderProps {
@@ -25,9 +26,7 @@ export function ChampionListHeader({
 	playerProgress,
 	challenges = [],
 }: ChampionListHeaderProps) {
-	const selectedChallengeId = useChallengeContext(
-		(state) => state.selectedChallengeId,
-	);
+	const { selectedChallengeId } = useSelectedChallenge();
 	const manuallyMarked = useChallengeContext((state) => state.manuallyMarked);
 
 	const totalSize = useMemo(() => {

@@ -5,6 +5,7 @@ import type {
 	CompleteChampionInfo,
 } from "@/features/shared/types";
 import { useChallengeContext } from "@/stores/challenge-store";
+import { useSelectedChallenge } from "@/stores/selected-challenge-context";
 
 interface RoleChampionListProps {
 	champions: CompleteChampionInfo[];
@@ -21,10 +22,8 @@ export function RoleChampionList({
 	selectedChallenge: propSelectedChallenge,
 	profileId,
 }: RoleChampionListProps) {
-	const selectedChallenge =
-		useChallengeContext((state) => state.selectedChallengeId) ??
-		propSelectedChallenge ??
-		null;
+	const { selectedChallengeId } = useSelectedChallenge();
+	const selectedChallenge = selectedChallengeId ?? propSelectedChallenge ?? null;
 	const manuallyMarked = useChallengeContext((state) => state.manuallyMarked);
 	const markChampion = useChallengeContext((state) => state.markChampion);
 	const unmarkChampion = useChallengeContext((state) => state.unmarkChampion);

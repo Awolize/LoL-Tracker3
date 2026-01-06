@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import type { Summoner } from "@/features/shared/types";
 import { FullSummonerUpdate } from "@/features/summoner/components/summoner-update";
-import { useChallengeContext } from "@/stores/challenge-store";
+import { useSelectedChallenge } from "@/stores/selected-challenge-context";
 
 interface ChallengeConfig {
 	config: {
@@ -39,12 +39,7 @@ export const DifferentSideBar = ({
 	const [showAll, setShowAll] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 
-	const selectedChallengeId = useChallengeContext(
-		(state) => state.selectedChallengeId,
-	);
-	const setSelectedChallengeId = useChallengeContext(
-		(state) => state.setSelectedChallengeId,
-	);
+	const { selectedChallengeId, setSelectedChallengeId } = useSelectedChallenge();
 
 	const handleItemClick = (itemId: number) => {
 		setSelectedChallengeId(selectedChallengeId === itemId ? null : itemId);

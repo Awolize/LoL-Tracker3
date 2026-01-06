@@ -3,7 +3,7 @@ import {
 	useNavigate,
 	useSearch,
 } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
 import FooterLinks from "@/components/footer/FooterLinks";
@@ -25,11 +25,9 @@ import {
 	getPlayerChallengesProgress,
 } from "@/server/challenges/get-challenges";
 import { getSummonerByNameRegion } from "@/server/summoner/mutations";
-import {
-	ChallengeProvider,
-	useChallengeContext,
-} from "@/stores/challenge-store";
+import { ChallengeProvider } from "@/stores/challenge-store";
 import { OptionsProvider } from "@/stores/options-persistent-store";
+import { SelectedChallengeProvider } from "@/stores/selected-challenge-context";
 import { UserProvider } from "@/stores/user-store";
 
 const searchSchema = z.object({
@@ -103,133 +101,112 @@ export function RouteComponent() {
 	const search = useSearch({ from: Route.id });
 	const navigate = useNavigate({ from: Route.id });
 
-	const ChallengeLogic = () => {
-		const selectedChallengeId = useChallengeContext(
-			(state) => state.selectedChallengeId,
-		);
-		const setSelectedChallengeId = useChallengeContext(
-			(state) => state.setSelectedChallengeId,
-		);
-		const [challengeChampions, setChallengeChampions] = useState<any[]>([]);
-		const [playerProgress, setPlayerProgress] = useState<Record<
-			number,
-			any
-		> | null>(null);
+	// URL is the source of truth for selectedChallengeId
+	const selectedChallengeId = search.challengeId ?? null;
 
-		useEffect(() => {
-			if (search.challengeId !== undefined) {
-				setSelectedChallengeId(search.challengeId);
+	const setSelectedChallengeId = useCallback(
+		(id: number | null) => {
+			navigate({
+				search: id ? { challengeId: id } : {},
+				replace: true,
+			});
+		},
+		[navigate],
+	);
+
+	const [challengeChampions, setChallengeChampions] = useState<any[]>([]);
+	const [playerProgress, setPlayerProgress] = useState<Record<
+		number,
+		any
+	> | null>(null);
+
+	useEffect(() => {
+		async function fetchChallenge() {
+			if (!selectedChallengeId) {
+				setChallengeChampions([]);
+				return;
 			}
-		}, []);
-
-		useEffect(() => {
-			const currentSearchId = search.challengeId;
-			const currentStateId = selectedChallengeId;
-
-			if (currentStateId !== currentSearchId) {
-				if (currentStateId) {
-					navigate({
-						search: { challengeId: currentStateId },
-						replace: true,
-					});
-				} else {
-					navigate({
-						search: {},
-						replace: true,
-					});
-				}
+			const challengeMap: { [key: number]: () => Promise<any[]> } = {
+				401106: () => getJackOfAllChamps({ data: queryParams }),
+				602001: () => getChampionOcean({ data: queryParams }),
+				2024308: () => getChampionOcean2024Split3({ data: queryParams }),
+				602002: () => getAdaptToAllSituations({ data: queryParams }),
+				202303: () => getInvincible({ data: queryParams }),
+			};
+			const fetchFn = challengeMap[selectedChallengeId];
+			if (fetchFn) {
+				const data = await fetchFn();
+				setChallengeChampions(data || []);
+			} else {
+				setChallengeChampions([]);
 			}
-		}, [selectedChallengeId, search.challengeId, navigate]);
+		}
+		fetchChallenge();
+	}, [selectedChallengeId, queryParams]);
 
-		useEffect(() => {
-			async function fetchChallenge() {
-				if (!selectedChallengeId) {
-					setChallengeChampions([]);
-					return;
-				}
-				const challengeMap: { [key: number]: () => Promise<any[]> } = {
-					401106: () => getJackOfAllChamps({ data: queryParams }),
-					602001: () => getChampionOcean({ data: queryParams }),
-					2024308: () => getChampionOcean2024Split3({ data: queryParams }),
-					602002: () => getAdaptToAllSituations({ data: queryParams }),
-					202303: () => getInvincible({ data: queryParams }),
-				};
-				const fetchFn = challengeMap[selectedChallengeId];
-				if (fetchFn) {
-					const data = await fetchFn();
-					setChallengeChampions(data || []);
-				} else {
-					setChallengeChampions([]);
-				}
+	useEffect(() => {
+		async function fetchPlayerProgress() {
+			try {
+				const progress = await getPlayerChallengesProgress({
+					data: queryParams,
+				});
+				setPlayerProgress(progress);
+			} catch (error) {
+				console.error("Failed to fetch player progress:", error);
+				setPlayerProgress(null);
 			}
-			fetchChallenge();
-		}, [selectedChallengeId]);
-
-		useEffect(() => {
-			async function fetchPlayerProgress() {
-				try {
-					const progress = await getPlayerChallengesProgress({
-						data: queryParams,
-					});
-					setPlayerProgress(progress);
-				} catch (error) {
-					console.error("Failed to fetch player progress:", error);
-					setPlayerProgress(null);
-				}
-			}
-			fetchPlayerProgress();
-		}, []);
-
-		return (
-			<>
-				<header className="sticky top-0 z-30 grid grid-cols-3 w-screen justify-between bg-primary-foreground px-1 md:px-8">
-					<MainTitleLink />
-					<Profile />
-					<Search />
-
-					<div className="absolute top-4 right-4">
-						<ThemeSelector />
-					</div>
-				</header>
-
-				<div className="flex flex-row">
-					<DifferentSideBar
-						challenges={challenges}
-						username={`${user.gameName}#${user.tagLine}`}
-						region={region}
-						user={user}
-					/>
-					<main className="flex flex-col flex-1 p-4">
-						<ChampionListHeader
-							challengeChampions={challengeChampions}
-							champions={playerChampionInfo}
-							version={version}
-							profileId={`${user.gameName}-${user.tagLine}`}
-							playerProgress={playerProgress}
-							challenges={challenges}
-						/>
-						<RoleChampionList
-							champions={playerChampionInfo}
-							challengeChampions={challengeChampions}
-							version={version}
-							profileId={`${user.gameName}-${user.tagLine}`}
-						/>
-					</main>
-				</div>
-
-				<footer className="flex flex-col items-center gap-4 p-2 text-sm opacity-50">
-					<FooterLinks />
-					<RiotGamesDisclaimer />
-				</footer>
-			</>
-		);
-	};
+		}
+		fetchPlayerProgress();
+	}, [queryParams]);
 
 	return (
 		<UserProvider user={user}>
 			<OptionsProvider persistName={`${user.gameName}-${user.tagLine}`}>
 				<ChallengeProvider persistName={`${user.gameName}-${user.tagLine}`}>
-					<ChallengeLogic />
+					<SelectedChallengeProvider
+						selectedChallengeId={selectedChallengeId}
+						setSelectedChallengeId={setSelectedChallengeId}
+					>
+						<header className="sticky top-0 z-30 grid grid-cols-3 w-screen justify-between bg-primary-foreground px-1 md:px-8">
+							<MainTitleLink />
+							<Profile />
+							<Search />
+
+							<div className="absolute top-4 right-4">
+								<ThemeSelector />
+							</div>
+						</header>
+
+						<div className="flex flex-row">
+							<DifferentSideBar
+								challenges={challenges}
+								username={`${user.gameName}#${user.tagLine}`}
+								region={region}
+								user={user}
+							/>
+							<main className="flex flex-col flex-1 p-4">
+								<ChampionListHeader
+									challengeChampions={challengeChampions}
+									champions={playerChampionInfo}
+									version={version}
+									profileId={`${user.gameName}-${user.tagLine}`}
+									playerProgress={playerProgress}
+									challenges={challenges}
+								/>
+								<RoleChampionList
+									champions={playerChampionInfo}
+									challengeChampions={challengeChampions}
+									version={version}
+									profileId={`${user.gameName}-${user.tagLine}`}
+								/>
+							</main>
+						</div>
+
+						<footer className="flex flex-col items-center gap-4 p-2 text-sm opacity-50">
+							<FooterLinks />
+							<RiotGamesDisclaimer />
+						</footer>
+					</SelectedChallengeProvider>
 				</ChallengeProvider>
 			</OptionsProvider>
 		</UserProvider>

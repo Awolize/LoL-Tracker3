@@ -5,12 +5,10 @@ import { create, useStore } from "zustand";
 import { type PersistStorage, persist } from "zustand/middleware";
 
 interface Store {
-	selectedChallengeId: number | null;
 	manuallyMarked: Record<string, Record<number, Set<number>>>; // Record<profileId, Record<challengeId, Set<championId>>>
 }
 
 interface StoreState extends Store {
-	setSelectedChallengeId: (id: number | null) => void;
 	markChampion: (
 		profileId: string,
 		challengeId: number,
@@ -24,7 +22,6 @@ interface StoreState extends Store {
 }
 
 const initialState = {
-	selectedChallengeId: null,
 	manuallyMarked: {},
 };
 
@@ -33,8 +30,6 @@ const useChallengeStore = (persistName: string) => {
 		persist(
 			(set) => ({
 				...initialState,
-				setSelectedChallengeId: (id) =>
-					set((state) => ({ ...state, selectedChallengeId: id })),
 				markChampion: (profileId, challengeId, championId) => {
 					set((state) => {
 						const profileData = state.manuallyMarked[profileId] || {};
