@@ -44,11 +44,6 @@ export function RoleHeader({
 					{percentage.toFixed(1)}%
 				</span>
 			</div>
-
-			{/* Hidden count indicator - always shown for consistent alignment */}
-			<div className="text-xs text-muted-foreground text-center h-4">
-				{hiddenCount} hidden by filters
-			</div>
 		</div>
 	);
 }
