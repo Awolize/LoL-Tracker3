@@ -11,7 +11,6 @@ interface RoleChampionListProps {
 	champions: CompleteChampionInfo[];
 	challengeChampions?: ChampionDetails[];
 	version: string;
-	selectedChallenge?: number | null;
 	profileId: string;
 }
 
@@ -19,11 +18,9 @@ export function RoleChampionList({
 	champions,
 	challengeChampions,
 	version,
-	selectedChallenge: propSelectedChallenge,
 	profileId,
 }: RoleChampionListProps) {
-	const { selectedChallengeId } = useSelectedChallenge();
-	const selectedChallenge = selectedChallengeId ?? propSelectedChallenge ?? null;
+	const { selectedChallengeId: selectedChallenge } = useSelectedChallenge();
 	const manuallyMarked = useChallengeContext((state) => state.manuallyMarked);
 	const markChampion = useChallengeContext((state) => state.markChampion);
 	const unmarkChampion = useChallengeContext((state) => state.unmarkChampion);

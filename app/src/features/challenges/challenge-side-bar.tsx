@@ -61,7 +61,7 @@ export const DifferentSideBar = ({
 				?.toLowerCase()
 				.includes(searchTerm.toLowerCase());
 
-			return nameMatch || (descriptionMatch && descriptionMatch);
+			return nameMatch || descriptionMatch;
 		})
 		.sort((a, b) => a.config.id - b.config.id);
 
