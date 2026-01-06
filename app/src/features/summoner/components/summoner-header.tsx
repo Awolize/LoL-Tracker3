@@ -153,8 +153,10 @@ export default function Header({
 				<Dropdown
 					callback={(choice) => setFilterPoints(choice)}
 					menuLabel={`Filter by (${filterPointsDirection})`}
-					// biome-ignore lint/style/noNonNullAssertion: This will always find a match
-					choice={filteredChoices.find((el) => el.value === filterPoints)!}
+					choice={
+						filteredChoices.find((el) => el.value === filterPoints) ??
+						filteredChoices[filteredChoices.length - 1]
+					}
 					choices={filteredChoices}
 				/>
 				<Button
@@ -173,8 +175,10 @@ export default function Header({
 				<Dropdown
 					callback={(choice) => setFilterLevel(choice)}
 					menuLabel={`Level (${filterLevelDirection})`}
-					// biome-ignore lint/style/noNonNullAssertion: This will always find a match
-					choice={levelChoices.find((el) => el.value === filterLevel)!}
+					choice={
+						levelChoices.find((el) => el.value === filterLevel) ??
+						levelChoices[levelChoices.length - 1]
+					}
 					choices={levelChoices}
 				/>
 				<Button
@@ -193,8 +197,10 @@ export default function Header({
 				<Dropdown
 					choices={sortOrderChoices}
 					menuLabel="Sort by"
-					// biome-ignore lint/style/noNonNullAssertion: This will always find a match
-					choice={sortOrderChoices.find((el) => el.value === sortOrder)!}
+					choice={
+						sortOrderChoices.find((el) => el.value === sortOrder) ??
+						sortOrderChoices[0]
+					}
 					callback={(value) => setSortOrder(value)}
 				/>
 				<ToggleEye
