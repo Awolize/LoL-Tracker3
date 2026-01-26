@@ -113,21 +113,21 @@ if (!global.__riotWorker) {
 						const { account } = await ensureSummoner(gameName, tagLine, region);
 						const matchIds = await fetchMatchIds(account.puuid, region);
 
-						// Optimization: Add all jobs in parallel
-						const jobs = await Promise.all(
-							matchIds.map((id) =>
-								updateQueue.add(
-									"process-single-match",
-									{ matchId: id, region },
-									{ priority: waitForMatches ? 10 : 50, jobId: id },
-								),
-							),
-						);
+						matchIds.forEach(async (id) => {
+							const job = await updateQueue.add(
+								"process-single-match",
+								{ matchId: id, region },
+								{ priority: waitForMatches ? 10 : 50, jobId: id },
+							);
 
-						await Promise.all(
-							jobs.map((j) => j.waitUntilFinished(updateQueueEvents)),
-						);
-						return { success: true, processedMatches: matchIds.length };
+							console.log(`[Queue] Added job process-single-match for match ${id}`);
+
+							job.waitUntilFinished(updateQueueEvents)
+								.then(() => console.log(`[Queue] Finished match ${id}`))
+								.catch(err => console.error(`[Queue] Error in match ${id}:`, err));
+						});
+
+						return { success: true, queuedMatches: matchIds.length };
 					}
 
 					case "run-challenges-computation": {
