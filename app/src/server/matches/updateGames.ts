@@ -45,7 +45,6 @@ export const fetchMatchIds = async (
 	// Filter out already existing matches
 	if (matchIds.length === 0) return [];
 
-
 	const existingMatches = await db
 		.select({ gameId: matchTable.gameId })
 		.from(matchTable)
@@ -55,7 +54,6 @@ export const fetchMatchIds = async (
 	console.log("db, found matches", existingMatches.length);
 
 	const existingGameIds = new Set(existingMatches.map((m) => m.gameId));
-
 
 	console.log("diff", matchIds.filter((id) => !existingGameIds.has(id)));
 

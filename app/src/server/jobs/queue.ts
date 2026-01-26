@@ -120,10 +120,7 @@ if (!global.__riotWorker) {
 								{ priority: waitForMatches ? 10 : 50, jobId: id },
 							);
 
-							console.log(`[Queue] Added job process-single-match for match ${id}`);
-
 							job.waitUntilFinished(updateQueueEvents)
-								.then(() => console.log(`[Queue] Finished match ${id}`))
 								.catch(err => console.error(`[Queue] Error in match ${id}:`, err));
 						});
 
