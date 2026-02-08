@@ -19,32 +19,19 @@ export function ChallengeHeaderProgress({
 	const missingValue = finishedValue - completedChampionsSize;
 
 	return (
-		<div className="flex flex-col">
-			<div className="flex gap-1 text-sm">
-				<div className="text-gray-400">
-					According to Riot, you have finished
+		<div className="flex flex-col text-sm text-muted-foreground">
+			<div className="flex gap-1">
+				<div>According to Riot, you have completed</div>
+				<b className="text-primary">{finishedValue}</b>
+				<div>
+					{missingValue > 0
+						? <>which means lol.awot.dev is missing <b className="text-primary">{missingValue}</b> champs.</>
+						: "which means all champs are tracked!"}
 				</div>
-				<b>{finishedValue}</b>
-
-				{missingValue > 0 ? (
-					<>
-						<div className="text-gray-400">
-							which means lol.awot.dev is missing
-						</div>
-						<div className="flex flex-row">
-							<b>{missingValue}</b>
-							<div className="text-gray-400">.</div>
-						</div>
-					</>
-				) : (
-					<div className="text-gray-400">
-						which means everything is tracked!
-					</div>
-				)}
 			</div>
 			{missingValue > 0 && (
-				<div className="text-gray-400 text-sm">
-					Please make sure to double-check the missing ones.
+				<div>
+					Please review the missing champs and mark them as completed by clicking the champs icon.
 				</div>
 			)}
 		</div>
