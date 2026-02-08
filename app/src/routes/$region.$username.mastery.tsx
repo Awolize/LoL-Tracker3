@@ -42,27 +42,32 @@ export const Route = createFileRoute("/$region/$username/mastery")({
 		const { username, region } = loaderData;
 
 		return {
-			title: `LoL Mastery Tracker: ${username} Profile`,
+			title: `Champion Mastery: ${username} (${region})`,
 			meta: [
 				{ name: "application-name", content: "LoL Mastery Tracker" },
 				{
 					name: "description",
-					content:
-						"Made using Riot API. Repo can be found using https://github.com/Awolize. Boilerplate was generated using https://create.t3.gg/",
+					content: `Track League of Legends champion mastery points for ${username}. View mastery levels, chests available, and progress towards mastery milestones.`,
 				},
 				{
 					name: "keywords",
-					content: [region, username, "LoL", "mastery", "tracker"].join(", "),
+					content: [
+						region,
+						username,
+						"LoL",
+						"champion mastery",
+						"mastery points",
+						"chests",
+						"tracker",
+					].join(", "),
 				},
 			],
 		};
 	},
 });
 
-// Correct component
 export function RouteComponent() {
-	const { user, playerChampionInfo, version, username, region } =
-		Route.useLoaderData();
+	const { user, playerChampionInfo, version } = Route.useLoaderData();
 
 	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) =>
 		a.name.localeCompare(b.name),

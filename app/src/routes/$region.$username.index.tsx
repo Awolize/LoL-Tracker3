@@ -14,25 +14,29 @@ import {
 	getUserByNameAndRegionFn,
 } from "@/server/summoner/mutations";
 
+import { Route as ChallengeRoute } from "@/routes/$region.$username.challenge";
+import { Route as MasteryRoute } from "@/routes/$region.$username.mastery";
+import { Route as MatchesRoute } from "@/routes/$region.$username.matches";
+
 const NAV_ITEMS = [
 	{
-		path: "mastery",
+		route: MasteryRoute,
 		title: "Mastery Points Tracker",
 		description:
 			"Tailored for Catch 'em all, works with Master yourself and Master your enemy",
 	},
 	{
-		path: "challenge",
+		route: ChallengeRoute,
 		title: "Challenge Tracker",
 		description:
 			"Tracking helper for specific challenges, like All Random All Champions, Jack of All Champs, and Protean Override.",
 	},
 	{
-		path: "matches",
+		route: MatchesRoute,
 		title: "Match History",
 		description: "View your recent games",
 	},
-] as const;
+];
 
 const containerVariants = {
 	hidden: { opacity: 0 },
@@ -173,16 +177,16 @@ function Client() {
 				</motion.div>
 
 				<nav className="flex flex-col gap-4">
-					{NAV_ITEMS.map(({ path, title, description }) => (
+					{NAV_ITEMS.map(({ route, title, description }) => (
 						<motion.div
-							key={path}
+							key={route.to}
 							variants={itemVariants}
 							whileHover={{ scale: 1.02 }}
 							whileTap={{ scale: 0.98 }}
 							className="relative"
 						>
 							<Link
-								to={`/$region/$username/${path}`}
+								to={route.to}
 								params={{ region: rawRegion, username: rawUsername }}
 								preload="intent"
 								className="group block h-full rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary hover:bg-accent/50 hover:shadow-lg"

@@ -32,18 +32,24 @@ export const Route = createFileRoute("/$region/$username/matches")({
 		const { username, region } = loaderData;
 
 		return {
-			title: `LoL Match History: ${username}`,
+			title: `Match History: ${username} (${region})`,
 			meta: [
-				{ name: "application-name", content: "LoL Mastery Tracker" },
+				{ name: "application-name", content: "LoL Match History" },
 				{
 					name: "description",
-					content: "Match history tracker made using Riot API.",
+					content: `View recent League of Legends match history for ${username}. Analyze game results, KDA, win rates, and performance statistics.`,
 				},
 				{
 					name: "keywords",
-					content: [region, username, "LoL", "match history", "tracker"].join(
-						", ",
-					),
+					content: [
+						region,
+						username,
+						"LoL",
+						"match history",
+						"game stats",
+						"kda",
+						"tracker",
+					].join(", "),
 				},
 			],
 		};

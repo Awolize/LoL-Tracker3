@@ -44,7 +44,7 @@ export const Route = createFileRoute("/$region/$username/challenge")({
 			playerChampionInfo: CompleteChampionInfo[];
 			challenges: any[];
 			version: string;
-		}
+		};
 
 		return {
 			user: result.user,
@@ -53,7 +53,7 @@ export const Route = createFileRoute("/$region/$username/challenge")({
 			version: result.version,
 			region,
 			username,
-		}
+		};
 	},
 	component: RouteComponent,
 	head: ({ loaderData }) => {
@@ -61,13 +61,12 @@ export const Route = createFileRoute("/$region/$username/challenge")({
 		const { username, region } = loaderData;
 
 		return {
-			title: `LoL Mastery Challenge Tracker: ${username} Profile`,
+			title: `Challenge Tracker: ${username} (${region})`,
 			meta: [
-				{ name: "application-name", content: "LoL Mastery Challenge Tracker" },
+				{ name: "application-name", content: "LoL Challenge Tracker" },
 				{
 					name: "description",
-					content:
-						"Made using Riot API. Repo can be found using https://github.com/Awolize. Challenge progress tracking for League of Legends.",
+					content: `Track progress for specific League of Legends challenges like Jack of All Champs, Champion Ocean, and Invincible for ${username}.`,
 				},
 				{
 					name: "keywords",
@@ -75,13 +74,14 @@ export const Route = createFileRoute("/$region/$username/challenge")({
 						region,
 						username,
 						"LoL",
-						"mastery",
 						"challenges",
+						"jack of all champs",
+						"champion ocean",
 						"tracker",
 					].join(", "),
 				},
 			],
-		}
+		};
 	},
 });
 
@@ -91,12 +91,12 @@ export function RouteComponent() {
 
 	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) =>
 		a.name.localeCompare(b.name),
-	)
+	);
 
 	const queryParams = useMemo(
 		() => ({ username: `${user.gameName}#${user.tagLine}`, region }),
 		[user.gameName, user.tagLine, region],
-	)
+	);
 
 	const search = useSearch({ from: Route.id });
 	const navigate = useNavigate({ from: Route.id });
@@ -109,10 +109,10 @@ export function RouteComponent() {
 			navigate({
 				search: id ? { challengeId: id } : {},
 				replace: true,
-			})
+			});
 		},
 		[navigate],
-	)
+	);
 
 	const [challengeChampions, setChallengeChampions] = useState<any[]>([]);
 	const [playerProgress, setPlayerProgress] = useState<Record<
@@ -124,7 +124,7 @@ export function RouteComponent() {
 		async function fetchChallenge() {
 			if (!selectedChallengeId) {
 				setChallengeChampions([]);
-				return
+				return;
 			}
 			const challengeMap: { [key: number]: () => Promise<any[]> } = {
 				401106: () => getJackOfAllChamps({ data: queryParams }),
@@ -132,7 +132,7 @@ export function RouteComponent() {
 				2024308: () => getChampionOcean2024Split3({ data: queryParams }),
 				602002: () => getAdaptToAllSituations({ data: queryParams }),
 				202303: () => getInvincible({ data: queryParams }),
-			}
+			};
 			const fetchFn = challengeMap[selectedChallengeId];
 			if (fetchFn) {
 				const data = await fetchFn();
@@ -149,7 +149,7 @@ export function RouteComponent() {
 			try {
 				const progress = await getPlayerChallengesProgress({
 					data: queryParams,
-				})
+				});
 				setPlayerProgress(progress);
 			} catch (error) {
 				console.error("Failed to fetch player progress:", error);
@@ -210,5 +210,5 @@ export function RouteComponent() {
 				</ChallengeProvider>
 			</OptionsProvider>
 		</UserProvider>
-	)
+	);
 }
