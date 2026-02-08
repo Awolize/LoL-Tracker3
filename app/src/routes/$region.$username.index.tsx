@@ -22,15 +22,15 @@ const NAV_ITEMS = [
 			"Tailored for Catch 'em all, works with Master yourself and Master your enemy",
 	},
 	{
-		path: "different",
-		title: "Champion Tracker",
+		path: "challenge",
+		title: "Challenge Tracker",
 		description:
-			"Manually track heroes for challenges like All Random All Champions, Jack of All Champs, Protean Override",
+			"Tracking helper for specific challenges, like All Random All Champions, Jack of All Champs, and Protean Override.",
 	},
 	{
 		path: "matches",
 		title: "Match History",
-		description: "View your recent games and performance statistics",
+		description: "View your recent games",
 	},
 ] as const;
 
