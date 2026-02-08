@@ -7,7 +7,12 @@ interface TogglePillProps {
 	icon?: React.ReactNode;
 }
 
-export const TogglePill = ({ label, checked, onChange, icon }: TogglePillProps) => {
+export const TogglePill = ({
+	label,
+	checked,
+	onChange,
+	icon,
+}: TogglePillProps) => {
 	return (
 		<button
 			type="button"
@@ -17,7 +22,7 @@ export const TogglePill = ({ label, checked, onChange, icon }: TogglePillProps) 
 				"border focus:outline-none focus:ring-2 focus:ring-offset-1 focus:ring-primary/50",
 				checked
 					? "bg-primary text-primary-foreground border-primary shadow-sm"
-					: "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground"
+					: "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground",
 			)}
 		>
 			{icon && <span className="w-3.5 h-3.5">{icon}</span>}

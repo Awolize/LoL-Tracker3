@@ -323,13 +323,13 @@ function ChallengeCard({
 		"CHALLENGER",
 	];
 
-    // Helper to format numbers compactly (e.g. 1500 -> 1.5k)
-    const formatValue = (val: number) => {
-        return new Intl.NumberFormat("en-US", {
-            notation: "compact",
-            maximumFractionDigits: 1,
-        }).format(val);
-    };
+	// Helper to format numbers compactly (e.g. 1500 -> 1.5k)
+	const formatValue = (val: number) => {
+		return new Intl.NumberFormat("en-US", {
+			notation: "compact",
+			maximumFractionDigits: 1,
+		}).format(val);
+	};
 
 	return (
 		<Link
@@ -358,36 +358,42 @@ function ChallengeCard({
 					</p>
 
 					{/* Tier Indicators */}
-                    {/* Added 'items-end' to align bars at bottom, 'h-10' to reserve space for numbers */}
+					{/* Added 'items-end' to align bars at bottom, 'h-10' to reserve space for numbers */}
 					<div className="mt-auto pt-4 flex items-end gap-1 h-12">
 						{tiers.map((tier) => {
-                            const value = thresholds?.[tier];
+							const value = thresholds?.[tier];
 							const isActive = value !== undefined;
 
 							return (
-                                // Wrapped in a column to stack Number + Bar
-								<div 
-                                    key={tier} 
-                                    className="flex-1 flex flex-col items-center gap-0.5 group/tier cursor-help"
-                                    title={isActive ? `${tier}: ${value?.toLocaleString()}` : `${tier} (Not tracked)`}
-                                >
-                                    {/* The Number Label */}
-                                    <span className={`text-[9px] font-mono leading-none tracking-tighter text-muted-foreground/80 ${isActive ? 'opacity-100' : 'opacity-0'}`}>
-                                        {isActive ? formatValue(value) : '-'}
-                                    </span>
+								// Wrapped in a column to stack Number + Bar
+								<div
+									key={tier}
+									className="flex-1 flex flex-col items-center gap-0.5 group/tier cursor-help"
+									title={
+										isActive
+											? `${tier}: ${value?.toLocaleString()}`
+											: `${tier} (Not tracked)`
+									}
+								>
+									{/* The Number Label */}
+									<span
+										className={`text-[9px] font-mono leading-none tracking-tighter text-muted-foreground/80 ${isActive ? "opacity-100" : "opacity-0"}`}
+									>
+										{isActive ? formatValue(value) : "-"}
+									</span>
 
-                                    {/* The Color Bar */}
-                                    <div
-                                        className={`h-2 w-full rounded-full relative transition-colors ${
-                                            isActive ? "" : "bg-muted/40"
-                                        }`}
-                                        style={{
-                                            backgroundColor: isActive
-                                                ? `var(--tier-${tier.toLowerCase()})`
-                                                : undefined,
-                                        }}
-                                    />
-                                </div>
+									{/* The Color Bar */}
+									<div
+										className={`h-2 w-full rounded-full relative transition-colors ${
+											isActive ? "" : "bg-muted/40"
+										}`}
+										style={{
+											backgroundColor: isActive
+												? `var(--tier-${tier.toLowerCase()})`
+												: undefined,
+										}}
+									/>
+								</div>
 							);
 						})}
 					</div>

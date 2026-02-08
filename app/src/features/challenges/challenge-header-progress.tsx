@@ -24,14 +24,20 @@ export function ChallengeHeaderProgress({
 				<div>According to Riot, you have completed</div>
 				<b className="text-primary">{finishedValue}</b>
 				<div>
-					{missingValue > 0
-						? <>which means lol.awot.dev is missing <b className="text-primary">{missingValue}</b> champs.</>
-						: "which means all champs are tracked!"}
+					{missingValue > 0 ? (
+						<>
+							which means lol.awot.dev is missing{" "}
+							<b className="text-primary">{missingValue}</b> champs.
+						</>
+					) : (
+						"which means all champs are tracked!"
+					)}
 				</div>
 			</div>
 			{missingValue > 0 && (
 				<div>
-					Please review the missing champs and mark them as completed by clicking the champs icon.
+					Please review the missing champs and mark them as completed by
+					clicking the champs icon.
 				</div>
 			)}
 		</div>

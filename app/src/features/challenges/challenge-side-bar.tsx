@@ -39,7 +39,8 @@ export const DifferentSideBar = ({
 	const [showAll, setShowAll] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 
-	const { selectedChallengeId, setSelectedChallengeId } = useSelectedChallenge();
+	const { selectedChallengeId, setSelectedChallengeId } =
+		useSelectedChallenge();
 
 	const handleItemClick = (itemId: number) => {
 		setSelectedChallengeId(selectedChallengeId === itemId ? null : itemId);

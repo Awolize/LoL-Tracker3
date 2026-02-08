@@ -120,8 +120,11 @@ if (!global.__riotWorker) {
 								{ priority: waitForMatches ? 10 : 50, jobId: id },
 							);
 
-							job.waitUntilFinished(updateQueueEvents)
-								.catch(err => console.error(`[Queue] Error in match ${id}:`, err));
+							job
+								.waitUntilFinished(updateQueueEvents)
+								.catch((err) =>
+									console.error(`[Queue] Error in match ${id}:`, err),
+								);
 						});
 
 						return { success: true, queuedMatches: matchIds.length };

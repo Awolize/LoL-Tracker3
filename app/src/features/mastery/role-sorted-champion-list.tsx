@@ -83,11 +83,20 @@ const SortedChampionList = ({
 							hasHidden={false}
 							size={roleChampions.length}
 							percentage={finishedChampsPercentage}
-							hiddenCount={roleChampions.length - roleChampions.filter(c => {
-								const hidden = selectedChampions.has(c.id);
-								if (hidden && !showSelectedChampions) return false;
-								return !filteredOut(c, filterPoints, filterLevel, filterPointsDirection, filterLevelDirection);
-							}).length}
+							hiddenCount={
+								roleChampions.length -
+								roleChampions.filter((c) => {
+									const hidden = selectedChampions.has(c.id);
+									if (hidden && !showSelectedChampions) return false;
+									return !filteredOut(
+										c,
+										filterPoints,
+										filterLevel,
+										filterPointsDirection,
+										filterLevelDirection,
+									);
+								}).length
+							}
 						/>
 
 						<div

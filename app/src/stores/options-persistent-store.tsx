@@ -61,7 +61,6 @@ const initialState = {
 // const useOptionsStore: (persistName: string) => UseBoundStore<Write<StoreApi<StoreState>, StorePersist<StoreState, Store>>>
 
 const useOptionsPersistentStore = (persistName: string) => {
-
 	return create<StoreState>()(
 		persist(
 			(set) => ({

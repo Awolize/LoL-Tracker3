@@ -32,7 +32,8 @@ export function RoleHeader({
 			{/* Progress bar row with stats */}
 			<div className="flex items-center justify-center gap-2">
 				<span className="text-xs text-muted-foreground whitespace-nowrap">
-					{finishedSize}/{size}{hasHidden ? "*" : ""}
+					{finishedSize}/{size}
+					{hasHidden ? "*" : ""}
 				</span>
 				<div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
 					<div

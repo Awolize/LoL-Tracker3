@@ -50,12 +50,14 @@ export const fetchMatchIds = async (
 		.from(matchTable)
 		.where(inArray(matchTable.gameId, matchIds));
 
-
 	console.log("db, found matches", existingMatches.length);
 
 	const existingGameIds = new Set(existingMatches.map((m) => m.gameId));
 
-	console.log("diff", matchIds.filter((id) => !existingGameIds.has(id)));
+	console.log(
+		"diff",
+		matchIds.filter((id) => !existingGameIds.has(id)),
+	);
 
 	return matchIds.filter((id) => !existingGameIds.has(id));
 };

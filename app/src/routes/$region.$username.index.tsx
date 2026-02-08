@@ -9,14 +9,13 @@ import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import { regionToConstant } from "@/features/shared/champs";
 import { FullSummonerUpdate } from "@/features/summoner/components/summoner-update";
+import { Route as ChallengeRoute } from "@/routes/$region.$username.challenge";
+import { Route as MasteryRoute } from "@/routes/$region.$username.mastery";
+import { Route as MatchesRoute } from "@/routes/$region.$username.matches";
 import {
 	checkNameChangeFn,
 	getUserByNameAndRegionFn,
 } from "@/server/summoner/mutations";
-
-import { Route as ChallengeRoute } from "@/routes/$region.$username.challenge";
-import { Route as MasteryRoute } from "@/routes/$region.$username.mastery";
-import { Route as MatchesRoute } from "@/routes/$region.$username.matches";
 
 const NAV_ITEMS = [
 	{

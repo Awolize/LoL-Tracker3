@@ -70,7 +70,9 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 		e.dataTransfer.setData("text/plain", String(champ.id));
 	};
 
-	const masteryBorderColor = showMasteryBorders ? getMasteryBorderColor(champ.championLevel) : "ring-transparent";
+	const masteryBorderColor = showMasteryBorders
+		? getMasteryBorderColor(champ.championLevel)
+		: "ring-transparent";
 
 	return (
 		<div
@@ -95,11 +97,13 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 			aria-label={`Champion ${champ.name}, level ${champ.championLevel}, ${champ.championPoints} points`}
 			title={`${champ.name}\nMastery Level: ${champ.championLevel}\nMastery Points: ${champ.championPoints.toLocaleString()}`}
 		>
-			<div className={clsx(
-				"relative z-10 rounded ring-2 transition-all duration-200",
-				masteryBorderColor,
-				isHovered && !disabled && "ring-4 shadow-lg shadow-current/20",
-			)}>
+			<div
+				className={clsx(
+					"relative z-10 rounded ring-2 transition-all duration-200",
+					masteryBorderColor,
+					isHovered && !disabled && "ring-4 shadow-lg shadow-current/20",
+				)}
+			>
 				<img
 					src={getChampionImage(champ.full)}
 					style={{

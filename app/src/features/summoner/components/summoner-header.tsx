@@ -7,11 +7,11 @@ import { type Choice, Dropdown } from "@/features/shared/components/dropdown";
 import { ScaleSlider } from "@/features/shared/components/scale-slider";
 import { SwitchWithLabel } from "@/features/shared/components/switch-with-label";
 import { ToggleEye } from "@/features/shared/components/toggle-eye";
+import { TogglePill } from "@/features/shared/components/toggle-pill";
 import type { CompleteChampionInfo } from "@/features/shared/types";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 import { useUserContext } from "@/stores/user-store";
 import { FullSummonerUpdate } from "./summoner-update";
-import { TogglePill } from "@/features/shared/components/toggle-pill";
 
 export enum SortOrder2 {
 	Points = 0,
