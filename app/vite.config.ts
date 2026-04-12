@@ -18,15 +18,15 @@ export default defineConfig(({ mode }) => ({
 	ssr:
 		mode === "production"
 			? {
-					noExternal: ["ioredis", "bullmq"],
-				}
+				noExternal: ["ioredis", "bullmq"],
+			}
 			: undefined,
 	resolve:
 		mode === "production"
 			? {
-					alias: {
-						"ioredis/built/utils": "ioredis/built/utils/index.js",
-					},
-				}
+				alias: {
+					"ioredis/built/utils": "ioredis/built/utils/index.js",
+				},
+			}
 			: undefined,
 }));

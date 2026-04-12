@@ -150,7 +150,7 @@ function ChallengesView() {
 			<div className="max-w-7xl mx-auto space-y-8">
 				{/* Page Title */}
 				<div className="text-center space-y-4">
-					<h1 className="text-4xl font-bold tracking-tight">Challenges</h1>
+					<h2 className="text-4xl font-bold tracking-tight">Challenges</h2>
 					<p className="text-muted-foreground max-w-2xl mx-auto">
 						Browse all available challenges, view tier requirements, and see
 						global leaderboards.

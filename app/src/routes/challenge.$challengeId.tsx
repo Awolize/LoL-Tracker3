@@ -161,9 +161,9 @@ function Client() {
 							className="w-24 h-24 rounded-lg object-cover"
 						/>
 						<div>
-							<h1 className="text-4xl font-bold mb-2">
+							<h2 className="text-4xl font-bold mb-2">
 								{config.localization?.name || `Challenge ${challengeId}`}
-							</h1>
+							</h2>
 							{config.localization?.description && (
 								<p className="text-lg text-muted-foreground">
 									{config.localization.description}

@@ -195,9 +195,9 @@ function QueueDashboard() {
 		<div className="min-h-screen bg-neutral-950 text-neutral-100 p-6 md:p-8">
 			<header className="mb-8 flex items-center justify-between">
 				<div>
-					<h1 className="text-3xl font-bold tracking-tight text-white">
+					<h2 className="text-3xl font-bold tracking-tight text-white">
 						Queue Dashboard
-					</h1>
+					</h2>
 					<p className="text-neutral-400 mt-1">
 						Real-time job processing metrics
 					</p>

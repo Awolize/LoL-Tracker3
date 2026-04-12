@@ -158,9 +158,9 @@ function Client() {
 							/>
 						</div>
 						<div className="flex flex-col items-center sm:items-start">
-							<h1 className="bg-linear-to-r from-green-600 via-sky-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent md:text-6xl text-center sm:text-left">
+							<h2 className="bg-linear-to-r from-green-600 via-sky-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent md:text-6xl text-center sm:text-left">
 								{username}
-							</h1>
+							</h2>
 							<div className="flex items-center gap-4 text-sm font-bold text-muted-foreground">
 								<span className="uppercase">{region}</span>
 								<span>•</span>
