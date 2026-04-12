@@ -37,7 +37,7 @@ const updateConfig = async (config: ConfigDTO.Config): Promise<ChallengesConfig>
 	const localizedName = config.localizedNames.en_US!;
 	const locData = {
 		id: config.id,
-		language: "en_US" as "en_US",
+		language: "en_US" as const,
 		description: localizedName.description,
 		name: localizedName.name,
 		shortDescription: localizedName.shortDescription,
