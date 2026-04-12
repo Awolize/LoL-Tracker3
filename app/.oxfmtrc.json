@@ -9,5 +9,7 @@
 		".nitro/**",
 		".output/**",
 		".tanstack/**"
-	]
+	],
+	"sortImports": true,
+	
 }
