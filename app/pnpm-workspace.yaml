@@ -3,4 +3,4 @@ onlyBuiltDependencies:
     - msgpackr-extract
     - sharp
 
-minimumReleaseAge: 4000
+# minimumReleaseAge: 4000

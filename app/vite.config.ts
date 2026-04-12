@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => ({
 	ssr:
 		mode === "production"
 			? {
-				noExternal: ["ioredis", "bullmq"],
+				noExternal: ["ioredis", "bullmq", "tslib"],
 			}
 			: undefined,
 	resolve: {
