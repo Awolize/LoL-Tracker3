@@ -1,12 +1,13 @@
 // routes/queue/dashboard.tsx
 
-import { type PointTooltipProps, ResponsiveLine } from "@nivo/line";
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
-import clsx from "clsx"; // Assuming you have clsx or cn utility
+import clsx from "clsx";
 import * as React from "react";
 
 import { getQueueMetricsFn } from "~/server/jobs/mutations";
+
+import type { MetricKey, MetricStats, QueueDataSummary } from "./queue-types";
 
 // ----------------------------------------------------------------------
 // 1. Domain Types
@@ -17,25 +18,6 @@ interface QueueMetrics {
 	workers: Array<Record<string, string>>;
 	latencyMsAvg: number;
 }
-
-interface MetricStats {
-	avg: number;
-	high: number;
-	low: number;
-}
-
-interface QueueDataSummary {
-	ts: number;
-	waiting: MetricStats;
-	active: MetricStats;
-	delayed: MetricStats;
-	prioritized: MetricStats;
-	completed: MetricStats;
-	failed: MetricStats;
-	latency: MetricStats;
-}
-
-type MetricKey = keyof Omit<QueueDataSummary, "ts">;
 
 // ----------------------------------------------------------------------
 // 2. Utilities (Pure Functions)
@@ -169,6 +151,8 @@ function useQueueMetrics() {
 	});
 }
 
+const LazyMetricChart = React.lazy(() => import("./queue-nivo-charts"));
+
 // ----------------------------------------------------------------------
 // 4. UI Components
 // ----------------------------------------------------------------------
@@ -200,31 +184,44 @@ function QueueDashboard() {
 				<StatusBadge active={!isError && !!metrics} />
 			</header>
 
-			<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-				<ChartCard title="Active Jobs" color="#3b82f6">
-					<MetricChart data={history} metric="active" color="#3b82f6" />
-				</ChartCard>
+			<React.Suspense
+				fallback={
+					<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+						{Array.from({ length: 6 }, (_, i) => (
+							<div
+								key={i}
+								className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5 h-80 animate-pulse"
+							/>
+						))}
+					</div>
+				}
+			>
+				<div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+					<ChartCard title="Active Jobs" color="#3b82f6">
+						<LazyMetricChart data={history} metric="active" color="#3b82f6" />
+					</ChartCard>
 
-				<ChartCard title="Waiting Jobs" color="#eab308">
-					<MetricChart data={history} metric="waiting" color="#eab308" />
-				</ChartCard>
+					<ChartCard title="Waiting Jobs" color="#eab308">
+						<LazyMetricChart data={history} metric="waiting" color="#eab308" />
+					</ChartCard>
 
-				<ChartCard title="Delayed Jobs" color="#a855f7">
-					<MetricChart data={history} metric="delayed" color="#a855f7" />
-				</ChartCard>
+					<ChartCard title="Delayed Jobs" color="#a855f7">
+						<LazyMetricChart data={history} metric="delayed" color="#a855f7" />
+					</ChartCard>
 
-				<ChartCard title="Prioritized Jobs" color="#10b981">
-					<MetricChart data={history} metric="prioritized" color="#10b981" />
-				</ChartCard>
+					<ChartCard title="Prioritized Jobs" color="#10b981">
+						<LazyMetricChart data={history} metric="prioritized" color="#10b981" />
+					</ChartCard>
 
-				<ChartCard title="Failed Jobs" color="#ef4444">
-					<MetricChart data={history} metric="failed" color="#ef4444" />
-				</ChartCard>
+					<ChartCard title="Failed Jobs" color="#ef4444">
+						<LazyMetricChart data={history} metric="failed" color="#ef4444" />
+					</ChartCard>
 
-				<ChartCard title="Avg Latency (ms)" color="#f97316">
-					<MetricChart data={history} metric="latency" color="#f97316" />
-				</ChartCard>
-			</div>
+					<ChartCard title="Avg Latency (ms)" color="#f97316">
+						<LazyMetricChart data={history} metric="latency" color="#f97316" />
+					</ChartCard>
+				</div>
+			</React.Suspense>
 		</div>
 	);
 }
@@ -276,129 +273,3 @@ function ChartCard({
 		</div>
 	);
 }
-
-interface MetricChartProps {
-	data: QueueDataSummary[];
-	metric: MetricKey;
-	color: string;
-}
-
-const MetricChart = React.memo(({ data, metric, color }: MetricChartProps) => {
-	const chartData = React.useMemo(
-		() => [
-			{
-				id: metric,
-				color: color,
-				data: data.map((point) => ({
-					x: point.ts,
-					y: point[metric].avg,
-					ctx: point[metric],
-				})),
-			},
-		],
-		[data, metric, color],
-	);
-
-	return (
-		<ResponsiveLine
-			data={chartData}
-			// 1. INCREASED MARGINS: vital for showing axis labels
-			margin={{ top: 20, right: 20, bottom: 50, left: 60 }}
-			xScale={{
-				type: "time",
-				format: "%Q",
-				useUTC: false,
-				precision: "second",
-			}}
-			xFormat="time:%H:%M:%S"
-			yScale={{ type: "linear", min: "auto", max: "auto", stacked: false }}
-			axisTop={null}
-			axisRight={null}
-			// 2. CONFIGURED AXES
-			axisBottom={{
-				format: "%H:%M",
-				tickValues: 5, // Auto-selects ~5 timestamps
-				tickSize: 5, // Small line indicating the exact point
-				tickPadding: 10,
-				tickRotation: 0,
-			}}
-			axisLeft={{
-				tickSize: 5,
-				tickPadding: 10,
-				tickRotation: 0,
-				tickValues: 5, // Auto-selects ~5 value steps
-			}}
-			enableGridX={false}
-			enableGridY={true}
-			colors={[color]}
-			lineWidth={2}
-			pointSize={0}
-			useMesh={true}
-			// 3. UPDATED THEME FOR CONTRAST
-			theme={{
-				background: "transparent",
-				text: {
-					fill: "#a3a3a3", // Lighter gray text (neutral-400)
-					fontSize: 11,
-					fontFamily: "inherit",
-				},
-				axis: {
-					domain: {
-						line: {
-							stroke: "#525252", // Visible axis line
-							strokeWidth: 1,
-						},
-					},
-					ticks: {
-						line: {
-							stroke: "#525252", // Visible tick marks
-							strokeWidth: 1,
-						},
-						text: {
-							fill: "#a3a3a3", // Ensures tick labels are visible
-						},
-					},
-				},
-				grid: {
-					line: {
-						stroke: "#262626",
-						strokeWidth: 1,
-						strokeDasharray: "4 4",
-					},
-				},
-				crosshair: {
-					line: { stroke: "#fff", strokeWidth: 1, strokeOpacity: 0.5 },
-				},
-				tooltip: {
-					container: {
-						color: "#000", // Resets text color inside tooltip to black if needed, or use custom tooltip component
-					},
-				},
-			}}
-			tooltip={CustomTooltip}
-		/>
-	);
-});
-
-const CustomTooltip = ({ point }: PointTooltipProps) => {
-	const metricStats = (point.data as any).ctx as MetricStats; // Access the context we passed
-
-	return (
-		<div className="rounded-lg border border-neutral-700 bg-neutral-900 p-3 shadow-xl text-xs">
-			<div className="mb-2 text-neutral-400">{point.data.xFormatted}</div>
-			<div className="flex flex-col gap-1">
-				<div className="flex items-center gap-2 font-semibold text-white">
-					<span
-						className="block h-2 w-2 rounded-full"
-						style={{ backgroundColor: point.serieColor }}
-					/>
-					Average: {metricStats.avg.toLocaleString()}
-				</div>
-				<div className="flex gap-3 text-neutral-500 mt-1 pt-1 border-t border-neutral-800">
-					<span>High: {metricStats.high.toLocaleString()}</span>
-					<span>Low: {metricStats.low.toLocaleString()}</span>
-				</div>
-			</div>
-		</div>
-	);
-};

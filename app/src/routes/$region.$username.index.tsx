@@ -15,6 +15,7 @@ import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
 import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
 import { checkNameChangeFn, getUserByNameAndRegionFn } from "~/server/summoner/mutations";
 
+/** Path strings avoid importing sibling route modules into this chunk. */
 const NAV_ITEMS = [
 	{
 		route: MasteryRoute,
@@ -160,16 +161,16 @@ function Client() {
 				</motion.div>
 
 				<nav className="flex flex-col gap-4">
-					{NAV_ITEMS.map(({ route, title, description }) => (
+					{NAV_ITEMS.map(({ to, title, description }) => (
 						<motion.div
-							key={route.to}
+							key={to}
 							variants={itemVariants}
 							whileHover={{ scale: 1.02 }}
 							whileTap={{ scale: 0.98 }}
 							className="relative"
 						>
 							<Link
-								to={route.to}
+								to={to}
 								params={{ region: rawRegion, username: rawUsername }}
 								preload="intent"
 								className="group block h-full rounded-lg border border-border bg-card p-6 transition-colors hover:border-primary hover:bg-accent/50 hover:shadow-lg"
