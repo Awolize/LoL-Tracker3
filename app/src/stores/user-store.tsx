@@ -32,11 +32,7 @@ export function UserProvider({ children, ...props }: UserProviderProps) {
 		storeRef.current = createUserStore(props);
 	}
 
-	return (
-		<UserContext.Provider value={storeRef.current}>
-			{children}
-		</UserContext.Provider>
-	);
+	return <UserContext.Provider value={storeRef.current}>{children}</UserContext.Provider>;
 }
 
 export function useUserContext<T>(selector: (state: StoreState) => T): T {

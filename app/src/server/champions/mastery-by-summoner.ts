@@ -2,10 +2,7 @@ import { eq } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import { db } from "@/db";
 import { championMastery } from "@/db/schema";
-import type {
-	ChampionMasteryDTOWithoutExtras,
-	Summoner,
-} from "@/features/shared/types";
+import type { ChampionMasteryDTOWithoutExtras, Summoner } from "@/features/shared/types";
 
 export const masteryBySummoner = async (
 	region: Regions,
@@ -42,10 +39,7 @@ export const masteryBySummoner = async (
 			tokensEarned: mastery.tokensEarned,
 		}));
 	} catch (err) {
-		console.error(
-			`Error fetching champion mastery for ${user.gameName}#${user.tagLine}:`,
-			err,
-		);
+		console.error(`Error fetching champion mastery for ${user.gameName}#${user.tagLine}:`, err);
 		return [];
 	}
 };

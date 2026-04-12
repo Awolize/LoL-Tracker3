@@ -5,11 +5,7 @@ import type { CompleteChampionInfo } from "@/features/shared/types";
 import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 
 const ROLES = ["Top", "Jungle", "Mid", "Bottom", "Support"];
-const SortedChampionList = ({
-	champions,
-}: {
-	champions: CompleteChampionInfo[];
-}) => {
+const SortedChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
 	const {
 		filterPoints,
 		filterLevel,

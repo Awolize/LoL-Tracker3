@@ -11,16 +11,9 @@ import {
 import { regionToConstant } from "@/features/shared/champs";
 import type { Summoner } from "@/features/shared/types";
 import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
-import {
-	getArenaMatches,
-	getMatches,
-	getSRMatches,
-} from "@/server/matches/get-matches";
+import { getArenaMatches, getMatches, getSRMatches } from "@/server/matches/get-matches";
 
-export const runAllChallengeUpdatesWorker = async (data: {
-	username: string;
-	region: string;
-}) => {
+export const runAllChallengeUpdatesWorker = async (data: { username: string; region: string }) => {
 	try {
 		await updateJackOfAllChampsWorker(data);
 		await updateChampionOceanWorker(data);
@@ -54,21 +47,14 @@ const createChallengeUpdaterWorker =
 
 		const participations = matches.flatMap((match) => {
 			const participants = (match.matchInfos?.[0]?.participants as any[]) || [];
-			return participants.filter(
-				(p) => !filterFn || (filterFn(p) && p.puuid === user.puuid),
-			);
+			return participants.filter((p) => !filterFn || (filterFn(p) && p.puuid === user.puuid));
 		});
 
-		const uniqueChampIds = [
-			...new Set(participations.map((p) => p.championId)),
-		];
+		const uniqueChampIds = [...new Set(participations.map((p) => p.championId))];
 
 		await clearChallenge(user, tableName);
 
-		await db
-			.insert(challenges)
-			.values({ puuid: user.puuid })
-			.onConflictDoNothing();
+		await db.insert(challenges).values({ puuid: user.puuid }).onConflictDoNothing();
 
 		if (uniqueChampIds.length > 0) {
 			const tableMapInsert = {

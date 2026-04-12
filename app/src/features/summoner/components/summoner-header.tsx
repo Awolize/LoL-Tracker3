@@ -19,11 +19,7 @@ export enum SortOrder2 {
 	Level = 2,
 }
 
-export default function Header({
-	champions,
-}: {
-	champions: CompleteChampionInfo[];
-}) {
+export default function Header({ champions }: { champions: CompleteChampionInfo[] }) {
 	const {
 		showMasteryPoints,
 		showChampionLevels,
@@ -103,18 +99,10 @@ export default function Header({
 	];
 
 	// Exclude hidden champions from counts
-	const visibleChampions = champions.filter(
-		(c) => !selectedChampions.has(c.id),
-	);
+	const visibleChampions = champions.filter((c) => !selectedChampions.has(c.id));
 
 	const filteredCount = visibleChampions.filter((c) =>
-		filteredOut(
-			c,
-			filterPoints,
-			filterLevel,
-			filterPointsDirection,
-			filterLevelDirection,
-		),
+		filteredOut(c, filterPoints, filterLevel, filterPointsDirection, filterLevelDirection),
 	).length;
 
 	return (
@@ -130,11 +118,7 @@ export default function Header({
 			<div className="flex flex-row items-center justify-center gap-2 mx-auto">
 				<FullSummonerUpdate user={user} awaitMatches={false} />
 				<div className="h-8 w-px bg-gray-500" />
-				<TogglePill
-					label={"By Role"}
-					checked={byRole}
-					onChange={toggleSortedByRole}
-				/>
+				<TogglePill label={"By Role"} checked={byRole} onChange={toggleSortedByRole} />
 				{byRole && (
 					<>
 						<div className="h-8 w-px bg-gray-500" />
@@ -201,8 +185,7 @@ export default function Header({
 					choices={sortOrderChoices}
 					menuLabel="Sort by"
 					choice={
-						sortOrderChoices.find((el) => el.value === sortOrder) ??
-						sortOrderChoices[0]
+						sortOrderChoices.find((el) => el.value === sortOrder) ?? sortOrderChoices[0]
 					}
 					callback={(value) => setSortOrder(value)}
 				/>

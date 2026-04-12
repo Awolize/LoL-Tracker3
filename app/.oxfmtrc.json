@@ -1,12 +1,13 @@
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "useTabs": true,
-  "singleQuote": false,
-  "ignorePatterns": [
-    "src/routeTree.gen.ts",
-    "src/styles.css",
-    ".nitro/**",
-    ".output/**",
-    ".tanstack/**"
-  ]
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"useTabs": true,
+	"singleQuote": false,
+	"tabWidth": 4,
+	"ignorePatterns": [
+		"src/routeTree.gen.ts",
+		"src/styles.css",
+		".nitro/**",
+		".output/**",
+		".tanstack/**"
+	]
 }

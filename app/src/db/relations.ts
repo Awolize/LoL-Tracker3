@@ -52,46 +52,34 @@ export const summonerRelations = relations(summoner, ({ many }) => ({
 	matchSummoners: many(matchSummoners),
 }));
 
-export const championMasteryRelations = relations(
-	championMastery,
-	({ one }) => ({
-		summoner: one(summoner, {
-			fields: [championMastery.puuid],
-			references: [summoner.puuid],
-		}),
+export const championMasteryRelations = relations(championMastery, ({ one }) => ({
+	summoner: one(summoner, {
+		fields: [championMastery.puuid],
+		references: [summoner.puuid],
 	}),
-);
+}));
 
-export const challengeLocalizationRelations = relations(
-	challengeLocalization,
-	({ one }) => ({
-		challengesConfig: one(challengesConfig, {
-			fields: [challengeLocalization.id],
-			references: [challengesConfig.id],
-		}),
+export const challengeLocalizationRelations = relations(challengeLocalization, ({ one }) => ({
+	challengesConfig: one(challengesConfig, {
+		fields: [challengeLocalization.id],
+		references: [challengesConfig.id],
 	}),
-);
+}));
 
-export const challengesConfigRelations = relations(
-	challengesConfig,
-	({ many }) => ({
-		challengeLocalizations: many(challengeLocalization),
-	}),
-);
+export const challengesConfigRelations = relations(challengesConfig, ({ many }) => ({
+	challengeLocalizations: many(challengeLocalization),
+}));
 
-export const challengesDetailsRelations = relations(
-	challengesDetails,
-	({ one, many }) => ({
-		summoner: one(summoner, {
-			fields: [challengesDetails.puuid],
-			references: [summoner.puuid],
-		}),
-		totalPoints: many(totalPoints),
-		preferences: many(preferences),
-		challenges: many(challenge),
-		categoryPoints: many(categoryPoints),
+export const challengesDetailsRelations = relations(challengesDetails, ({ one, many }) => ({
+	summoner: one(summoner, {
+		fields: [challengesDetails.puuid],
+		references: [summoner.puuid],
 	}),
-);
+	totalPoints: many(totalPoints),
+	preferences: many(preferences),
+	challenges: many(challenge),
+	categoryPoints: many(categoryPoints),
+}));
 
 export const totalPointsRelations = relations(totalPoints, ({ one }) => ({
 	challengesDetail: one(challengesDetails, {
@@ -132,44 +120,35 @@ export const matchSummonersRelations = relations(matchSummoners, ({ one }) => ({
 	}),
 }));
 
-export const challengeHeroesRelations = relations(
-	challengeHeroes,
-	({ one }) => ({
-		challenge: one(challenges, {
-			fields: [challengeHeroes.a],
-			references: [challenges.puuid],
-		}),
-		championDetail: one(championDetails, {
-			fields: [challengeHeroes.b],
-			references: [championDetails.id],
-		}),
+export const challengeHeroesRelations = relations(challengeHeroes, ({ one }) => ({
+	challenge: one(challenges, {
+		fields: [challengeHeroes.a],
+		references: [challenges.puuid],
 	}),
-);
+	championDetail: one(championDetails, {
+		fields: [challengeHeroes.b],
+		references: [championDetails.id],
+	}),
+}));
 
-export const championDetailsRelations = relations(
-	championDetails,
-	({ many }) => ({
-		challengeHeroes: many(challengeHeroes),
-		challengesChampionOceans: many(challengesChampionOcean),
-		challengesAdaptToAllSituations: many(challengesAdaptToAllSituations),
-		challengesInvincibles: many(challengesInvincible),
-		challengesChampionOcean2024Split3s: many(challengesChampionOcean2024Split3),
-	}),
-);
+export const championDetailsRelations = relations(championDetails, ({ many }) => ({
+	challengeHeroes: many(challengeHeroes),
+	challengesChampionOceans: many(challengesChampionOcean),
+	challengesAdaptToAllSituations: many(challengesAdaptToAllSituations),
+	challengesInvincibles: many(challengesInvincible),
+	challengesChampionOcean2024Split3s: many(challengesChampionOcean2024Split3),
+}));
 
-export const challengesChampionOceanRelations = relations(
-	challengesChampionOcean,
-	({ one }) => ({
-		challenge: one(challenges, {
-			fields: [challengesChampionOcean.a],
-			references: [challenges.puuid],
-		}),
-		championDetail: one(championDetails, {
-			fields: [challengesChampionOcean.b],
-			references: [championDetails.id],
-		}),
+export const challengesChampionOceanRelations = relations(challengesChampionOcean, ({ one }) => ({
+	challenge: one(challenges, {
+		fields: [challengesChampionOcean.a],
+		references: [challenges.puuid],
 	}),
-);
+	championDetail: one(championDetails, {
+		fields: [challengesChampionOcean.b],
+		references: [championDetails.id],
+	}),
+}));
 
 export const challengesAdaptToAllSituationsRelations = relations(
 	challengesAdaptToAllSituations,
@@ -185,19 +164,16 @@ export const challengesAdaptToAllSituationsRelations = relations(
 	}),
 );
 
-export const challengesInvincibleRelations = relations(
-	challengesInvincible,
-	({ one }) => ({
-		challenge: one(challenges, {
-			fields: [challengesInvincible.a],
-			references: [challenges.puuid],
-		}),
-		championDetail: one(championDetails, {
-			fields: [challengesInvincible.b],
-			references: [championDetails.id],
-		}),
+export const challengesInvincibleRelations = relations(challengesInvincible, ({ one }) => ({
+	challenge: one(challenges, {
+		fields: [challengesInvincible.a],
+		references: [challenges.puuid],
 	}),
-);
+	championDetail: one(championDetails, {
+		fields: [challengesInvincible.b],
+		references: [championDetails.id],
+	}),
+}));
 
 export const challengesChampionOcean2024Split3Relations = relations(
 	challengesChampionOcean2024Split3,

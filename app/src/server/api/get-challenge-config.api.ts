@@ -12,10 +12,7 @@ export const getChallengeConfig = createServerFn()
 				localization: challengeLocalization,
 			})
 			.from(challengesConfig)
-			.leftJoin(
-				challengeLocalization,
-				eq(challengesConfig.id, challengeLocalization.id),
-			)
+			.leftJoin(challengeLocalization, eq(challengesConfig.id, challengeLocalization.id))
 			.where(
 				and(
 					eq(challengesConfig.id, challengeId),

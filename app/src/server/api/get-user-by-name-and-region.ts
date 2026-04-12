@@ -5,10 +5,7 @@ import { summoner } from "@/db/schema";
 import type { Summoner } from "@/features/shared/types";
 import { getSummonerByUsernameRateLimit } from "@/server/summoner/get-summoner-by-username-rate-limit";
 
-export async function getUserByNameAndRegion(
-	username: string,
-	region: Regions,
-) {
+export async function getUserByNameAndRegion(username: string, region: Regions) {
 	function isWithinThreshold(date: Date) {
 		const oneDayInMillis = 24 * 60 * 60 * 1000;
 		return Date.now() - date.getTime() <= oneDayInMillis;
@@ -20,11 +17,7 @@ export async function getUserByNameAndRegion(
 		// Fetch existing user
 		const user = await db.query.summoner.findFirst({
 			where: (s) =>
-				and(
-					ilike(s.gameName, gameName),
-					ilike(s.tagLine, tagLine),
-					eq(s.region, region),
-				),
+				and(ilike(s.gameName, gameName), ilike(s.tagLine, tagLine), eq(s.region, region)),
 		});
 
 		if (user && isWithinThreshold(user.updatedAt)) {
@@ -34,8 +27,10 @@ export async function getUserByNameAndRegion(
 		console.log("Could not find summoner in DB", username, region);
 
 		// Fetch from Riot API
-		const { summoner: riotSummoner, account } =
-			await getSummonerByUsernameRateLimit(username, region);
+		const { summoner: riotSummoner, account } = await getSummonerByUsernameRateLimit(
+			username,
+			region,
+		);
 
 		// Find duplicates
 		const existingUsers = await db.query.summoner.findMany({
@@ -81,10 +76,7 @@ export async function getUserByNameAndRegion(
 
 		let savedUser: Summoner;
 		if (existing) {
-			await db
-				.update(summoner)
-				.set(data)
-				.where(eq(summoner.puuid, riotSummoner.puuid));
+			await db.update(summoner).set(data).where(eq(summoner.puuid, riotSummoner.puuid));
 
 			savedUser = { ...existing, ...data };
 		} else {
@@ -94,13 +86,7 @@ export async function getUserByNameAndRegion(
 
 		return savedUser;
 	} catch (error) {
-		console.error(
-			"error:",
-			new Date().toLocaleString(),
-			username,
-			region,
-			error,
-		);
+		console.error("error:", new Date().toLocaleString(), username, region, error);
 		throw new Error("Could not fetch summoner", { cause: error });
 	}
 }

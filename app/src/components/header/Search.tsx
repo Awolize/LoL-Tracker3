@@ -88,10 +88,7 @@ export default function Search() {
 						/>
 					</div>
 				</div>
-				<form
-					onSubmit={onSubmit}
-					className="flex flex-col gap-2 w-full max-w-sm relative"
-				>
+				<form onSubmit={onSubmit} className="flex flex-col gap-2 w-full max-w-sm relative">
 					<div className="w-full flex flex-row h-12 gap-1">
 						<div className="relative gap-1 flex w-full">
 							<input

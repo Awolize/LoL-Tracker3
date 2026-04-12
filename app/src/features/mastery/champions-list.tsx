@@ -53,8 +53,7 @@ const ChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {
 								showChampionLevels={showChampionLevels}
 								showMasteryBorders={showMasteryBorders}
 								handleChampionClick={() =>
-									showSelectedChampions &&
-									toggleSelectedChampion(championInfo.id)
+									showSelectedChampions && toggleSelectedChampion(championInfo.id)
 								}
 							/>
 						);

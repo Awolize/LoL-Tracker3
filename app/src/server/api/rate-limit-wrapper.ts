@@ -28,7 +28,5 @@ export const rateLimitWrapper = async <T>(
 	}
 
 	// If max retries are reached, throw an error or handle it accordingly
-	throw new Error(
-		`Max retries (${maxRetries}) reached. Unable to complete the request.`,
-	);
+	throw new Error(`Max retries (${maxRetries}) reached. Unable to complete the request.`);
 };

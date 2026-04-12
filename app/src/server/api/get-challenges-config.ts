@@ -9,10 +9,7 @@ export const getChallengesConfig = async () => {
 			localization: challengeLocalization,
 		})
 		.from(challengesConfig)
-		.leftJoin(
-			challengeLocalization,
-			eq(challengesConfig.id, challengeLocalization.id),
-		)
+		.leftJoin(challengeLocalization, eq(challengesConfig.id, challengeLocalization.id))
 		.where(eq(challengeLocalization.language, "en_US"));
 
 	return configs;

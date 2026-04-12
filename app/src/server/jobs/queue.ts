@@ -20,22 +20,12 @@ export const updateQueue = new Queue(QUEUE_NAME, {
 
 export const updateQueueEvents = new QueueEvents(QUEUE_NAME, { connection });
 
-updateQueueEvents.on("error", (err) =>
-	console.error("[QueueEvents] Error:", err),
-);
+updateQueueEvents.on("error", (err) => console.error("[QueueEvents] Error:", err));
 
 // --- Helper ---
-async function ensureSummoner(
-	gameName: string,
-	tagLine: string,
-	region: Regions,
-) {
-	const data = await getSummonerByUsernameRateLimit(
-		`${gameName}#${tagLine}`,
-		region,
-	);
-	if (!data.summoner)
-		throw new Error(`Summoner not found: ${gameName}#${tagLine}`);
+async function ensureSummoner(gameName: string, tagLine: string, region: Regions) {
+	const data = await getSummonerByUsernameRateLimit(`${gameName}#${tagLine}`, region);
+	if (!data.summoner) throw new Error(`Summoner not found: ${gameName}#${tagLine}`);
 
 	// Always update the DB with the latest account info
 	await upsertSummoner(data.summoner, data.account, region);
@@ -51,13 +41,7 @@ if (!global.__riotWorker) {
 		QUEUE_NAME,
 		async (job) => {
 			const { name, data } = job;
-			const {
-				gameName,
-				tagLine,
-				region: rawRegion,
-				matchId,
-				waitForMatches = false,
-			} = data;
+			const { gameName, tagLine, region: rawRegion, matchId, waitForMatches = false } = data;
 			const region = rawRegion as Regions;
 
 			// "Name#Tag" OR "MatchID"
@@ -120,11 +104,9 @@ if (!global.__riotWorker) {
 								{ priority: waitForMatches ? 10 : 50, jobId: id },
 							);
 
-							job
-								.waitUntilFinished(updateQueueEvents)
-								.catch((err) =>
-									console.error(`[Queue] Error in match ${id}:`, err),
-								);
+							job.waitUntilFinished(updateQueueEvents).catch((err) =>
+								console.error(`[Queue] Error in match ${id}:`, err),
+							);
 						});
 
 						return { success: true, queuedMatches: matchIds.length };

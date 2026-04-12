@@ -12,12 +12,7 @@ export const ToggleEye = ({
 }) => {
 	return (
 		<div className="flex flex-row items-center gap-2">
-			<Switch
-				id="toggle-eye"
-				checked={checked}
-				onCheckedChange={onChange}
-				aria-label={label}
-			>
+			<Switch id="toggle-eye" checked={checked} onCheckedChange={onChange} aria-label={label}>
 				{checked ? (
 					<svg
 						xmlns="http://www.w3.org/2000/svg"

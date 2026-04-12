@@ -7,14 +7,11 @@ import type { ChallengesConfig } from "@/features/shared/types";
 import { lolApi } from "@/server/external/riot/lol-api";
 
 export const updateChallengesConfigServer = async (region: Regions) => {
-	const configs: ConfigDTO.Config[] = (await lolApi.Challenges.Configs(region))
-		.response;
+	const configs: ConfigDTO.Config[] = (await lolApi.Challenges.Configs(region)).response;
 	return Promise.all(configs.map((config) => updateConfig(config)));
 };
 
-const updateConfig = async (
-	config: ConfigDTO.Config,
-): Promise<ChallengesConfig> => {
+const updateConfig = async (config: ConfigDTO.Config): Promise<ChallengesConfig> => {
 	const existing = await db
 		.select()
 		.from(challengesConfig)
@@ -31,10 +28,7 @@ const updateConfig = async (
 	};
 
 	if (existing) {
-		await db
-			.update(challengesConfig)
-			.set(rowData)
-			.where(eq(challengesConfig.id, config.id));
+		await db.update(challengesConfig).set(rowData).where(eq(challengesConfig.id, config.id));
 	} else {
 		await db.insert(challengesConfig).values(rowData);
 	}

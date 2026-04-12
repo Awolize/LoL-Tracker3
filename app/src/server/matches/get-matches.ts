@@ -15,8 +15,7 @@ export async function getMatches(
 	} = {},
 	take = options.take || 9999999,
 ) {
-	const { mapIds, queueIdsNotIn, gameMode, gameType, gameStartTimestampGte } =
-		options;
+	const { mapIds, queueIdsNotIn, gameMode, gameType, gameStartTimestampGte } = options;
 
 	// 1. Build the WHERE conditions dynamically
 	const filters = [];

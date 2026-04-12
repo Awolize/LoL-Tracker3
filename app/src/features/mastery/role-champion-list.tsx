@@ -1,9 +1,6 @@
 import { DifferentChampionItem } from "@/features/challenges/challenge-champion-item";
 import { DifferentRoleHeader } from "@/features/challenges/challenge-role-header";
-import type {
-	ChampionDetails,
-	CompleteChampionInfo,
-} from "@/features/shared/types";
+import type { ChampionDetails, CompleteChampionInfo } from "@/features/shared/types";
 import { useChallengeContext } from "@/stores/challenge-store";
 import { useSelectedChallenge } from "@/stores/selected-challenge-context";
 
@@ -28,9 +25,7 @@ export function RoleChampionList({
 	return (
 		<main className="flex grow flex-row gap-2 overflow-y-auto">
 			{["Top", "Jungle", "Mid", "Bottom", "Support"].map((role) => {
-				const champsWithRole = champions.filter(
-					(champ) => champ?.role === role,
-				);
+				const champsWithRole = champions.filter((champ) => champ?.role === role);
 
 				return (
 					<div className="w-full px-4" key={role}>
@@ -61,7 +56,9 @@ export function RoleChampionList({
 										onClick={() => {
 											if (selectedChallenge) {
 												if (jacks.includes(champ.key!)) {
-													console.log("You cannot mark finished champions");
+													console.log(
+														"You cannot mark finished champions",
+													);
 													return;
 												}
 												if (isMarked) {
@@ -71,10 +68,16 @@ export function RoleChampionList({
 														champ.id!,
 													);
 												} else {
-													markChampion(profileId, selectedChallenge, champ.id!);
+													markChampion(
+														profileId,
+														selectedChallenge,
+														champ.id!,
+													);
 												}
 											} else {
-												console.log("No challenge selected, no action taken.");
+												console.log(
+													"No challenge selected, no action taken.",
+												);
 											}
 										}}
 									/>

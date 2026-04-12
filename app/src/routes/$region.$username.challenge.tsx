@@ -1,8 +1,4 @@
-import {
-	createFileRoute,
-	useNavigate,
-	useSearch,
-} from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
@@ -115,10 +111,7 @@ export function RouteComponent() {
 	);
 
 	const [challengeChampions, setChallengeChampions] = useState<any[]>([]);
-	const [playerProgress, setPlayerProgress] = useState<Record<
-		number,
-		any
-	> | null>(null);
+	const [playerProgress, setPlayerProgress] = useState<Record<number, any> | null>(null);
 
 	useEffect(() => {
 		async function fetchChallenge() {

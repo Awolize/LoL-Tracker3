@@ -13,9 +13,9 @@ This guide explains how to manage database migrations in development and product
 
 1. Edit your schema in `src/db/schema.ts`
 2. Push changes directly to your dev database:
-   ```bash
-   pnpm db:push
-   ```
+    ```bash
+    pnpm db:push
+    ```
 
 This bypasses migrations and directly syncs your schema to the database. Perfect for rapid development!
 
@@ -62,28 +62,29 @@ pnpm db:migrate
 ### Production Deployment Steps
 
 1. **Build and push Docker image**:
-   ```bash
-   docker build -t your-app:latest .
-   docker push your-app:latest
-   ```
+
+    ```bash
+    docker build -t your-app:latest .
+    docker push your-app:latest
+    ```
 
 2. **Deploy container** (migrations run automatically on startup)
 
 3. **Verify migrations**:
-   ```bash
-   docker logs your-container-name
-   # Look for: ✅ Migrations completed successfully
-   ```
+    ```bash
+    docker logs your-container-name
+    # Look for: ✅ Migrations completed successfully
+    ```
 
 ## Available Scripts
 
-| Command | Description |
-|---------|-------------|
-| `pnpm db:push` | Sync schema directly to DB (dev only) |
-| `pnpm db:generate` | Generate migration files from schema |
-| `pnpm db:migrate` | Run pending migrations |
-| `pnpm db:pull` | Pull schema from existing database |
-| `pnpm db:studio` | Open Drizzle Studio (GUI) |
+| Command            | Description                           |
+| ------------------ | ------------------------------------- |
+| `pnpm db:push`     | Sync schema directly to DB (dev only) |
+| `pnpm db:generate` | Generate migration files from schema  |
+| `pnpm db:migrate`  | Run pending migrations                |
+| `pnpm db:pull`     | Pull schema from existing database    |
+| `pnpm db:studio`   | Open Drizzle Studio (GUI)             |
 
 ## Migration Files
 
@@ -101,10 +102,12 @@ drizzle/
 ### Migration File Structure
 
 Each migration file contains:
+
 - SQL statements to apply the change
 - Drizzle metadata comments
 
 Example:
+
 ```sql
 CREATE TABLE "users" (
   "id" serial PRIMARY KEY,
@@ -121,6 +124,7 @@ CREATE INDEX "name_idx" ON "users" ("name");
 **Symptoms**: Container exits with migration error
 
 **Solutions**:
+
 1. Check logs: `docker logs your-container-name`
 2. Fix the migration SQL in `drizzle/*.sql`
 3. Rebuild and redeploy
@@ -130,6 +134,7 @@ CREATE INDEX "name_idx" ON "users" ("name");
 **Symptoms**: `db:push` shows many changes
 
 **Solution**:
+
 ```bash
 # Generate a new migration capturing current state
 pnpm db:generate
@@ -150,12 +155,14 @@ Drizzle doesn't have built-in rollback. To revert:
 ## Best Practices
 
 ### Development
+
 - ✅ Use `db:push` for rapid iteration
 - ✅ Test schema changes thoroughly
 - ✅ Generate migrations when feature is complete
 - ❌ Don't commit every tiny change
 
 ### Production
+
 - ✅ Always review generated SQL
 - ✅ Test migrations on staging first
 - ✅ Backup database before major migrations
@@ -164,6 +171,7 @@ Drizzle doesn't have built-in rollback. To revert:
 - ❌ Never use `db:push` in production
 
 ### Migration Guidelines
+
 - **One change per migration** (easier to debug)
 - **Descriptive names** (use `db:generate --name "add_user_avatar"`)
 - **Backwards compatible** when possible (add columns as nullable first)
@@ -174,12 +182,14 @@ Drizzle doesn't have built-in rollback. To revert:
 If migrations are blocking your deployment, you can temporarily disable them:
 
 ### Option 1: Comment out migration step in docker-entrypoint.sh
+
 ```bash
 # Comment out this line:
 # pnpm drizzle-kit migrate
 ```
 
 ### Option 2: Use db:push in production (not recommended)
+
 ```bash
 # SSH into production
 pnpm db:push

@@ -7,12 +7,7 @@ interface TogglePillProps {
 	icon?: React.ReactNode;
 }
 
-export const TogglePill = ({
-	label,
-	checked,
-	onChange,
-	icon,
-}: TogglePillProps) => {
+export const TogglePill = ({ label, checked, onChange, icon }: TogglePillProps) => {
 	return (
 		<button
 			type="button"
@@ -36,9 +31,5 @@ interface TogglePillGroupProps {
 }
 
 export const TogglePillGroup = ({ children }: TogglePillGroupProps) => {
-	return (
-		<div className="flex items-center gap-1.5 p-1 bg-muted/30 rounded-full">
-			{children}
-		</div>
-	);
+	return <div className="flex items-center gap-1.5 p-1 bg-muted/30 rounded-full">{children}</div>;
 };

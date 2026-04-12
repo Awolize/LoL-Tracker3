@@ -25,9 +25,7 @@ const setStoredTheme = createClientOnlyFn((theme: UserTheme) => {
 const getSystemTheme = createIsomorphicFn()
 	.server((): AppTheme => "light")
 	.client((): AppTheme => {
-		return window.matchMedia("(prefers-color-scheme: dark)").matches
-			? "dark"
-			: "light";
+		return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
 	});
 
 const handleThemeChange = createClientOnlyFn((userTheme: UserTheme) => {
@@ -60,8 +58,7 @@ export const themeScript = (() => {
 				: "system";
 
 			if (validTheme === "system") {
-				const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-					.matches
+				const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
 					? "dark"
 					: "light";
 				document.documentElement.classList.add(systemTheme, "system");
@@ -69,8 +66,7 @@ export const themeScript = (() => {
 				document.documentElement.classList.add(validTheme);
 			}
 		} catch (_e) {
-			const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
-				.matches
+			const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
 				? "dark"
 				: "light";
 			document.documentElement.classList.add(systemTheme, "system");
@@ -106,11 +102,7 @@ export function ThemeProvider({ children }: ThemeProviderProps) {
 		handleThemeChange(validatedTheme);
 	};
 
-	return (
-		<ThemeContext value={{ userTheme, appTheme, setTheme }}>
-			{children}
-		</ThemeContext>
-	);
+	return <ThemeContext value={{ userTheme, appTheme, setTheme }}>{children}</ThemeContext>;
 }
 
 export const useTheme = () => {

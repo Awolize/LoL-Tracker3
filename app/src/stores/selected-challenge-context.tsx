@@ -6,8 +6,7 @@ interface SelectedChallengeContextValue {
 	setSelectedChallengeId: (id: number | null) => void;
 }
 
-const SelectedChallengeContext =
-	createContext<SelectedChallengeContextValue | null>(null);
+const SelectedChallengeContext = createContext<SelectedChallengeContextValue | null>(null);
 
 interface SelectedChallengeProviderProps {
 	children: React.ReactNode;
@@ -21,9 +20,7 @@ export function SelectedChallengeProvider({
 	setSelectedChallengeId,
 }: SelectedChallengeProviderProps) {
 	return (
-		<SelectedChallengeContext.Provider
-			value={{ selectedChallengeId, setSelectedChallengeId }}
-		>
+		<SelectedChallengeContext.Provider value={{ selectedChallengeId, setSelectedChallengeId }}>
 			{children}
 		</SelectedChallengeContext.Provider>
 	);
@@ -32,9 +29,7 @@ export function SelectedChallengeProvider({
 export function useSelectedChallenge(): SelectedChallengeContextValue {
 	const context = useContext(SelectedChallengeContext);
 	if (!context) {
-		throw new Error(
-			"useSelectedChallenge must be used within a SelectedChallengeProvider",
-		);
+		throw new Error("useSelectedChallenge must be used within a SelectedChallengeProvider");
 	}
 	return context;
 }

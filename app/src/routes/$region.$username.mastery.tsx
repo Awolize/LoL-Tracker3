@@ -10,10 +10,7 @@ import SortedChampionList from "@/features/mastery/role-sorted-champion-list";
 import type { CompleteChampionInfo, Summoner } from "@/features/shared/types";
 import Header from "@/features/summoner/components/summoner-header";
 import { getSummonerByNameRegion } from "@/server/summoner/mutations";
-import {
-	OptionsProvider,
-	useOptionsPersistentContext,
-} from "@/stores/options-persistent-store";
+import { OptionsProvider, useOptionsPersistentContext } from "@/stores/options-persistent-store";
 import { UserProvider } from "@/stores/user-store";
 
 export const Route = createFileRoute("/$region/$username/mastery")({
@@ -87,11 +84,7 @@ export function RouteComponent() {
 						</div>
 					</header>
 
-					<Main
-						playerChampionInfo={playerChampionInfo}
-						user={user}
-						version={version}
-					/>
+					<Main playerChampionInfo={playerChampionInfo} user={user} version={version} />
 
 					<footer className="flex flex-col items-center gap-4 p-2 text-sm opacity-50">
 						<FooterLinks />

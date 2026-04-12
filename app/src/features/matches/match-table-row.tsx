@@ -11,11 +11,7 @@ interface MatchTableProps {
 	version: string;
 }
 
-const MatchTable: React.FC<MatchTableProps> = ({
-	players,
-	teamId,
-	version,
-}) => {
+const MatchTable: React.FC<MatchTableProps> = ({ players, teamId, version }) => {
 	const { getChampionImage } = useDataDragonPath(version);
 	const user = useUserContext((s) => s.user);
 

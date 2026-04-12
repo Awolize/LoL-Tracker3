@@ -3,8 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import sharp from "sharp";
 import { minio } from "@/server/external/minio";
 
-const DEBUG =
-	process.env.IMAGE_DEBUG === "true" || process.env.IMAGE_DEBUG === "1";
+const DEBUG = process.env.IMAGE_DEBUG === "true" || process.env.IMAGE_DEBUG === "1";
 const log = (...args: any[]) => {
 	if (DEBUG) console.log(...args);
 };
@@ -127,9 +126,7 @@ export const Route = createFileRoute("/api/images/$")({
 							? path.replace(/\.webp$/, ".png")
 							: path;
 
-						const res = await fetch(
-							`https://ddragon.leagueoflegends.com/${riotPath}`,
-						);
+						const res = await fetch(`https://ddragon.leagueoflegends.com/${riotPath}`);
 						if (!res.ok) throw new Error(`DDragon ${res.status}`);
 						original = Buffer.from(await res.arrayBuffer());
 

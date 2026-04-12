@@ -14,9 +14,9 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 	const [isExpanded, setIsExpanded] = useState(false);
 
 	/* biome-ignore lint/suspicious/noExplicitAny: this object is way too big */
-	const userParticipant = (
-		match.MatchInfo.participants as unknown as Array<any>
-	)?.find((p) => p.puuid === user.puuid);
+	const userParticipant = (match.MatchInfo.participants as unknown as Array<any>)?.find(
+		(p) => p.puuid === user.puuid,
+	);
 
 	const isWin: boolean = userParticipant?.win || false;
 
@@ -119,7 +119,9 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 								.map((participant: any) => (
 									<div key={participant.puuid} className="relative">
 										<img
-											src={getChampionImage(`${participant.championName}.png`)}
+											src={getChampionImage(
+												`${participant.championName}.png`,
+											)}
 											className={`w-6 h-6 rounded border ${
 												participant.puuid === user.puuid
 													? "border-primary shadow-sm"
@@ -138,7 +140,9 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 								.map((participant: any) => (
 									<div key={participant.puuid} className="relative">
 										<img
-											src={getChampionImage(`${participant.championName}.png`)}
+											src={getChampionImage(
+												`${participant.championName}.png`,
+											)}
 											className={`w-6 h-6 rounded border ${
 												participant.puuid === user.puuid
 													? "border-primary shadow-sm"
@@ -175,9 +179,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 									Red Team
 								</h4>
 								<MatchTable
-									players={
-										match.MatchInfo.participants as unknown as Array<any>
-									}
+									players={match.MatchInfo.participants as unknown as Array<any>}
 									teamId={200}
 									version={`${match.MatchInfo.gameVersion.split(".").slice(0, 2).join(".")}.1`}
 								/>
@@ -189,9 +191,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 									Blue Team
 								</h4>
 								<MatchTable
-									players={
-										match.MatchInfo.participants as unknown as Array<any>
-									}
+									players={match.MatchInfo.participants as unknown as Array<any>}
 									teamId={100}
 									version={`${match.MatchInfo.gameVersion.split(".").slice(0, 2).join(".")}.1`}
 								/>

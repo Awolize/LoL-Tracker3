@@ -1,4 +1,4 @@
 onlyBuiltDependencies:
-  - esbuild
-  - msgpackr-extract
-  - sharp
+    - esbuild
+    - msgpackr-extract
+    - sharp

@@ -6,10 +6,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { regionToDisplay } from "@/features/shared/champs";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
-import type {
-	ChallengeConfig,
-	LeaderboardEntry,
-} from "@/features/shared/types";
+import type { ChallengeConfig, LeaderboardEntry } from "@/features/shared/types";
 import { getDataDragonVersion } from "@/server/api/mutations";
 
 interface ChallengeLeaderboardProps {
@@ -108,9 +105,7 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 			</div>
 
 			<div
-				className={`font-mono font-bold text-sm ${
-					exists ? "text-white" : "text-muted-foreground"
-				}`}
+				className={`font-mono font-bold text-sm ${exists ? "text-white" : "text-muted-foreground"}`}
 				style={exists ? { textShadow: "0 1px 2px rgba(0,0,0,0.5)" } : undefined}
 			>
 				{exists ? points.toLocaleString() : "—"}
@@ -203,9 +198,7 @@ const LeaderboardRow = ({
 				{/* Rank */}
 				<div
 					className={`font-mono text-sm w-6 text-center ${
-						isHighlighted
-							? "font-bold text-foreground"
-							: "text-muted-foreground/70"
+						isHighlighted ? "font-bold text-foreground" : "text-muted-foreground/70"
 					}`}
 				>
 					{actualIndex + 1}
@@ -297,8 +290,7 @@ export default function ChallengeLeaderboard({
 	const activeThresholds = useMemo(() => {
 		const thresholds = config.config.thresholds as Record<string, number>;
 		return Object.entries(thresholds).sort(
-			([tierA], [tierB]) =>
-				TIER_ORDER.indexOf(tierA) - TIER_ORDER.indexOf(tierB),
+			([tierA], [tierB]) => TIER_ORDER.indexOf(tierA) - TIER_ORDER.indexOf(tierB),
 		);
 	}, [config.config.thresholds]);
 
@@ -314,8 +306,7 @@ export default function ChallengeLeaderboard({
 		[activeThresholds],
 	);
 
-	const normalizedUsername =
-		highlightedUser?.username.replace("-", "#") ?? null;
+	const normalizedUsername = highlightedUser?.username.replace("-", "#") ?? null;
 	const normalizedRegion = highlightedUser
 		? regionToDisplay(highlightedUser.region).toUpperCase()
 		: null;
@@ -335,9 +326,7 @@ export default function ChallengeLeaderboard({
 		));
 
 	const shouldShowSections = highlightedUser && leaderboard.length > 75;
-	const topSection = shouldShowSections
-		? leaderboard.slice(0, 75)
-		: leaderboard;
+	const topSection = shouldShowSections ? leaderboard.slice(0, 75) : leaderboard;
 	const bottomSection = shouldShowSections ? leaderboard.slice(75) : [];
 
 	return (
@@ -355,10 +344,7 @@ export default function ChallengeLeaderboard({
 				>
 					{/* Display Tiers Highest to Lowest (Challenger -> Iron) */}
 					{[...TIER_ORDER].reverse().map((tier) => {
-						const thresholds = config.config.thresholds as Record<
-							string,
-							number
-						>;
+						const thresholds = config.config.thresholds as Record<string, number>;
 						const points = thresholds[tier];
 						const exists = points !== undefined;
 

@@ -128,9 +128,7 @@ function useQueueHistory() {
 			}
 
 			// -- Mid Res Optimization --
-			const midRes = newHistory.filter(
-				(h) => h.ts >= midResStart && h.ts < highResStart,
-			);
+			const midRes = newHistory.filter((h) => h.ts >= midResStart && h.ts < highResStart);
 			if (midRes.length > 100) {
 				const step = Math.ceil(midRes.length / 100);
 				const mergedMid: QueueDataSummary[] = [];
@@ -138,8 +136,7 @@ function useQueueHistory() {
 					mergedMid.push(mergeSummaries(midRes.slice(i, i + step)));
 				}
 				const startIdx = newHistory.indexOf(midRes[0]);
-				if (startIdx >= 0)
-					newHistory.splice(startIdx, midRes.length, ...mergedMid);
+				if (startIdx >= 0) newHistory.splice(startIdx, midRes.length, ...mergedMid);
 			}
 
 			// -- Long Res Optimization --
@@ -151,8 +148,7 @@ function useQueueHistory() {
 					mergedLong.push(mergeSummaries(longRes.slice(i, i + step)));
 				}
 				const startIdx = newHistory.indexOf(longRes[0]);
-				if (startIdx >= 0)
-					newHistory.splice(startIdx, longRes.length, ...mergedLong);
+				if (startIdx >= 0) newHistory.splice(startIdx, longRes.length, ...mergedLong);
 			}
 
 			return newHistory;
@@ -198,9 +194,7 @@ function QueueDashboard() {
 					<h2 className="text-3xl font-bold tracking-tight text-white">
 						Queue Dashboard
 					</h2>
-					<p className="text-neutral-400 mt-1">
-						Real-time job processing metrics
-					</p>
+					<p className="text-neutral-400 mt-1">Real-time job processing metrics</p>
 				</div>
 				<StatusBadge active={!isError && !!metrics} />
 			</header>
@@ -274,10 +268,7 @@ function ChartCard({
 	return (
 		<div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-5 shadow-sm backdrop-blur-sm">
 			<h2 className="text-sm font-medium text-neutral-400 mb-4 flex items-center gap-2">
-				<span
-					className="w-2 h-2 rounded-full"
-					style={{ backgroundColor: color }}
-				/>
+				<span className="w-2 h-2 rounded-full" style={{ backgroundColor: color }} />
 				{title}
 			</h2>
 			<div className="h-64 w-full">{children}</div>

@@ -1,10 +1,7 @@
 import { useMemo } from "react";
 import { ChallengeHeaderProgress } from "@/features/challenges/challenge-header-progress";
 import { ChallengeHeaderThresholds } from "@/features/challenges/challenge-header-thresholds";
-import type {
-	ChampionDetails,
-	CompleteChampionInfo,
-} from "@/features/shared/types";
+import type { ChampionDetails, CompleteChampionInfo } from "@/features/shared/types";
 import { useChallengeContext } from "@/stores/challenge-store";
 import { useSelectedChallenge } from "@/stores/selected-challenge-context";
 import { DifferentHeaderCounter } from "./header-counter.tsx";
@@ -32,17 +29,14 @@ export function ChampionListHeader({
 	const totalSize = useMemo(() => {
 		if (!selectedChallengeId) return 0;
 
-		const manualList =
-			manuallyMarked[profileId]?.[selectedChallengeId] ?? new Set<number>();
+		const manualList = manuallyMarked[profileId]?.[selectedChallengeId] ?? new Set<number>();
 		const awotList = challengeChampions.map((e) => e.id!);
 
 		return new Set([...awotList, ...manualList]).size;
 	}, [selectedChallengeId, manuallyMarked, profileId, challengeChampions]);
 
 	const selectedChallengeProgress =
-		selectedChallengeId && playerProgress
-			? playerProgress[selectedChallengeId]
-			: null;
+		selectedChallengeId && playerProgress ? playerProgress[selectedChallengeId] : null;
 	const selectedChallengeConfig = selectedChallengeId
 		? challenges.find((config) => config.config.id === selectedChallengeId)
 		: null;

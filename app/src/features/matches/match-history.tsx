@@ -15,8 +15,8 @@ export const MatchHistory = ({ matches }: MatchHistoryProps) => {
 					<p className="text-sm text-muted-foreground">
 						Click the update button on your profile to fetch the latest matches.
 						<br />
-						This can take a LONG time but you should start seeing your latest
-						games in a few minutes.
+						This can take a LONG time but you should start seeing your latest games in a
+						few minutes.
 					</p>
 				</div>
 			</div>

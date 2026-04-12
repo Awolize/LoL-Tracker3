@@ -27,9 +27,7 @@ export const Route = createFileRoute("/api/sitemap/$page.xml")({
 						updatedAt: summoner.updatedAt,
 					})
 					.from(summoner)
-					.where(
-						and(not(isNull(summoner.gameName)), not(isNull(summoner.tagLine))),
-					)
+					.where(and(not(isNull(summoner.gameName)), not(isNull(summoner.tagLine))))
 					.orderBy(desc(summoner.createdAt))
 					.limit(pageSize)
 					.offset(offset);

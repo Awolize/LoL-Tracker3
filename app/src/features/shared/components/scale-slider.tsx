@@ -3,9 +3,7 @@ import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
 
 export function ScaleSlider() {
 	const championsScale = useOptionsPersistentContext((s) => s.championsScale);
-	const setChampionsScale = useOptionsPersistentContext(
-		(s) => s.setChampionsScale,
-	);
+	const setChampionsScale = useOptionsPersistentContext((s) => s.setChampionsScale);
 
 	const handleSliderChange = (value: number[]) => {
 		setChampionsScale(value[0]);

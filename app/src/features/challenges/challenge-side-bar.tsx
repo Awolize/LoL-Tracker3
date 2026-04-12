@@ -29,18 +29,12 @@ interface DifferentSideBarProps {
 	user: Summoner;
 }
 
-export const DifferentSideBar = ({
-	challenges,
-	username,
-	region,
-	user,
-}: DifferentSideBarProps) => {
+export const DifferentSideBar = ({ challenges, username, region, user }: DifferentSideBarProps) => {
 	const [drawerOpen, setDrawerOpen] = useState(true);
 	const [showAll, setShowAll] = useState(false);
 	const [searchTerm, setSearchTerm] = useState("");
 
-	const { selectedChallengeId, setSelectedChallengeId } =
-		useSelectedChallenge();
+	const { selectedChallengeId, setSelectedChallengeId } = useSelectedChallenge();
 
 	const handleItemClick = (itemId: number) => {
 		setSelectedChallengeId(selectedChallengeId === itemId ? null : itemId);
@@ -52,15 +46,12 @@ export const DifferentSideBar = ({
 	const filteredChallenges = challenges
 		.filter((item) => {
 			const name = item.localization?.name || item.config.name;
-			const description =
-				item.localization?.description || item.config.description;
+			const description = item.localization?.description || item.config.description;
 
 			if (!name) return false;
 
 			const nameMatch = name.toLowerCase().includes(searchTerm.toLowerCase());
-			const descriptionMatch = description
-				?.toLowerCase()
-				.includes(searchTerm.toLowerCase());
+			const descriptionMatch = description?.toLowerCase().includes(searchTerm.toLowerCase());
 
 			return nameMatch || descriptionMatch;
 		})
@@ -94,9 +85,7 @@ export const DifferentSideBar = ({
 					</div>
 					<ul className="flex flex-col gap-1 overflow-y-auto">
 						{filteredChallenges.map((item) => {
-							const implemented = implementedChallengeIds.includes(
-								item.config.id,
-							);
+							const implemented = implementedChallengeIds.includes(item.config.id);
 
 							if (!showAll && !implemented) return null;
 
@@ -128,7 +117,10 @@ export const DifferentSideBar = ({
 											params={{ id: item.config.id.toString() }}
 											search={
 												username && region
-													? { username: username.replace("#", "-"), region }
+													? {
+															username: username.replace("#", "-"),
+															region,
+														}
 													: undefined
 											}
 											className="text-muted-foreground hover:text-primary transition-colors"

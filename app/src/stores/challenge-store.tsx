@@ -9,16 +9,8 @@ interface Store {
 }
 
 interface StoreState extends Store {
-	markChampion: (
-		profileId: string,
-		challengeId: number,
-		championId: number,
-	) => void;
-	unmarkChampion: (
-		profileId: string,
-		challengeId: number,
-		championId: number,
-	) => void;
+	markChampion: (profileId: string, challengeId: number, championId: number) => void;
+	unmarkChampion: (profileId: string, challengeId: number, championId: number) => void;
 }
 
 const initialState = {
@@ -91,16 +83,11 @@ const ChallengeContext = createContext<ChallengeStore | null>(null);
 
 type ChallengeProviderProps = React.PropsWithChildren<{ persistName: string }>;
 
-export function ChallengeProvider({
-	children,
-	persistName,
-}: ChallengeProviderProps) {
+export function ChallengeProvider({ children, persistName }: ChallengeProviderProps) {
 	const storeRef = useRef(useChallengeStore(persistName));
 
 	return (
-		<ChallengeContext.Provider value={storeRef.current}>
-			{children}
-		</ChallengeContext.Provider>
+		<ChallengeContext.Provider value={storeRef.current}>{children}</ChallengeContext.Provider>
 	);
 }
 

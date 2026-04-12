@@ -6,15 +6,9 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/components/utils";
 import type { Summoner } from "@/features/shared/types";
-import {
-	fullUpdateSummoner,
-	getLastMasteryUpdate,
-} from "@/server/summoner/mutations";
+import { fullUpdateSummoner, getLastMasteryUpdate } from "@/server/summoner/mutations";
 
-type SummonerUpdateInput = Pick<
-	Summoner,
-	"puuid" | "gameName" | "tagLine" | "region"
->;
+type SummonerUpdateInput = Pick<Summoner, "puuid" | "gameName" | "tagLine" | "region">;
 
 interface FullSummonerUpdateProps {
 	user: SummonerUpdateInput;
@@ -36,10 +30,7 @@ const formatTimeAgo = (date: string | Date | null) => {
 
 type Status = "idle" | "loading" | "success";
 
-const STATUS_UI: Record<
-	Status,
-	{ label: string; Icon: LucideIcon; className?: string }
-> = {
+const STATUS_UI: Record<Status, { label: string; Icon: LucideIcon; className?: string }> = {
 	idle: { label: "Refresh", Icon: RefreshCw },
 	loading: { label: "Refreshing...", Icon: Loader2, className: "opacity-80" },
 	success: {
@@ -49,10 +40,7 @@ const STATUS_UI: Record<
 	},
 };
 
-export const FullSummonerUpdate = ({
-	user,
-	awaitMatches = true,
-}: FullSummonerUpdateProps) => {
+export const FullSummonerUpdate = ({ user, awaitMatches = true }: FullSummonerUpdateProps) => {
 	const router = useRouter();
 	const queryClient = useQueryClient();
 	const [stepIndex, setStepIndex] = useState(0);

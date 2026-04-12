@@ -9,10 +9,7 @@ import Profile from "@/components/header/Profile";
 import Search from "@/components/header/Search";
 import { ThemeSelector } from "@/components/theme-toggle";
 import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
-import {
-	getChallengesConfig,
-	getDataDragonVersion,
-} from "@/server/api/mutations";
+import { getChallengesConfig, getDataDragonVersion } from "@/server/api/mutations";
 
 // --- Types ---
 type Challenge = Awaited<ReturnType<typeof getChallengesConfig>>[0];
@@ -70,9 +67,7 @@ function processChallenges(challenges: Challenge[]): CategoryMap {
 
 	// Sort buckets alphabetically
 	Object.values(categories).forEach((list) => {
-		list.sort((a, b) =>
-			(a.localization?.name || "").localeCompare(b.localization?.name || ""),
-		);
+		list.sort((a, b) => (a.localization?.name || "").localeCompare(b.localization?.name || ""));
 	});
 
 	return categories;
@@ -152,8 +147,8 @@ function ChallengesView() {
 				<div className="text-center space-y-4">
 					<h2 className="text-4xl font-bold tracking-tight">Challenges</h2>
 					<p className="text-muted-foreground max-w-2xl mx-auto">
-						Browse all available challenges, view tier requirements, and see
-						global leaderboards.
+						Browse all available challenges, view tier requirements, and see global
+						leaderboards.
 					</p>
 				</div>
 
@@ -232,13 +227,7 @@ function CategoryTabs({
 	);
 }
 
-function SearchBar({
-	value,
-	onChange,
-}: {
-	value: string;
-	onChange: (v: string) => void;
-}) {
+function SearchBar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
 	return (
 		<div className="relative w-full md:w-72 shrink-0">
 			<div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
@@ -291,23 +280,13 @@ function ChallengeGrid({
 	return (
 		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
 			{challenges.map((challenge) => (
-				<ChallengeCard
-					key={challenge.config.id}
-					challenge={challenge}
-					getIcon={getIcon}
-				/>
+				<ChallengeCard key={challenge.config.id} challenge={challenge} getIcon={getIcon} />
 			))}
 		</div>
 	);
 }
 
-function ChallengeCard({
-	challenge,
-	getIcon,
-}: {
-	challenge: Challenge;
-	getIcon: any;
-}) {
+function ChallengeCard({ challenge, getIcon }: { challenge: Challenge; getIcon: any }) {
 	const { id, thresholds } = challenge.config;
 	const { name, shortDescription, description } = challenge.localization || {};
 

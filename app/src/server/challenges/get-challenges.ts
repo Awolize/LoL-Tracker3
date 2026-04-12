@@ -152,10 +152,7 @@ export const getPlayerChallengesProgress = createServerFn()
 
 			return challengesMap;
 		} catch (error) {
-			console.error(
-				"Failed to fetch player challenges progress from database:",
-				error,
-			);
+			console.error("Failed to fetch player challenges progress from database:", error);
 			return null;
 		}
 	});

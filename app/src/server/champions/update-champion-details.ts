@@ -44,10 +44,7 @@ export async function updateChampionDetails() {
 				.then((r) => r[0]);
 
 			if (existing) {
-				await db
-					.update(championDetails)
-					.set(champ)
-					.where(eq(championDetails.id, champ.id));
+				await db.update(championDetails).set(champ).where(eq(championDetails.id, champ.id));
 			} else {
 				await db.insert(championDetails).values(champ);
 			}

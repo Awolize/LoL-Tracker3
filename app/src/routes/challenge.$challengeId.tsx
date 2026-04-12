@@ -79,11 +79,9 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 	component: RouteComponent,
 	head: ({ loaderData }) => {
 		const { config, challengeId, search } = loaderData!;
-		const challengeName =
-			config?.localization?.name || `Challenge ${challengeId}`;
+		const challengeName = config?.localization?.name || `Challenge ${challengeId}`;
 		const challengeDescription =
-			config?.localization?.description ||
-			"Complete this challenge to earn rewards";
+			config?.localization?.description || "Complete this challenge to earn rewards";
 
 		let title = `LoL Mastery Tracker: ${challengeName}`;
 		let description = `League of Legends challenge leaderboard. ${challengeDescription}`;
@@ -140,8 +138,7 @@ export default function RouteComponent() {
 }
 
 function Client() {
-	const { config, leaderboard, hasSections, challengeId } =
-		Route.useLoaderData();
+	const { config, leaderboard, hasSections, challengeId } = Route.useLoaderData();
 	const search = Route.useSearch();
 	const { data: version = "15.24.1" } = useQuery({
 		queryKey: ["dd-version"],

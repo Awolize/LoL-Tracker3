@@ -36,8 +36,8 @@ export function ChallengeHeaderProgress({
 			</div>
 			{missingValue > 0 && (
 				<div>
-					Please review the missing champs and mark them as completed by
-					clicking the champs icon.
+					Please review the missing champs and mark them as completed by clicking the
+					champs icon.
 				</div>
 			)}
 		</div>

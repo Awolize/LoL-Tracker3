@@ -3,10 +3,7 @@ import type { Regions } from "twisted/dist/constants";
 import { lolApiSummonerByPUUID } from "@/server/api/lol-api-summoner-by-puuid";
 import { riotApiAccountByUsername } from "@/server/api/riot-api-account-by-username";
 
-export const getSummonerByUsernameRateLimit = async (
-	username: string,
-	region: Regions,
-) => {
+export const getSummonerByUsernameRateLimit = async (username: string, region: Regions) => {
 	assert(username.includes("#"), "Username did not include a #");
 
 	const [gameNameEncoded, tagLine] = username.split("#");

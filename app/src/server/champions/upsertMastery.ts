@@ -5,8 +5,7 @@ import { championMastery } from "@/db/schema";
 import { lolApi } from "@/server/external/riot/lol-api";
 
 export const upsertMastery = async (user: AccountDto, region: Regions) => {
-	const masteryList = (await lolApi.Champion.masteryByPUUID(user.puuid, region))
-		.response;
+	const masteryList = (await lolApi.Champion.masteryByPUUID(user.puuid, region)).response;
 
 	const promises = masteryList.map((m) =>
 		db

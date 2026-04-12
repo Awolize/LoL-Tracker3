@@ -27,9 +27,7 @@ export const prismaMigrations = pgTable("_prisma_migrations", {
 		withTimezone: true,
 		mode: "date",
 	}),
-	startedAt: timestamp("started_at", { withTimezone: true, mode: "date" })
-		.defaultNow()
-		.notNull(),
+	startedAt: timestamp("started_at", { withTimezone: true, mode: "date" }).defaultNow().notNull(),
 	appliedStepsCount: integer("applied_steps_count").default(0).notNull(),
 });
 

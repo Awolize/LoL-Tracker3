@@ -12,12 +12,5 @@
 	"git": true,
 	"version": 1,
 	"framework": "react-cra",
-	"chosenAddOns": [
-		"biome",
-		"sentry",
-		"drizzle",
-		"shadcn",
-		"start",
-		"tanstack-query"
-	]
+	"chosenAddOns": ["biome", "sentry", "drizzle", "shadcn", "start", "tanstack-query"]
 }

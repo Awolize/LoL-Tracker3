@@ -80,8 +80,7 @@ const useOptionsPersistentStore = (persistName: string) => {
 						...state,
 						showMasteryBorders: !state.showMasteryBorders,
 					})),
-				toggleSortedByRole: () =>
-					set((state) => ({ ...state, byRole: !state.byRole })),
+				toggleSortedByRole: () => set((state) => ({ ...state, byRole: !state.byRole })),
 				toggleShowSelectedChampions: () =>
 					set((state) => ({
 						...state,
@@ -148,22 +147,13 @@ const OptionsContext = createContext<OptionsStore | null>(null);
 
 type OptionsProviderProps = React.PropsWithChildren<{ persistName: string }>;
 
-export function OptionsProvider({
-	children,
-	persistName,
-}: OptionsProviderProps) {
+export function OptionsProvider({ children, persistName }: OptionsProviderProps) {
 	const storeRef = useRef(useOptionsPersistentStore(persistName));
 
-	return (
-		<OptionsContext.Provider value={storeRef.current}>
-			{children}
-		</OptionsContext.Provider>
-	);
+	return <OptionsContext.Provider value={storeRef.current}>{children}</OptionsContext.Provider>;
 }
 
-export function useOptionsPersistentContext<T>(
-	selector: (state: StoreState) => T,
-): T {
+export function useOptionsPersistentContext<T>(selector: (state: StoreState) => T): T {
 	const store = useContext(OptionsContext);
 	if (!store) throw new Error("Missing OptionsContext.Provider in the tree");
 	return useStore(store, selector);

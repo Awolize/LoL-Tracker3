@@ -12,17 +12,13 @@ import { FullSummonerUpdate } from "@/features/summoner/components/summoner-upda
 import { Route as ChallengeRoute } from "@/routes/$region.$username.challenge";
 import { Route as MasteryRoute } from "@/routes/$region.$username.mastery";
 import { Route as MatchesRoute } from "@/routes/$region.$username.matches";
-import {
-	checkNameChangeFn,
-	getUserByNameAndRegionFn,
-} from "@/server/summoner/mutations";
+import { checkNameChangeFn, getUserByNameAndRegionFn } from "@/server/summoner/mutations";
 
 const NAV_ITEMS = [
 	{
 		route: MasteryRoute,
 		title: "Mastery Points Tracker",
-		description:
-			"Tailored for Catch 'em all, works with Master yourself and Master your enemy",
+		description: "Tailored for Catch 'em all, works with Master yourself and Master your enemy",
 	},
 	{
 		route: ChallengeRoute,
@@ -107,15 +103,8 @@ export default function RouteComponent() {
 }
 
 function Client() {
-	const {
-		username,
-		region,
-		rawUsername,
-		rawRegion,
-		summonerData,
-		profileIconUrl,
-		error,
-	} = Route.useLoaderData();
+	const { username, region, rawUsername, rawRegion, summonerData, profileIconUrl, error } =
+		Route.useLoaderData();
 
 	if (error === "rate_limit")
 		return (
@@ -142,10 +131,7 @@ function Client() {
 				initial="hidden"
 				animate="show"
 			>
-				<motion.div
-					variants={itemVariants}
-					className="flex flex-col items-center gap-6"
-				>
+				<motion.div variants={itemVariants} className="flex flex-col items-center gap-6">
 					<div className="flex flex-col items-center gap-4 sm:flex-row">
 						<div className="relative">
 							<img
@@ -169,10 +155,7 @@ function Client() {
 						</div>
 					</div>
 
-					<FullSummonerUpdate
-						user={{ ...summonerData, region }}
-						awaitMatches={false}
-					/>
+					<FullSummonerUpdate user={{ ...summonerData, region }} awaitMatches={false} />
 				</motion.div>
 
 				<nav className="flex flex-col gap-4">
@@ -193,9 +176,7 @@ function Client() {
 								<h2 className="text-xl font-semibold transition-colors group-hover:text-primary">
 									{title}
 								</h2>
-								<p className="mt-2 text-sm text-muted-foreground">
-									{description}
-								</p>
+								<p className="mt-2 text-sm text-muted-foreground">{description}</p>
 							</Link>
 						</motion.div>
 					))}

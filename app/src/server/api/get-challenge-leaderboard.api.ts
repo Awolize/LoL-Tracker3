@@ -15,12 +15,7 @@ export const getChallengeUserRank = createServerFn()
 				challengesDetails,
 				eq(challenge.challengesDetailsId, challengesDetails.puuid),
 			)
-			.where(
-				and(
-					eq(challenge.challengeId, challengeId),
-					eq(challengesDetails.puuid, puuid),
-				),
-			)
+			.where(and(eq(challenge.challengeId, challengeId), eq(challengesDetails.puuid, puuid)))
 			.limit(1);
 
 		if (!userChallenge.length) {
@@ -41,10 +36,7 @@ export const getChallengeUserRank = createServerFn()
 	});
 
 export const getChallengeLeaderboardWithHighlight = createServerFn()
-	.inputValidator(
-		(input: { challengeId: number; username?: string; region?: string }) =>
-			input,
-	)
+	.inputValidator((input: { challengeId: number; username?: string; region?: string }) => input)
 	.handler(async ({ data: { challengeId, username, region } }) => {
 		// Always fetch top 100
 		const top100 = await db
@@ -89,9 +81,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 		}
 
 		// User is not in top 100, get their rank and fetch area around them
-		const { getUserByNameAndRegion } = await import(
-			"@/server/api/get-user-by-name-and-region"
-		);
+		const { getUserByNameAndRegion } = await import("@/server/api/get-user-by-name-and-region");
 		const user = await getUserByNameAndRegion(normalizedUsername, regionEnum);
 		const userRank = await getChallengeUserRank({
 			data: { challengeId, puuid: user.puuid },
@@ -132,9 +122,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 	});
 
 export const getChallengeLeaderboard = createServerFn()
-	.inputValidator(
-		(input: { challengeId: number; limit?: number; offset?: number }) => input,
-	)
+	.inputValidator((input: { challengeId: number; limit?: number; offset?: number }) => input)
 	.handler(async ({ data: { challengeId, limit = 100, offset = 0 } }) => {
 		const leaderboard = await db
 			.select({

@@ -17,54 +17,49 @@ type NameChangeResult =
 
 export const checkNameChangeFn = createServerFn({ method: "POST" })
 	.inputValidator((data: { username: string; region: Regions }) => data)
-	.handler(
-		async ({ data: { username, region } }): Promise<NameChangeResult> => {
-			const [gameName, tagLine] = username.toLowerCase().split("#");
+	.handler(async ({ data: { username, region } }): Promise<NameChangeResult> => {
+		const [gameName, tagLine] = username.toLowerCase().split("#");
 
-			// Check DB for old username
-			const oldCachedUser = await db.query.summoner.findFirst({
-				where: and(
-					eq(summoner.gameName, gameName),
-					eq(summoner.tagLine, tagLine),
-					eq(summoner.region, region),
-				),
-			});
+		// Check DB for old username
+		const oldCachedUser = await db.query.summoner.findFirst({
+			where: and(
+				eq(summoner.gameName, gameName),
+				eq(summoner.tagLine, tagLine),
+				eq(summoner.region, region),
+			),
+		});
 
-			if (!oldCachedUser) {
-				return { found: false };
-			}
-
-			try {
-				// Fetch fresh data using PUUID
-				const freshUser = await getSummonerByUsernameRateLimit(
-					oldCachedUser.puuid,
-					region,
-				);
-
-				if (freshUser.summoner) {
-					const newUsername = `${freshUser.account.gameName}-${freshUser.account.tagLine}`;
-
-					// Update DB
-					await db
-						.update(summoner)
-						.set({
-							gameName: freshUser.account.gameName,
-							tagLine: freshUser.account.tagLine,
-							profileIconId: freshUser.summoner.profileIconId,
-							summonerLevel: freshUser.summoner.summonerLevel,
-							updatedAt: new Date(),
-						})
-						.where(eq(summoner.puuid, oldCachedUser.puuid));
-
-					return { found: true, newUsername };
-				}
-			} catch (error) {
-				console.error("Error migrating user:", error);
-			}
-
+		if (!oldCachedUser) {
 			return { found: false };
-		},
-	);
+		}
+
+		try {
+			// Fetch fresh data using PUUID
+			const freshUser = await getSummonerByUsernameRateLimit(oldCachedUser.puuid, region);
+
+			if (freshUser.summoner) {
+				const newUsername = `${freshUser.account.gameName}-${freshUser.account.tagLine}`;
+
+				// Update DB
+				await db
+					.update(summoner)
+					.set({
+						gameName: freshUser.account.gameName,
+						tagLine: freshUser.account.tagLine,
+						profileIconId: freshUser.summoner.profileIconId,
+						summonerLevel: freshUser.summoner.summonerLevel,
+						updatedAt: new Date(),
+					})
+					.where(eq(summoner.puuid, oldCachedUser.puuid));
+
+				return { found: true, newUsername };
+			}
+		} catch (error) {
+			console.error("Error migrating user:", error);
+		}
+
+		return { found: false };
+	});
 
 const CHECK_INTERVAL_MS = 1000 * 60 * 60; // Check every hour if we should update
 
@@ -85,10 +80,7 @@ type SummonerResult = {
 export const getUserByNameAndRegionFn = createServerFn({
 	method: "GET",
 })
-	.inputValidator(
-		(input: { username: string; region: string; forceRefresh?: boolean }) =>
-			input,
-	)
+	.inputValidator((input: { username: string; region: string; forceRefresh?: boolean }) => input)
 	.handler(async ({ data }): Promise<SummonerResult> => {
 		const { username, region, forceRefresh = false } = data;
 		const regionEnum = regionToConstant(region);
@@ -138,10 +130,7 @@ export const getUserByNameAndRegionFn = createServerFn({
 			}
 
 			// 3. Fetch from Riot API
-			const user = await getSummonerByUsernameRateLimit(
-				username.toLowerCase(),
-				regionEnum,
-			);
+			const user = await getSummonerByUsernameRateLimit(username.toLowerCase(), regionEnum);
 
 			if (!user.summoner) {
 				throw new Error("Summoner not found");
@@ -228,12 +217,8 @@ export const getLastMasteryUpdate = createServerFn({
 
 export const fullUpdateSummoner = createServerFn({ method: "POST" })
 	.inputValidator(
-		(input: {
-			gameName: string;
-			tagLine: string;
-			region: string;
-			awaitMatches?: boolean;
-		}) => input,
+		(input: { gameName: string; tagLine: string; region: string; awaitMatches?: boolean }) =>
+			input,
 	)
 	.handler(async ({ data }) => {
 		const { gameName, tagLine, region, awaitMatches = true } = data;
@@ -245,8 +230,7 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 		);
 
 		// Make jobId unique per request to avoid collisions
-		const makeId = (type: string) =>
-			`${type}-${gameName}-${tagLine}-${Date.now()}`;
+		const makeId = (type: string) => `${type}-${gameName}-${tagLine}-${Date.now()}`;
 
 		const jobPromises = [
 			updateQueue.add("update-summoner-only", jobData, {
@@ -305,9 +289,7 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 				(job) => job && criticalJobNames.includes(job.name),
 			);
 
-			await Promise.all(
-				jobsToAwait.map((j) => j.waitUntilFinished(updateQueueEvents)),
-			);
+			await Promise.all(jobsToAwait.map((j) => j.waitUntilFinished(updateQueueEvents)));
 
 			Sentry.metrics.count("profile_update_server", 1, {
 				attributes: {
@@ -336,9 +318,7 @@ export const getUsernameSuggestions = createServerFn({
 		if (!query || query.length > 50) return [];
 
 		// Split query on # to handle gameName#tagLine format
-		const [gameNamePart = "", tagLinePart = ""] = query
-			.split("#")
-			.map((s) => s.trim());
+		const [gameNamePart = "", tagLinePart = ""] = query.split("#").map((s) => s.trim());
 
 		let whereConditions;
 		if (gameNamePart && tagLinePart) {
@@ -395,7 +375,6 @@ export const getSummonerByNameRegion = createServerFn({
 			user,
 			playerChampionInfo: completeChampionsData.completeChampionsData,
 			challenges,
-			version:
-				completeChampionsData.completeChampionsData[0]?.version || "latest",
+			version: completeChampionsData.completeChampionsData[0]?.version || "latest",
 		};
 	});
