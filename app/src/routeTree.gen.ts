@@ -9,7 +9,6 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as QueueRouteImport } from './routes/queue'
 import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ChallengeChallengeIdRouteImport } from './routes/challenge.$challengeId'
@@ -22,11 +21,6 @@ import { Route as RegionUsernameMasteryRouteImport } from './routes/$region.$use
 import { Route as RegionUsernameDifferentRouteImport } from './routes/$region.$username.different'
 import { Route as RegionUsernameChallengeRouteImport } from './routes/$region.$username.challenge'
 
-const QueueRoute = QueueRouteImport.update({
-  id: '/queue',
-  path: '/queue',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ChallengesRoute = ChallengesRouteImport.update({
   id: '/challenges',
   path: '/challenges',
@@ -86,7 +80,6 @@ const RegionUsernameChallengeRoute = RegionUsernameChallengeRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/challenges': typeof ChallengesRoute
-  '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/challenge/$challengeId': typeof ChallengeChallengeIdRoute
   '/$region/$username/challenge': typeof RegionUsernameChallengeRoute
@@ -100,7 +93,6 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/challenges': typeof ChallengesRoute
-  '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/challenge/$challengeId': typeof ChallengeChallengeIdRoute
   '/$region/$username/challenge': typeof RegionUsernameChallengeRoute
@@ -115,7 +107,6 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/challenges': typeof ChallengesRoute
-  '/queue': typeof QueueRoute
   '/api/sitemap.xml': typeof ApiSitemapDotxmlRoute
   '/challenge/$challengeId': typeof ChallengeChallengeIdRoute
   '/$region/$username/challenge': typeof RegionUsernameChallengeRoute
@@ -131,7 +122,6 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/challenges'
-    | '/queue'
     | '/api/sitemap.xml'
     | '/challenge/$challengeId'
     | '/$region/$username/challenge'
@@ -145,7 +135,6 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/challenges'
-    | '/queue'
     | '/api/sitemap.xml'
     | '/challenge/$challengeId'
     | '/$region/$username/challenge'
@@ -159,7 +148,6 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/challenges'
-    | '/queue'
     | '/api/sitemap.xml'
     | '/challenge/$challengeId'
     | '/$region/$username/challenge'
@@ -174,7 +162,6 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   ChallengesRoute: typeof ChallengesRoute
-  QueueRoute: typeof QueueRoute
   ApiSitemapDotxmlRoute: typeof ApiSitemapDotxmlRoute
   ChallengeChallengeIdRoute: typeof ChallengeChallengeIdRoute
   RegionUsernameChallengeRoute: typeof RegionUsernameChallengeRoute
@@ -188,13 +175,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/queue': {
-      id: '/queue'
-      path: '/queue'
-      fullPath: '/queue'
-      preLoaderRoute: typeof QueueRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/challenges': {
       id: '/challenges'
       path: '/challenges'
@@ -278,7 +258,6 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   ChallengesRoute: ChallengesRoute,
-  QueueRoute: QueueRoute,
   ApiSitemapDotxmlRoute: ApiSitemapDotxmlRoute,
   ChallengeChallengeIdRoute: ChallengeChallengeIdRoute,
   RegionUsernameChallengeRoute: RegionUsernameChallengeRoute,

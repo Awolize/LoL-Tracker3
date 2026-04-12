@@ -1,14 +1,11 @@
 @import url("https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=Manrope:wght@400;500;600;700;800&display=swap");
-@import 'tailwindcss';
+@import "tailwindcss";
 @plugin "@tailwindcss/typography";
-
-@custom-variant dark (&:is(.dark *));
 
 @theme {
   --animate-pulse2: pulse2 60s infinite;
 
   @keyframes pulse2 {
-
     0%,
     70%,
     100% {
@@ -34,8 +31,7 @@ body {
 }
 
 code {
-  font-family:
-    source-code-pro, Menlo, Monaco, Consolas, 'Courier New', monospace;
+  font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
 }
 
 :root {
@@ -74,19 +70,19 @@ code {
   --sidebar-ring: oklch(0.871 0.006 286.286);
 
   /* League of Legends Tier Colors */
-  --tier-challenger: #FFD166;
-  --tier-grandmaster: #B11226;
-  --tier-master: #7D3C98;
-  --tier-diamond: #2E86C1;
-  --tier-emerald: #27AE60;
-  --tier-platinum: #17A2B8;
-  --tier-gold: #B7950B;
-  --tier-silver: #A6ACAF;
-  --tier-bronze: #A97142;
-  --tier-iron: #2C2C2C;
+  --tier-challenger: #ffd166;
+  --tier-grandmaster: #b11226;
+  --tier-master: #7d3c98;
+  --tier-diamond: #2e86c1;
+  --tier-emerald: #27ae60;
+  --tier-platinum: #17a2b8;
+  --tier-gold: #b7950b;
+  --tier-silver: #a6acaf;
+  --tier-bronze: #a97142;
+  --tier-iron: #2c2c2c;
 }
 
-.dark {
+:root[data-theme="dark"] {
   --background: oklch(0.141 0.005 285.823);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.141 0.005 285.823);
@@ -121,29 +117,78 @@ code {
   --sidebar-ring: oklch(0.442 0.017 285.786);
 
   /* League of Legends Tier Colors */
-  --tier-challenger: #FFD166;
-  --tier-grandmaster: #B11226;
-  --tier-master: #7D3C98;
-  --tier-diamond: #2E86C1;
-  --tier-emerald: #27AE60;
-  --tier-platinum: #17A2B8;
-  --tier-gold: #B7950B;
-  --tier-silver: #A6ACAF;
-  --tier-bronze: #A97142;
-  --tier-iron: #2C2C2C;
+  --tier-challenger: #ffd166;
+  --tier-grandmaster: #b11226;
+  --tier-master: #7d3c98;
+  --tier-diamond: #2e86c1;
+  --tier-emerald: #27ae60;
+  --tier-platinum: #17a2b8;
+  --tier-gold: #b7950b;
+  --tier-silver: #a6acaf;
+  --tier-bronze: #a97142;
+  --tier-iron: #2c2c2c;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background: oklch(0.141 0.005 285.823);
+    --foreground: oklch(0.985 0 0);
+    --card: oklch(0.141 0.005 285.823);
+    --card-foreground: oklch(0.985 0 0);
+    --popover: oklch(0.141 0.005 285.823);
+    --popover-foreground: oklch(0.985 0 0);
+    --primary: oklch(0.985 0 0);
+    --primary-foreground: oklch(0.21 0.006 285.885);
+    --secondary: oklch(0.274 0.006 286.033);
+    --secondary-foreground: oklch(0.985 0 0);
+    --muted: oklch(0.274 0.006 286.033);
+    --muted-foreground: oklch(0.705 0.015 286.067);
+    --accent: oklch(0.274 0.006 286.033);
+    --accent-foreground: oklch(0.985 0 0);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.637 0.237 25.331);
+    --border: oklch(0.274 0.006 286.033);
+    --input: oklch(0.274 0.006 286.033);
+    --ring: oklch(0.442 0.017 285.786);
+    --chart-1: oklch(0.488 0.243 264.376);
+    --chart-2: oklch(0.696 0.17 162.48);
+    --chart-3: oklch(0.769 0.188 70.08);
+    --chart-4: oklch(0.627 0.265 303.9);
+    --chart-5: oklch(0.645 0.246 16.439);
+    --sidebar: oklch(0.21 0.006 285.885);
+    --sidebar-foreground: oklch(0.985 0 0);
+    --sidebar-primary: oklch(0.488 0.243 264.376);
+    --sidebar-primary-foreground: oklch(0.985 0 0);
+    --sidebar-accent: oklch(0.274 0.006 286.033);
+    --sidebar-accent-foreground: oklch(0.985 0 0);
+    --sidebar-border: oklch(0.274 0.006 286.033);
+    --sidebar-ring: oklch(0.442 0.017 285.786);
+
+    /* League of Legends Tier Colors */
+    --tier-challenger: #ffd166;
+    --tier-grandmaster: #b11226;
+    --tier-master: #7d3c98;
+    --tier-diamond: #2e86c1;
+    --tier-emerald: #27ae60;
+    --tier-platinum: #17a2b8;
+    --tier-gold: #b7950b;
+    --tier-silver: #a6acaf;
+    --tier-bronze: #a97142;
+    --tier-iron: #2c2c2c;
+  }
 }
 
 @theme {
-  --color-tier-challenger: #FFD166;
-  --color-tier-grandmaster: #B11226;
-  --color-tier-master: #7D3C98;
-  --color-tier-diamond: #2E86C1;
-  --color-tier-emerald: #27AE60;
-  --color-tier-platinum: #17A2B8;
-  --color-tier-gold: #B7950B;
-  --color-tier-silver: #A6ACAF;
-  --color-tier-bronze: #A97142;
-  --color-tier-iron: #2C2C2C;
+  --color-tier-challenger: #ffd166;
+  --color-tier-grandmaster: #b11226;
+  --color-tier-master: #7d3c98;
+  --color-tier-diamond: #2e86c1;
+  --color-tier-emerald: #27ae60;
+  --color-tier-platinum: #17a2b8;
+  --color-tier-gold: #b7950b;
+  --color-tier-silver: #a6acaf;
+  --color-tier-bronze: #a97142;
+  --color-tier-iron: #2c2c2c;
 }
 
 @theme inline {
@@ -194,6 +239,4 @@ code {
   body {
     @apply bg-background text-foreground;
   }
-
-
 }
