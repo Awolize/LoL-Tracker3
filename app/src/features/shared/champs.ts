@@ -1,6 +1,26 @@
-import { Regions } from "twisted/dist/constants";
-
 import type { CompleteChampionInfo } from "~/features/shared/types";
+
+/** Riot API platform routing ids (same as `twisted` `Regions`) — defined here so client code never imports `twisted`. */
+export const Regions = {
+	BRAZIL: "BR1",
+	EU_EAST: "EUN1",
+	EU_WEST: "EUW1",
+	KOREA: "KR",
+	LAT_NORTH: "LA1",
+	LAT_SOUTH: "LA2",
+	AMERICA_NORTH: "NA1",
+	OCEANIA: "OC1",
+	TURKEY: "TR1",
+	RUSSIA: "RU",
+	JAPAN: "JP1",
+	VIETNAM: "VN2",
+	TAIWAN: "TW2",
+	SINGAPORE: "SG2",
+	MIDDLE_EAST: "ME1",
+	PBE: "PBE1",
+} as const;
+
+export type Regions = (typeof Regions)[keyof typeof Regions];
 
 export const filteredOut = (
 	champ: CompleteChampionInfo,
@@ -79,7 +99,7 @@ export const regionToConstant = (region: string) => {
 		throw new Error(`Invalid region: ${region}`);
 	}
 
-	return regionMap[region] as Regions;
+	return regionMap[region];
 };
 
 export const regionToDisplay = (region: string): string => {

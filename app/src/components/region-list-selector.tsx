@@ -29,31 +29,25 @@ export const RegionListSelector = ({
 	setSelectedRegion: (region: Region) => void;
 }) => {
 	return (
-		<Listbox value={selectedRegion} onChange={setSelectedRegion}>
+		<Listbox as="div" className="relative" value={selectedRegion} onChange={setSelectedRegion}>
 			<ListboxButton className="flex items-end">
 				<span className="text-[hsl(280,100%,70%)]">{selectedRegion?.name}</span>
 				<p className="text-xs">v</p>
 			</ListboxButton>
-			<div className="relative">
-				<ListboxOptions className="absolute top-0 left-0 inline w-[150px] flex-col">
-					{regions
-						.filter((region) => selectedRegion.id !== region.id)
-						.map((region) => (
-							<ListboxOption
-								key={region.id}
-								value={region}
-								disabled={region.disabled}
+			<ListboxOptions className="absolute top-0 left-0 inline w-[150px] flex-col">
+				{regions
+					.filter((region) => selectedRegion.id !== region.id)
+					.map((region) => (
+						<ListboxOption key={region.id} value={region} disabled={region.disabled}>
+							<button
+								type="button"
+								className="w-full text-left hover:bg-gray-500 hover:bg-opacity-20 hover:text-[hsl(280,100%,70%)]"
 							>
-								<button
-									type="button"
-									className="w-full text-left hover:bg-gray-500 hover:bg-opacity-20 hover:text-[hsl(280,100%,70%)]"
-								>
-									{region.name}
-								</button>
-							</ListboxOption>
-						))}
-				</ListboxOptions>
-			</div>
+								{region.name}
+							</button>
+						</ListboxOption>
+					))}
+			</ListboxOptions>
 		</Listbox>
 	);
 };
