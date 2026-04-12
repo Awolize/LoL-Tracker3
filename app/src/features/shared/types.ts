@@ -10,7 +10,7 @@ import type {
 	match,
 	matchInfo,
 	summoner,
-} from "@/db/schema";
+} from "~/db/schema";
 
 export type ChampionMasteryDTOWithoutExtras = Omit<
 	ChampionMasteryDTO,

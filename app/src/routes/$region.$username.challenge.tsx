@@ -2,16 +2,16 @@ import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router"
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { z } from "zod";
 
-import FooterLinks from "@/components/footer/FooterLinks";
-import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
-import { MainTitleLink } from "@/components/header/MainTitleLink";
-import Profile from "@/components/header/Profile";
-import Search from "@/components/header/Search";
-import { ThemeSelector } from "@/components/theme-toggle";
-import { DifferentSideBar } from "@/features/challenges/challenge-side-bar";
-import { ChampionListHeader } from "@/features/mastery/champion-list-header";
-import { RoleChampionList } from "@/features/mastery/role-champion-list";
-import type { CompleteChampionInfo, Summoner } from "@/features/shared/types";
+import FooterLinks from "~/components/footer/FooterLinks";
+import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
+import { MainTitleLink } from "~/components/header/MainTitleLink";
+import Profile from "~/components/header/Profile";
+import Search from "~/components/header/Search";
+import { ThemeSelector } from "~/components/theme-toggle";
+import { DifferentSideBar } from "~/features/challenges/challenge-side-bar";
+import { ChampionListHeader } from "~/features/mastery/champion-list-header";
+import { RoleChampionList } from "~/features/mastery/role-champion-list";
+import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
 import {
 	getAdaptToAllSituations,
 	getChampionOcean,
@@ -19,12 +19,12 @@ import {
 	getInvincible,
 	getJackOfAllChamps,
 	getPlayerChallengesProgress,
-} from "@/server/challenges/get-challenges";
-import { getSummonerByNameRegion } from "@/server/summoner/mutations";
-import { ChallengeProvider } from "@/stores/challenge-store";
-import { OptionsProvider } from "@/stores/options-persistent-store";
-import { SelectedChallengeProvider } from "@/stores/selected-challenge-context";
-import { UserProvider } from "@/stores/user-store";
+} from "~/server/challenges/get-challenges";
+import { getSummonerByNameRegion } from "~/server/summoner/mutations";
+import { ChallengeProvider } from "~/stores/challenge-store";
+import { OptionsProvider } from "~/stores/options-persistent-store";
+import { SelectedChallengeProvider } from "~/stores/selected-challenge-context";
+import { UserProvider } from "~/stores/user-store";
 
 const searchSchema = z.object({
 	challengeId: z.number().optional(),

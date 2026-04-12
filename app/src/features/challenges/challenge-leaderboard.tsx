@@ -4,10 +4,10 @@ import { StarIcon } from "lucide-react";
 import { motion } from "motion/react";
 import { useCallback, useEffect, useMemo, useRef } from "react";
 
-import { regionToDisplay } from "@/features/shared/champs";
-import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
-import type { ChallengeConfig, LeaderboardEntry } from "@/features/shared/types";
-import { getDataDragonVersion } from "@/server/api/mutations";
+import { regionToDisplay } from "~/features/shared/champs";
+import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
+import type { ChallengeConfig, LeaderboardEntry } from "~/features/shared/types";
+import { getDataDragonVersion } from "~/server/api/mutations";
 
 interface ChallengeLeaderboardProps {
 	config: ChallengeConfig;

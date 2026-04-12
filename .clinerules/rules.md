@@ -31,14 +31,14 @@
 * Use Biome for formatting/linting (`format`, `lint`, `check` scripts).
 * Use `tsx` for TS execution in scripts.
 * Use `vite-tsconfig-paths` for path aliases.
-    * @/components
-    * @/db
-    * @/features
-    * @/hooks
-    * @/integrations
-    * @/routes
-    * @/server
-    * @/stores
+    * ~/components
+    * ~/db
+    * ~/features
+    * ~/hooks
+    * ~/integrations
+    * ~/routes
+    * ~/server
+    * ~/stores
 
 ### Misc
 * No tests exists in the project and is not wanted.

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { MainText } from "@/components/header/MainText";
-import Search from "@/components/header/Search";
-import { SubText } from "@/components/header/SubText";
+import { MainText } from "~/components/header/MainText";
+import Search from "~/components/header/Search";
+import { SubText } from "~/components/header/SubText";
 
 export const Route = createFileRoute("/")({ component: Home });
 

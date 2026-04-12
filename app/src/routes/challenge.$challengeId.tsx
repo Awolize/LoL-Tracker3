@@ -1,17 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
-import FooterLinks from "@/components/footer/FooterLinks";
-import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
-import { MainTitleLink } from "@/components/header/MainTitleLink";
-import Profile from "@/components/header/Profile";
-import Search from "@/components/header/Search";
-import { ThemeSelector } from "@/components/theme-toggle";
-import ChallengeLeaderboard from "@/features/challenges/challenge-leaderboard";
-import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
-import { getChallengeConfig } from "@/server/api/get-challenge-config.api";
-import { getChallengeLeaderboardWithHighlight } from "@/server/api/get-challenge-leaderboard.api";
-import { getDataDragonVersion } from "@/server/api/mutations";
+import FooterLinks from "~/components/footer/FooterLinks";
+import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
+import { MainTitleLink } from "~/components/header/MainTitleLink";
+import Profile from "~/components/header/Profile";
+import Search from "~/components/header/Search";
+import { ThemeSelector } from "~/components/theme-toggle";
+import ChallengeLeaderboard from "~/features/challenges/challenge-leaderboard";
+import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
+import { getChallengeConfig } from "~/server/api/get-challenge-config.api";
+import { getChallengeLeaderboardWithHighlight } from "~/server/api/get-challenge-leaderboard.api";
+import { getDataDragonVersion } from "~/server/api/mutations";
 
 interface ChallengeConfig {
 	config: {

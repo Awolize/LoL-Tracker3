@@ -1,5 +1,5 @@
-import { Slider } from "@/components/ui/slider";
-import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
+import { Slider } from "~/components/ui/slider";
+import { useOptionsPersistentContext } from "~/stores/options-persistent-store";
 
 export function ScaleSlider() {
 	const championsScale = useOptionsPersistentContext((s) => s.championsScale);

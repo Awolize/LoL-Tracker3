@@ -1,9 +1,9 @@
 import clsx from "clsx";
 import type React from "react";
 import { useState } from "react";
-import { filteredOut } from "@/features/shared/champs";
-import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
-import type { CompleteChampionInfo } from "@/features/shared/types";
+import { filteredOut } from "~/features/shared/champs";
+import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
+import type { CompleteChampionInfo } from "~/features/shared/types";
 
 // Mastery level to border color mapping (matches official LoL mastery icons)
 const getMasteryBorderColor = (level: number): string => {

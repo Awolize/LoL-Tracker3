@@ -4,12 +4,12 @@ import { SearchIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 // Local imports (assuming these exist based on your code)
-import { MainTitleLink } from "@/components/header/MainTitleLink";
-import Profile from "@/components/header/Profile";
-import Search from "@/components/header/Search";
-import { ThemeSelector } from "@/components/theme-toggle";
-import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
-import { getChallengesConfig, getDataDragonVersion } from "@/server/api/mutations";
+import { MainTitleLink } from "~/components/header/MainTitleLink";
+import Profile from "~/components/header/Profile";
+import Search from "~/components/header/Search";
+import { ThemeSelector } from "~/components/theme-toggle";
+import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
+import { getChallengesConfig, getDataDragonVersion } from "~/server/api/mutations";
 
 // --- Types ---
 type Challenge = Awaited<ReturnType<typeof getChallengesConfig>>[0];

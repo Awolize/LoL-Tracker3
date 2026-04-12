@@ -3,10 +3,10 @@ import { useRouter } from "@tanstack/react-router";
 import { Check, Loader2, type LucideIcon, RefreshCw } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useState } from "react";
-import { Button } from "@/components/ui/button";
-import { cn } from "@/components/utils";
-import type { Summoner } from "@/features/shared/types";
-import { fullUpdateSummoner, getLastMasteryUpdate } from "@/server/summoner/mutations";
+import { Button } from "~/components/ui/button";
+import { cn } from "~/components/utils";
+import type { Summoner } from "~/features/shared/types";
+import { fullUpdateSummoner, getLastMasteryUpdate } from "~/server/summoner/mutations";
 
 type SummonerUpdateInput = Pick<Summoner, "puuid" | "gameName" | "tagLine" | "region">;
 

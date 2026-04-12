@@ -1,5 +1,5 @@
-import MatchItem from "@/features/matches/match-item";
-import type { CompleteMatch } from "@/features/shared/types";
+import MatchItem from "~/features/matches/match-item";
+import type { CompleteMatch } from "~/features/shared/types";
 
 interface MatchHistoryProps {
 	matches: CompleteMatch[];

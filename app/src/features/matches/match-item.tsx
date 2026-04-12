@@ -1,10 +1,10 @@
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
-import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import MatchTable from "@/features/matches/match-table-row";
-import { useDataDragonPath } from "@/features/shared/hooks/useDataDragonPath";
-import type { CompleteMatch } from "@/features/shared/types";
-import { useUserContext } from "@/stores/user-store";
+import { Card, CardContent, CardHeader } from "~/components/ui/card";
+import MatchTable from "~/features/matches/match-table-row";
+import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
+import type { CompleteMatch } from "~/features/shared/types";
+import { useUserContext } from "~/stores/user-store";
 
 const MatchItem = ({ match }: { match: CompleteMatch }) => {
 	const user = useUserContext((s) => s.user);

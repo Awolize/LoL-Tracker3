@@ -1,7 +1,7 @@
 import { Slot } from "@radix-ui/react-slot";
 import { cva, type VariantProps } from "class-variance-authority";
 import type * as React from "react";
-import { cn } from "@/components/utils";
+import { cn } from "~/components/utils";
 
 /** @internal */
 const buttonVariants = cva(

@@ -1,18 +1,18 @@
 import * as Sentry from "@sentry/tanstackstart-react";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import FooterLinks from "@/components/footer/FooterLinks";
-import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
-import { MainTitleLink } from "@/components/header/MainTitleLink";
-import Profile from "@/components/header/Profile";
-import Search from "@/components/header/Search";
-import { ThemeSelector } from "@/components/theme-toggle";
-import { regionToConstant } from "@/features/shared/champs";
-import { FullSummonerUpdate } from "@/features/summoner/components/summoner-update";
-import { Route as ChallengeRoute } from "@/routes/$region.$username.challenge";
-import { Route as MasteryRoute } from "@/routes/$region.$username.mastery";
-import { Route as MatchesRoute } from "@/routes/$region.$username.matches";
-import { checkNameChangeFn, getUserByNameAndRegionFn } from "@/server/summoner/mutations";
+import FooterLinks from "~/components/footer/FooterLinks";
+import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
+import { MainTitleLink } from "~/components/header/MainTitleLink";
+import Profile from "~/components/header/Profile";
+import Search from "~/components/header/Search";
+import { ThemeSelector } from "~/components/theme-toggle";
+import { regionToConstant } from "~/features/shared/champs";
+import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
+import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
+import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
+import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
+import { checkNameChangeFn, getUserByNameAndRegionFn } from "~/server/summoner/mutations";
 
 const NAV_ITEMS = [
 	{

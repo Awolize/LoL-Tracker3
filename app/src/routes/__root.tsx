@@ -1,6 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query";
 import { createRootRouteWithContext, HeadContent, Scripts } from "@tanstack/react-router";
-import { ThemeProvider, themeScript } from "@/hooks/theme-provider";
+import { ThemeProvider, themeScript } from "~/hooks/theme-provider";
 import appCss from "../styles.css?url";
 
 interface MyRouterContext {

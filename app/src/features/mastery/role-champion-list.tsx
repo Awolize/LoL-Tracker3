@@ -1,8 +1,8 @@
-import { DifferentChampionItem } from "@/features/challenges/challenge-champion-item";
-import { DifferentRoleHeader } from "@/features/challenges/challenge-role-header";
-import type { ChampionDetails, CompleteChampionInfo } from "@/features/shared/types";
-import { useChallengeContext } from "@/stores/challenge-store";
-import { useSelectedChallenge } from "@/stores/selected-challenge-context";
+import { DifferentChampionItem } from "~/features/challenges/challenge-champion-item";
+import { DifferentRoleHeader } from "~/features/challenges/challenge-role-header";
+import type { ChampionDetails, CompleteChampionInfo } from "~/features/shared/types";
+import { useChallengeContext } from "~/stores/challenge-store";
+import { useSelectedChallenge } from "~/stores/selected-challenge-context";
 
 interface RoleChampionListProps {
 	champions: CompleteChampionInfo[];

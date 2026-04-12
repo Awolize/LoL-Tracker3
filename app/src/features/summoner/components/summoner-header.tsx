@@ -1,16 +1,16 @@
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { DifferentHeaderCounter } from "@/features/mastery/header-counter";
-import { filteredOut } from "@/features/shared/champs";
-import { type Choice, Dropdown } from "@/features/shared/components/dropdown";
-import { ScaleSlider } from "@/features/shared/components/scale-slider";
-import { SwitchWithLabel } from "@/features/shared/components/switch-with-label";
-import { ToggleEye } from "@/features/shared/components/toggle-eye";
-import { TogglePill } from "@/features/shared/components/toggle-pill";
-import type { CompleteChampionInfo } from "@/features/shared/types";
-import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
-import { useUserContext } from "@/stores/user-store";
+import { Button } from "~/components/ui/button";
+import { Label } from "~/components/ui/label";
+import { DifferentHeaderCounter } from "~/features/mastery/header-counter";
+import { filteredOut } from "~/features/shared/champs";
+import { type Choice, Dropdown } from "~/features/shared/components/dropdown";
+import { ScaleSlider } from "~/features/shared/components/scale-slider";
+import { SwitchWithLabel } from "~/features/shared/components/switch-with-label";
+import { ToggleEye } from "~/features/shared/components/toggle-eye";
+import { TogglePill } from "~/features/shared/components/toggle-pill";
+import type { CompleteChampionInfo } from "~/features/shared/types";
+import { useOptionsPersistentContext } from "~/stores/options-persistent-store";
+import { useUserContext } from "~/stores/user-store";
 import { FullSummonerUpdate } from "./summoner-update";
 
 export enum SortOrder2 {

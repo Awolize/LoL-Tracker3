@@ -1,8 +1,8 @@
-import ChampionItem from "@/features/mastery/champion-item";
-import { RoleHeader } from "@/features/mastery/role-header";
-import { filteredOut, sortAlgorithm } from "@/features/shared/champs";
-import type { CompleteChampionInfo } from "@/features/shared/types";
-import { useOptionsPersistentContext } from "@/stores/options-persistent-store";
+import ChampionItem from "~/features/mastery/champion-item";
+import { RoleHeader } from "~/features/mastery/role-header";
+import { filteredOut, sortAlgorithm } from "~/features/shared/champs";
+import type { CompleteChampionInfo } from "~/features/shared/types";
+import { useOptionsPersistentContext } from "~/stores/options-persistent-store";
 
 const ROLES = ["Top", "Jungle", "Mid", "Bottom", "Support"];
 const SortedChampionList = ({ champions }: { champions: CompleteChampionInfo[] }) => {

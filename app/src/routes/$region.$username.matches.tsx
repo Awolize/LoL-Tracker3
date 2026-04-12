@@ -1,15 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
-import FooterLinks from "@/components/footer/FooterLinks";
-import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
-import { MainTitleLink } from "@/components/header/MainTitleLink";
-import Profile from "@/components/header/Profile";
-import Search from "@/components/header/Search";
-import { ThemeSelector } from "@/components/theme-toggle";
-import { MatchHistory } from "@/features/matches/match-history";
-import { FullSummonerUpdate } from "@/features/summoner/components/summoner-update";
-import { getMatchesFn } from "@/server/matches/mutations";
-import { OptionsProvider } from "@/stores/options-persistent-store";
-import { UserProvider } from "@/stores/user-store";
+import FooterLinks from "~/components/footer/FooterLinks";
+import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
+import { MainTitleLink } from "~/components/header/MainTitleLink";
+import Profile from "~/components/header/Profile";
+import Search from "~/components/header/Search";
+import { ThemeSelector } from "~/components/theme-toggle";
+import { MatchHistory } from "~/features/matches/match-history";
+import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
+import { getMatchesFn } from "~/server/matches/mutations";
+import { OptionsProvider } from "~/stores/options-persistent-store";
+import { UserProvider } from "~/stores/user-store";
 
 export const Route = createFileRoute("/$region/$username/matches")({
 	loader: async ({ params: { username, region } }) => {

@@ -1,17 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import FooterLinks from "@/components/footer/FooterLinks";
-import RiotGamesDisclaimer from "@/components/footer/RiotGamesDisclaimer";
-import { MainTitleLink } from "@/components/header/MainTitleLink";
-import Profile from "@/components/header/Profile";
-import Search from "@/components/header/Search";
-import { ThemeSelector } from "@/components/theme-toggle";
-import ChampionList from "@/features/mastery/champions-list";
-import SortedChampionList from "@/features/mastery/role-sorted-champion-list";
-import type { CompleteChampionInfo, Summoner } from "@/features/shared/types";
-import Header from "@/features/summoner/components/summoner-header";
-import { getSummonerByNameRegion } from "@/server/summoner/mutations";
-import { OptionsProvider, useOptionsPersistentContext } from "@/stores/options-persistent-store";
-import { UserProvider } from "@/stores/user-store";
+import FooterLinks from "~/components/footer/FooterLinks";
+import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
+import { MainTitleLink } from "~/components/header/MainTitleLink";
+import Profile from "~/components/header/Profile";
+import Search from "~/components/header/Search";
+import { ThemeSelector } from "~/components/theme-toggle";
+import ChampionList from "~/features/mastery/champions-list";
+import SortedChampionList from "~/features/mastery/role-sorted-champion-list";
+import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
+import Header from "~/features/summoner/components/summoner-header";
+import { getSummonerByNameRegion } from "~/server/summoner/mutations";
+import { OptionsProvider, useOptionsPersistentContext } from "~/stores/options-persistent-store";
+import { UserProvider } from "~/stores/user-store";
 
 export const Route = createFileRoute("/$region/$username/mastery")({
 	loader: async ({ params: { username, region } }) => {
