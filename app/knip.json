@@ -29,7 +29,6 @@
 		"dotenv",
 		"knip",
 		"vitest",
-		"web-vitals",
 		"jsdom",
 		"@testing-library/dom",
 		"@testing-library/react",

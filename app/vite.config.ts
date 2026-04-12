@@ -1,32 +1,30 @@
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import viteReact from "@vitejs/plugin-react";
+import react from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
-import viteTsConfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig(({ mode }) => ({
 	plugins: [
-		viteTsConfigPaths({ projects: ["./tsconfig.json"] }),
 		tailwindcss(),
-		tanstackStart({
-			srcDirectory: "src",
-		}),
+		tanstackStart({ srcDirectory: "src" }),
 		nitro({ preset: "node-server" }),
-		viteReact(),
+		react(),
 	],
 	ssr:
 		mode === "production"
 			? {
-					noExternal: ["ioredis", "bullmq"],
-				}
+				noExternal: ["ioredis", "bullmq"],
+			}
 			: undefined,
-	resolve:
-		mode === "production"
+	resolve: {
+		tsconfigPaths: true,
+		...(mode === "production"
 			? {
-					alias: {
-						"ioredis/built/utils": "ioredis/built/utils/index.js",
-					},
-				}
-			: undefined,
+				alias: {
+					"ioredis/built/utils": "ioredis/built/utils/index.js",
+				},
+			}
+			: undefined),
+	},
 }));

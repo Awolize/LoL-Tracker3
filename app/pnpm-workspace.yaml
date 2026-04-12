@@ -2,3 +2,5 @@ onlyBuiltDependencies:
     - esbuild
     - msgpackr-extract
     - sharp
+
+minimumReleaseAge: 4000

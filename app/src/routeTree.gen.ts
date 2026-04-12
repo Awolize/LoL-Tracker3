@@ -95,7 +95,7 @@ export interface FileRoutesByFullPath {
   '/$region/$username/matches': typeof RegionUsernameMatchesRoute
   '/api/images/$': typeof ApiImagesSplatRoute
   '/api/sitemap/$page.xml': typeof ApiSitemapPageDotxmlRoute
-  '/$region/$username': typeof RegionUsernameIndexRoute
+  '/$region/$username/': typeof RegionUsernameIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -140,7 +140,7 @@ export interface FileRouteTypes {
     | '/$region/$username/matches'
     | '/api/images/$'
     | '/api/sitemap/$page.xml'
-    | '/$region/$username'
+    | '/$region/$username/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -226,7 +226,7 @@ declare module '@tanstack/react-router' {
     '/$region/$username/': {
       id: '/$region/$username/'
       path: '/$region/$username'
-      fullPath: '/$region/$username'
+      fullPath: '/$region/$username/'
       preLoaderRoute: typeof RegionUsernameIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
