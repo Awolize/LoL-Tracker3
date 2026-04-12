@@ -4,7 +4,7 @@ import { type UserTheme, useTheme } from "~/hooks/theme-provider";
 
 import { Button } from "./ui/button";
 
-const themes: UserTheme[] = ["light", "dark", "system"];
+const themes: UserTheme[] = ["light", "dark", "auto"];
 
 export function ThemeSelector() {
 	const { userTheme, setTheme } = useTheme();
@@ -24,7 +24,7 @@ export function ThemeSelector() {
 		>
 			{userTheme === "light" && <Sun className="h-4 w-4" />}
 			{userTheme === "dark" && <Moon className="h-4 w-4" />}
-			{userTheme === "system" && <Monitor className="h-4 w-4" />}
+			{userTheme === "auto" && <Monitor className="h-4 w-4" />}
 		</Button>
 	);
 }

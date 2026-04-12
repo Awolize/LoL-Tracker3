@@ -8,7 +8,7 @@ export const Route = createFileRoute("/")({ component: Home });
 
 export function Home() {
 	return (
-		<main className="flex min-h-screen flex-col items-center justify-center bg-[url('/background-1.webp')] bg-center bg-cover">
+		<main className="flex min-h-screen flex-col items-center justify-center bg-[url('/league-of-legends-background.webp')] bg-center bg-cover">
 			<div className="flex w-full animate-pulse2 flex-col items-center justify-center gap-4 bg-black py-16">
 				<div>
 					<MainText />

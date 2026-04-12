@@ -1,16 +1,18 @@
 import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
 import tailwindcss from "@tailwindcss/vite";
+import { devtools } from '@tanstack/devtools-vite'
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import react from "@vitejs/plugin-react";
+import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
 
 export default defineConfig(({ mode }) => ({
 	plugins: [
+		devtools(),
 		tailwindcss(),
 		tanstackStart({ srcDirectory: "src" }),
 		nitro({ preset: "node-server" }),
-		react(),
+		viteReact(),
 		sentryTanstackStart({
 			org: "awot",
 			project: "lol-tracker4",
