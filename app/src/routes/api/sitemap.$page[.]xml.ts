@@ -1,15 +1,22 @@
+// sitemap.$page[.]xml.ts
 import { createFileRoute } from "@tanstack/react-router";
 import { and, desc, eq, isNull, not } from "drizzle-orm";
 import { db } from "@/db";
 import { challengesConfig, summoner } from "@/db/schema";
 import { regionToDisplay } from "@/features/shared/champs";
 
+const escapeXml = (s: string) =>
+	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
 export const Route = createFileRoute("/api/sitemap/$page.xml")({
 	server: {
 		handlers: {
 			GET: async ({ params }) => {
-				const page = Number(params.page) || 1;
-				const pageSize = 500;
+				console.log(params);
+
+				const rawPage = params["page.xml"].replace(".xml", "");
+				const page = Number(rawPage) || 1;
+				const pageSize = 5000;
 				const offset = (page - 1) * pageSize;
 
 				const users = await db
@@ -27,11 +34,10 @@ export const Route = createFileRoute("/api/sitemap/$page.xml")({
 					.limit(pageSize)
 					.offset(offset);
 
-				const baseUrl = "https://lol2.awot.dev";
+				const baseUrl = "https://lol.awot.dev";
 
 				let challengeUrls = "";
 				if (page === 1) {
-					// Add challenge leaderboard URLs on first page
 					const challenges = await db
 						.select({ id: challengesConfig.id })
 						.from(challengesConfig)
@@ -50,15 +56,16 @@ export const Route = createFileRoute("/api/sitemap/$page.xml")({
 				}
 
 				const urls = users
-					.map(
-						(u) => `
+					.map((u) => {
+						const loc = `${baseUrl}/${regionToDisplay(u.region)}/${encodeURIComponent(u.gameName!)}-${encodeURIComponent(u.tagLine!)}`;
+						return `
   <url>
-    <loc>${baseUrl}/${regionToDisplay(u.region)}/${u.gameName}-${u.tagLine}</loc>
+    <loc>${escapeXml(loc)}</loc>
     <lastmod>${u.updatedAt.toISOString().slice(0, 10)}</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
-  </url>`,
-					)
+  </url>`;
+					})
 					.join("");
 
 				return new Response(
@@ -72,7 +79,7 @@ export const Route = createFileRoute("/api/sitemap/$page.xml")({
 </urlset>`,
 					{
 						headers: {
-							"Content-Type": "application/xml",
+							"Content-Type": "text/xml; charset=utf-8",
 							"Cache-Control": "public, max-age=3600",
 						},
 					},

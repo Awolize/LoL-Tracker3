@@ -2,4 +2,4 @@
 User-agent: *
 Disallow:
 
-Sitemap: https://lol2.awot.dev/api/sitemap
+Sitemap: https://lol.awot.dev/api/sitemap.xml

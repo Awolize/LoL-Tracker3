@@ -1,4 +1,4 @@
-// /api/sitemap/index/xml.ts
+// /api/sitemap.xml
 import { createFileRoute } from "@tanstack/react-router";
 import { sql } from "drizzle-orm";
 import { db } from "@/db";
@@ -8,17 +8,15 @@ export const Route = createFileRoute("/api/sitemap.xml")({
 	server: {
 		handlers: {
 			GET: async () => {
-				const base = "https://lol2.awot.dev";
-				const pageSize = 500;
+				const base = "https://lol.awot.dev";
+				const pageSize = 5000;
 
-				// count total users with valid gameName/tagLine
 				const totalUsersResult = await db
 					.select({ count: sql`count(*)` })
 					.from(summoner)
 					.where(
 						sql`${summoner.gameName} IS NOT NULL AND ${summoner.tagLine} IS NOT NULL`,
 					);
-
 				const totalUsers = Number(totalUsersResult[0].count);
 				const totalPages = Math.ceil(totalUsers / pageSize);
 
@@ -37,7 +35,7 @@ export const Route = createFileRoute("/api/sitemap.xml")({
 
 				return new Response(xml, {
 					headers: {
-						"Content-Type": "application/xml",
+						"Content-Type": "text/xml; charset=utf-8",
 						"Cache-Control": "public, max-age=3600",
 					},
 				});
