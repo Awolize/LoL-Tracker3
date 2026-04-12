@@ -2,14 +2,15 @@ import * as Sentry from "@sentry/tanstackstart-react";
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, ilike } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
-import { db } from "@/db";
-import { championMastery, summoner } from "@/db/schema";
-import { regionToConstant } from "@/features/shared/champs";
-import { getChallengesConfig } from "@/server/api/get-challenges-config";
-import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
-import { getCompleteChampionData } from "@/server/champions/get-complete-champion-data";
-import { updateQueue, updateQueueEvents } from "@/server/jobs/queue";
-import { getSummonerByUsernameRateLimit } from "@/server/summoner/get-summoner-by-username-rate-limit";
+
+import { db } from "~/db";
+import { championMastery, summoner } from "~/db/schema";
+import { regionToConstant } from "~/features/shared/champs";
+import { getChallengesConfig } from "~/server/api/get-challenges-config";
+import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
+import { getCompleteChampionData } from "~/server/champions/get-complete-champion-data";
+import { updateQueue, updateQueueEvents } from "~/server/jobs/queue";
+import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
 
 type NameChangeResult =
 	| { found: false; newUsername?: never }

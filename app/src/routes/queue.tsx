@@ -5,7 +5,8 @@ import { useQuery } from "@tanstack/react-query";
 import { createFileRoute } from "@tanstack/react-router";
 import clsx from "clsx"; // Assuming you have clsx or cn utility
 import * as React from "react";
-import { getQueueMetricsFn } from "@/server/jobs/mutations";
+
+import { getQueueMetricsFn } from "~/server/jobs/mutations";
 
 // ----------------------------------------------------------------------
 // 1. Domain Types

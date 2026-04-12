@@ -1,8 +1,10 @@
 import type { Regions } from "twisted/dist/constants";
-import { db } from "@/db";
-import { championDetails } from "@/db/schema";
-import type { CompleteChampionInfo, Summoner } from "@/features/shared/types";
-import { masteryBySummoner } from "@/server/champions/mastery-by-summoner";
+
+import { db } from "~/db";
+import { championDetails } from "~/db/schema";
+import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
+import { masteryBySummoner } from "~/server/champions/mastery-by-summoner";
+
 import rolesJson from "./roles.json";
 
 export async function getCompleteChampionData(region: Regions, user: Summoner) {

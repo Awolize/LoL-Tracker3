@@ -1,8 +1,9 @@
 // /api/sitemap.xml
 import { createFileRoute } from "@tanstack/react-router";
 import { sql } from "drizzle-orm";
-import { db } from "@/db";
-import { summoner } from "@/db/schema";
+
+import { db } from "~/db";
+import { summoner } from "~/db/schema";
 
 export const Route = createFileRoute("/api/sitemap.xml")({
 	server: {

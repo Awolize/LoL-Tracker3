@@ -1,5 +1,6 @@
 import { Link, useParams } from "@tanstack/react-router";
 import type React from "react";
+
 import { cn } from "~/components/utils";
 import type { MatchPlayerData } from "~/features/matches/match-player-data";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";

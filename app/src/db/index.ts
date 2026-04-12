@@ -1,7 +1,7 @@
 import { config } from "dotenv";
-
 import { drizzle } from "drizzle-orm/node-postgres";
 import { Pool } from "pg";
+
 import * as relations from "./relations.ts";
 import * as schema from "./schema.ts";
 

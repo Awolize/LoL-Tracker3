@@ -1,14 +1,15 @@
 import type { Regions } from "twisted/dist/constants";
 import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
-import { db } from "@/db";
+
+import { db } from "~/db";
 import {
 	categoryPoints,
 	challenge,
 	challengesDetails,
 	preferences,
 	totalPoints,
-} from "@/db/schema";
-import { lolApi } from "@/server/external/riot/lol-api";
+} from "~/db/schema";
+import { lolApi } from "~/server/external/riot/lol-api";
 
 export const upsertPlayerChallenges = async (region: Regions, user: AccountDto) => {
 	const response = (await lolApi.Challenges.PlayerChallenges(user.puuid, region)).response;

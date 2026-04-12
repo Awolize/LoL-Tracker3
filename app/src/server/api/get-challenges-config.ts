@@ -1,6 +1,7 @@
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { challengeLocalization, challengesConfig } from "@/db/schema";
+
+import { db } from "~/db";
+import { challengeLocalization, challengesConfig } from "~/db/schema";
 
 export const getChallengesConfig = async () => {
 	const configs = await db

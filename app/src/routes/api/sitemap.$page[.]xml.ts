@@ -1,9 +1,10 @@
 // sitemap.$page[.]xml.ts
 import { createFileRoute } from "@tanstack/react-router";
 import { and, desc, eq, isNull, not } from "drizzle-orm";
-import { db } from "@/db";
-import { challengesConfig, summoner } from "@/db/schema";
-import { regionToDisplay } from "@/features/shared/champs";
+
+import { db } from "~/db";
+import { challengesConfig, summoner } from "~/db/schema";
+import { regionToDisplay } from "~/features/shared/champs";
 
 const escapeXml = (s: string) =>
 	s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");

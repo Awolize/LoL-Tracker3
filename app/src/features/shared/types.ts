@@ -1,5 +1,6 @@
 import type { InferSelectModel } from "drizzle-orm";
 import type { ChampionMasteryDTO } from "twisted/dist/models-dto";
+
 import type {
 	challenge,
 	challengeLocalization,

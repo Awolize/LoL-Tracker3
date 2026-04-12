@@ -1,9 +1,10 @@
 import type { Regions } from "twisted/dist/constants";
 import type { SummonerV4DTO } from "twisted/dist/models-dto";
 import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
-import { db } from "@/db";
-import { summoner as summonerTable } from "@/db/schema";
-import type { Summoner } from "@/features/shared/types";
+
+import { db } from "~/db";
+import { summoner as summonerTable } from "~/db/schema";
+import type { Summoner } from "~/features/shared/types";
 
 export const upsertSummoner = async (
 	summoner: SummonerV4DTO,

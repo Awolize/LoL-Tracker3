@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
 import type { ChampionsDataDragonDetails } from "twisted/dist/models-dto";
-import { db } from "@/db";
-import { championDetails } from "@/db/schema";
-import { lolApi } from "@/server/external/riot/lol-api";
+
+import { db } from "~/db";
+import { championDetails } from "~/db/schema";
+import { lolApi } from "~/server/external/riot/lol-api";
 
 // Flatten champion data (Drizzle expects a flat object)
 const flattenChamp = (obj: ChampionsDataDragonDetails) => ({

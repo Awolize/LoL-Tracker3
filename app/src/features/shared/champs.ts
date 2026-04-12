@@ -1,4 +1,5 @@
 import { Regions } from "twisted/dist/constants";
+
 import type { CompleteChampionInfo } from "~/features/shared/types";
 
 export const filteredOut = (

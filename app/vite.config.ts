@@ -1,9 +1,9 @@
+import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
 import tailwindcss from "@tailwindcss/vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
-import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
 
 export default defineConfig(({ mode }) => ({
 	plugins: [
@@ -20,17 +20,17 @@ export default defineConfig(({ mode }) => ({
 	ssr:
 		mode === "production"
 			? {
-				noExternal: ["ioredis", "bullmq"],
-			}
+					noExternal: ["ioredis", "bullmq"],
+				}
 			: undefined,
 	resolve: {
 		tsconfigPaths: true,
 		...(mode === "production"
 			? {
-				alias: {
-					"ioredis/built/utils": "ioredis/built/utils/index.js",
-				},
-			}
+					alias: {
+						"ioredis/built/utils": "ioredis/built/utils/index.js",
+					},
+				}
 			: undefined),
 	},
 }));

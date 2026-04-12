@@ -1,7 +1,8 @@
 import * as Sentry from "@sentry/tanstackstart-react";
 import { createFileRoute } from "@tanstack/react-router";
 import sharp from "sharp";
-import { minio } from "@/server/external/minio";
+
+import { minio } from "~/server/external/minio";
 
 const DEBUG = process.env.IMAGE_DEBUG === "true" || process.env.IMAGE_DEBUG === "1";
 const log = (...args: any[]) => {

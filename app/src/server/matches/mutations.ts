@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { regionToConstant } from "@/features/shared/champs";
-import type { Summoner } from "@/features/shared/types";
-import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
-import { getMatches } from "@/server/matches/get-matches";
+
+import { regionToConstant } from "~/features/shared/champs";
+import type { Summoner } from "~/features/shared/types";
+import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
+import { getMatches } from "~/server/matches/get-matches";
 
 export const getMatchesFn = createServerFn({
 	method: "GET",

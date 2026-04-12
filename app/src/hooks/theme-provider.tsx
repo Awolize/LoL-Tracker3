@@ -65,7 +65,7 @@ export const themeScript = (() => {
 			} else {
 				document.documentElement.classList.add(validTheme);
 			}
-		} catch  {
+		} catch {
 			const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches
 				? "dark"
 				: "light";

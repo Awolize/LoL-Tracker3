@@ -1,8 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { and, desc, eq, gt, sql } from "drizzle-orm";
-import { db } from "@/db";
-import { challenge, challengesDetails, summoner } from "@/db/schema";
-import { regionToConstant } from "@/features/shared/champs";
+
+import { db } from "~/db";
+import { challenge, challengesDetails, summoner } from "~/db/schema";
+import { regionToConstant } from "~/features/shared/champs";
 
 export const getChallengeUserRank = createServerFn()
 	.inputValidator((input: { challengeId: number; puuid: string }) => input)
@@ -81,7 +82,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 		}
 
 		// User is not in top 100, get their rank and fetch area around them
-		const { getUserByNameAndRegion } = await import("@/server/api/get-user-by-name-and-region");
+		const { getUserByNameAndRegion } = await import("~/server/api/get-user-by-name-and-region");
 		const user = await getUserByNameAndRegion(normalizedUsername, regionEnum);
 		const userRank = await getChallengeUserRank({
 			data: { challengeId, puuid: user.puuid },

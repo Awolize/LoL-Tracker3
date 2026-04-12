@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+
 import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { MainTitleLink } from "~/components/header/MainTitleLink";

@@ -1,4 +1,5 @@
 import type React from "react";
+
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import type { CompleteChampionInfo } from "~/features/shared/types";
 

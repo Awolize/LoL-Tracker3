@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+
 import { RegionListSelector, regions } from "~/components/region-list-selector";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { getDataDragonVersion } from "~/server/api/mutations";

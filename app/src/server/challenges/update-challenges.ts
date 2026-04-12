@@ -1,5 +1,6 @@
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
+
+import { db } from "~/db";
 import {
 	challengeHeroes,
 	challenges,
@@ -7,11 +8,11 @@ import {
 	challengesChampionOcean,
 	challengesChampionOcean2024Split3,
 	challengesInvincible,
-} from "@/db/schema";
-import { regionToConstant } from "@/features/shared/champs";
-import type { Summoner } from "@/features/shared/types";
-import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
-import { getArenaMatches, getMatches, getSRMatches } from "@/server/matches/get-matches";
+} from "~/db/schema";
+import { regionToConstant } from "~/features/shared/champs";
+import type { Summoner } from "~/features/shared/types";
+import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
+import { getArenaMatches, getMatches, getSRMatches } from "~/server/matches/get-matches";
 
 export const runAllChallengeUpdatesWorker = async (data: { username: string; region: string }) => {
 	try {

@@ -10,5 +10,5 @@
 		".output/**",
 		".tanstack/**"
 	],
-	"sortImports": true,
+	"sortImports": true
 }

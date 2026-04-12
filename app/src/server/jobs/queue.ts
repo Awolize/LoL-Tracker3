@@ -1,14 +1,16 @@
 // jobs/queue.ts
 import { Queue, QueueEvents, Worker } from "bullmq";
 import type { Regions } from "twisted/dist/constants";
-import { runAllChallengeUpdatesWorker } from "@/server/challenges/update-challenges";
-import { updateChallengesConfigServer } from "@/server/challenges/update-challenges-config";
-import { upsertPlayerChallenges } from "@/server/challenges/update-player-challenges";
-import { updateChampionDetails } from "@/server/champions/update-champion-details";
-import { upsertMastery } from "@/server/champions/upsertMastery";
-import { fetchMatchIds, updateGamesSingle } from "@/server/matches/updateGames";
-import { getSummonerByUsernameRateLimit } from "@/server/summoner/get-summoner-by-username-rate-limit";
-import { upsertSummoner } from "@/server/summoner/upsertSummoner";
+
+import { runAllChallengeUpdatesWorker } from "~/server/challenges/update-challenges";
+import { updateChallengesConfigServer } from "~/server/challenges/update-challenges-config";
+import { upsertPlayerChallenges } from "~/server/challenges/update-player-challenges";
+import { updateChampionDetails } from "~/server/champions/update-champion-details";
+import { upsertMastery } from "~/server/champions/upsertMastery";
+import { fetchMatchIds, updateGamesSingle } from "~/server/matches/updateGames";
+import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
+import { upsertSummoner } from "~/server/summoner/upsertSummoner";
+
 import { connection } from "./redis";
 
 const QUEUE_NAME = "riot-updates";

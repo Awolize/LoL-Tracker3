@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
-import { regionToDisplay } from "@/features/shared/champs";
+
+import { regionToDisplay } from "~/features/shared/champs";
 
 export default function Profile() {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });

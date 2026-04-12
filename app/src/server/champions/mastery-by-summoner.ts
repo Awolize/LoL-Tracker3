@@ -1,8 +1,9 @@
 import { eq } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
-import { db } from "@/db";
-import { championMastery } from "@/db/schema";
-import type { ChampionMasteryDTOWithoutExtras, Summoner } from "@/features/shared/types";
+
+import { db } from "~/db";
+import { championMastery } from "~/db/schema";
+import type { ChampionMasteryDTOWithoutExtras, Summoner } from "~/features/shared/types";
 
 export const masteryBySummoner = async (
 	region: Regions,

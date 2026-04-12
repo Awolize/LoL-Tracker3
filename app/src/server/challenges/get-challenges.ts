@@ -1,10 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
-import { challenges, challengesDetails } from "@/db/schema";
-import { regionToConstant } from "@/features/shared/champs";
-import type { ChampionDetails } from "@/features/shared/types";
-import { getUserByNameAndRegion } from "@/server/api/get-user-by-name-and-region";
+
+import { db } from "~/db";
+import { challenges, challengesDetails } from "~/db/schema";
+import { regionToConstant } from "~/features/shared/champs";
+import type { ChampionDetails } from "~/features/shared/types";
+import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 
 export const getJackOfAllChamps = createServerFn()
 	.inputValidator((input: { username: string; region: string }) => input)

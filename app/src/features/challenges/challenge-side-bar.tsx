@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ChevronLeftIcon, ChevronRightIcon, TrophyIcon } from "lucide-react";
 import { useState } from "react";
+
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
 import type { Summoner } from "~/features/shared/types";

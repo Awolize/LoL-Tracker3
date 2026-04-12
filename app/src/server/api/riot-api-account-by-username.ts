@@ -1,6 +1,7 @@
 import { type Regions, regionToRegionGroupForAccountAPI } from "twisted/dist/constants";
-import { rateLimitWrapper } from "@/server/api/rate-limit-wrapper";
-import { riotApi } from "@/server/external/riot/riot-api";
+
+import { rateLimitWrapper } from "~/server/api/rate-limit-wrapper";
+import { riotApi } from "~/server/external/riot/riot-api";
 
 export const riotApiAccountByUsername = async (
 	gameName: string,

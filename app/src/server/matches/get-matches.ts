@@ -1,7 +1,8 @@
 import { and, desc, eq, gte, inArray, notInArray } from "drizzle-orm";
-import { db } from "@/db";
-import { match, matchInfo, matchSummoners } from "@/db/schema";
-import type { Summoner } from "@/features/shared/types";
+
+import { db } from "~/db";
+import { match, matchInfo, matchSummoners } from "~/db/schema";
+import type { Summoner } from "~/features/shared/types";
 
 export async function getMatches(
 	user: Summoner,

@@ -1,10 +1,11 @@
 import { and, eq } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import type { ConfigDTO } from "twisted/dist/models-dto";
-import { db } from "@/db";
-import { challengeLocalization, challengesConfig } from "@/db/schema";
-import type { ChallengesConfig } from "@/features/shared/types";
-import { lolApi } from "@/server/external/riot/lol-api";
+
+import { db } from "~/db";
+import { challengeLocalization, challengesConfig } from "~/db/schema";
+import type { ChallengesConfig } from "~/features/shared/types";
+import { lolApi } from "~/server/external/riot/lol-api";
 
 export const updateChallengesConfigServer = async (region: Regions) => {
 	const configs: ConfigDTO.Config[] = (await lolApi.Challenges.Configs(region)).response;

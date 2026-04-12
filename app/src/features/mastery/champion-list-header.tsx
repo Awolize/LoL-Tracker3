@@ -1,9 +1,11 @@
 import { useMemo } from "react";
+
 import { ChallengeHeaderProgress } from "~/features/challenges/challenge-header-progress";
 import { ChallengeHeaderThresholds } from "~/features/challenges/challenge-header-thresholds";
 import type { ChampionDetails, CompleteChampionInfo } from "~/features/shared/types";
 import { useChallengeContext } from "~/stores/challenge-store";
 import { useSelectedChallenge } from "~/stores/selected-challenge-context";
+
 import { DifferentHeaderCounter } from "./header-counter.tsx";
 
 interface ChampionListHeaderProps {

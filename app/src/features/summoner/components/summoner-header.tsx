@@ -1,4 +1,5 @@
 import { ArrowDownIcon, ArrowUpIcon } from "lucide-react";
+
 import { Button } from "~/components/ui/button";
 import { Label } from "~/components/ui/label";
 import { DifferentHeaderCounter } from "~/features/mastery/header-counter";
@@ -11,6 +12,7 @@ import { TogglePill } from "~/features/shared/components/toggle-pill";
 import type { CompleteChampionInfo } from "~/features/shared/types";
 import { useOptionsPersistentContext } from "~/stores/options-persistent-store";
 import { useUserContext } from "~/stores/user-store";
+
 import { FullSummonerUpdate } from "./summoner-update";
 
 export enum SortOrder2 {

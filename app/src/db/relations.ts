@@ -1,4 +1,5 @@
 import { relations } from "drizzle-orm/relations";
+
 import {
 	categoryPoints,
 	challenge,

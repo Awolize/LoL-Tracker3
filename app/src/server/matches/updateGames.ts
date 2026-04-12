@@ -1,15 +1,16 @@
 import { eq, type InferSelectModel, inArray } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 import { regionToRegionGroup } from "twisted/dist/constants";
-import { db } from "@/db";
+
+import { db } from "~/db";
 import {
 	matchInfo as matchInfoTable,
 	matchSummoners as matchSummonersTable,
 	match as matchTable,
 	type summoner,
 	summoner as summonerTable,
-} from "@/db/schema";
-import { lolApi } from "@/server/external/riot/lol-api";
+} from "~/db/schema";
+import { lolApi } from "~/server/external/riot/lol-api";
 
 type SummonerRow = InferSelectModel<typeof summoner>;
 

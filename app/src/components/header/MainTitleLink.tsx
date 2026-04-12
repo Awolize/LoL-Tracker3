@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+
 import { MainText } from "./MainText";
 
 export const MainTitleLink = () => {

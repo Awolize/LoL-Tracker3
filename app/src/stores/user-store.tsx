@@ -2,7 +2,8 @@ import type { InferSelectModel } from "drizzle-orm";
 import type React from "react";
 import { createContext, useContext, useRef } from "react";
 import { createStore, useStore } from "zustand";
-import type { summoner } from "@/db/schema";
+
+import type { summoner } from "~/db/schema";
 
 type SummonerRow = InferSelectModel<typeof summoner>;
 

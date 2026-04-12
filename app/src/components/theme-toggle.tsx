@@ -1,5 +1,7 @@
 import { Monitor, Moon, Sun } from "lucide-react";
+
 import { type UserTheme, useTheme } from "~/hooks/theme-provider";
+
 import { Button } from "./ui/button";
 
 const themes: UserTheme[] = ["light", "dark", "system"];
