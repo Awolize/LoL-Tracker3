@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import react from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
 import { defineConfig } from "vite";
+import { sentryTanstackStart } from "@sentry/tanstackstart-react/vite";
 
 export default defineConfig(({ mode }) => ({
 	plugins: [
@@ -10,11 +11,16 @@ export default defineConfig(({ mode }) => ({
 		tanstackStart({ srcDirectory: "src" }),
 		nitro({ preset: "node-server" }),
 		react(),
+		sentryTanstackStart({
+			org: "awot",
+			project: "lol-tracker4",
+			authToken: process.env.SENTRY_AUTH_TOKEN,
+		}),
 	],
 	ssr:
 		mode === "production"
 			? {
-				noExternal: ["ioredis", "bullmq", "tslib"],
+				noExternal: ["ioredis", "bullmq"],
 			}
 			: undefined,
 	resolve: {

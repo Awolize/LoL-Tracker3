@@ -33,8 +33,8 @@ export const getRouter = () => {
 
 			integrations: [
 				Sentry.tanstackRouterBrowserTracingIntegration(router),
-				Sentry.replayIntegration(),
-				Sentry.feedbackIntegration({ colorScheme: "system" }),
+				// Sentry.replayIntegration(),
+				// Sentry.feedbackIntegration({ colorScheme: "system" }),
 			],
 			enableLogs: true,
 			tracesSampleRate: 1.0,
