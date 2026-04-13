@@ -160,7 +160,7 @@ export function RouteComponent() {
 						selectedChallengeId={selectedChallengeId}
 						setSelectedChallengeId={setSelectedChallengeId}
 					>
-						<header className="sticky top-0 z-30 grid grid-cols-3 w-screen justify-between bg-primary-foreground px-1 md:px-8">
+						<header className="bg-primary-foreground sticky top-0 z-30 grid w-screen grid-cols-3 justify-between px-1 md:px-8">
 							<MainTitleLink />
 							<Profile />
 							<Search />
@@ -177,7 +177,7 @@ export function RouteComponent() {
 								region={region}
 								user={user}
 							/>
-							<main className="flex flex-col flex-1 p-4">
+							<main className="flex flex-1 flex-col p-4">
 								<ChampionListHeader
 									challengeChampions={challengeChampions}
 									champions={playerChampionInfo}

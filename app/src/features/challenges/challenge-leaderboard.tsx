@@ -71,11 +71,7 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 			transition={{ type: "spring", stiffness: 700, damping: 25, mass: 0.5 }}
 			// Subtle scale + lift to avoid "floating" or blurry look
 			whileHover={exists ? { scale: 1.02, y: -3 } : undefined}
-			className={`
-				flex flex-col items-center justify-center py-3 px-3 rounded-md border
-				transition-colors duration-200
-				${exists ? "opacity-100" : "opacity-40 grayscale-[0.8]"}
-			`}
+			className={`flex flex-col items-center justify-center rounded-md border px-3 py-3 transition-colors duration-200 ${exists ? "opacity-100" : "opacity-40 grayscale-[0.8]"} `}
 			style={{
 				borderColor: tierColor,
 				// If disabled, very subtle background. If active, tinted background.
@@ -87,7 +83,7 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 			<img
 				src={iconUrl}
 				alt={tier}
-				className="w-8 h-8 object-contain mb-2 drop-shadow-md"
+				className="mb-2 h-8 w-8 object-contain drop-shadow-md"
 				onError={(e) => {
 					// Fallback for missing images
 					e.currentTarget.style.display = "none";
@@ -96,7 +92,7 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 			/>
 
 			<div
-				className={`font-bold text-xs uppercase tracking-wider mb-0.5 ${
+				className={`mb-0.5 text-xs font-bold tracking-wider uppercase ${
 					exists ? "text-white" : "text-muted-foreground"
 				}`}
 				style={exists ? { textShadow: "0 1px 2px rgba(0,0,0,0.5)" } : undefined}
@@ -105,7 +101,7 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 			</div>
 
 			<div
-				className={`font-mono font-bold text-sm ${exists ? "text-white" : "text-muted-foreground"}`}
+				className={`font-mono text-sm font-bold ${exists ? "text-white" : "text-muted-foreground"}`}
 				style={exists ? { textShadow: "0 1px 2px rgba(0,0,0,0.5)" } : undefined}
 			>
 				{exists ? points.toLocaleString() : "—"}
@@ -174,31 +170,28 @@ const LeaderboardRow = ({
 			whileInView={{ opacity: 1, x: 0 }}
 			viewport={{ once: true, margin: "-5%" }}
 			transition={{ duration: 0.2, delay: Math.min(index * 0.03, 0.3) }}
-			className={`
-				group flex items-center justify-between px-4 py-2 text-sm transition-colors duration-200
-				${
-					isHighlighted
-						? "z-10 relative border-y"
-						: "hover:brightness-105 border-b border-border/40 last:border-0"
-				}
-			`}
+			className={`group flex items-center justify-between px-4 py-2 text-sm transition-colors duration-200 ${
+				isHighlighted
+					? "relative z-10 border-y"
+					: "border-border/40 border-b last:border-0 hover:brightness-105"
+			} `}
 			style={rowStyle}
 		>
 			{/* Pulse Effect for Highlighted User */}
 			{isHighlighted && (
 				<motion.div
-					className="absolute inset-0 pointer-events-none"
+					className="pointer-events-none absolute inset-0"
 					animate={{ opacity: [0.1, 0.2, 0.1] }}
 					transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
 					style={{ backgroundColor: tierVar }}
 				/>
 			)}
 
-			<div className="flex items-center gap-4 relative z-10">
+			<div className="relative z-10 flex items-center gap-4">
 				{/* Rank */}
 				<div
-					className={`font-mono text-sm w-6 text-center ${
-						isHighlighted ? "font-bold text-foreground" : "text-muted-foreground/70"
+					className={`w-6 text-center font-mono text-sm ${
+						isHighlighted ? "text-foreground font-bold" : "text-muted-foreground/70"
 					}`}
 				>
 					{actualIndex + 1}
@@ -210,7 +203,7 @@ const LeaderboardRow = ({
 						<img
 							src={getProfileImage(String(entry.summoner.profileIconId))}
 							alt=""
-							className="w-8 h-8 rounded-full bg-muted object-cover border-2"
+							className="bg-muted h-8 w-8 rounded-full border-2 object-cover"
 							style={{ borderColor: tierVar }}
 						/>
 					</div>
@@ -223,7 +216,7 @@ const LeaderboardRow = ({
 									region: entry.summoner.region,
 									username: `${entry.summoner.gameName || "Unknown"}-${entry.summoner.tagLine || ""}`,
 								}}
-								className={`font-medium transition-colors hover:text-primary hover:underline truncate max-w-[200px] ${
+								className={`hover:text-primary max-w-[200px] truncate font-medium transition-colors hover:underline ${
 									isHighlighted
 										? "text-foreground font-bold"
 										: "text-foreground/90"
@@ -237,12 +230,12 @@ const LeaderboardRow = ({
 									animate={{ scale: 1, rotate: 0 }}
 									transition={{ type: "spring", stiffness: 200 }}
 								>
-									<StarIcon className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+									<StarIcon className="h-3 w-3 fill-yellow-500 text-yellow-500" />
 								</motion.div>
 							)}
 						</div>
-						<div className="flex items-center gap-1.5 text-[10px] text-muted-foreground leading-none mt-1">
-							<span className="uppercase font-semibold tracking-wider text-[9px]">
+						<div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-[10px] leading-none">
+							<span className="text-[9px] font-semibold tracking-wider uppercase">
 								{regionToDisplay(entry.summoner.region)}
 							</span>
 							<span className="text-border">|</span>
@@ -253,7 +246,7 @@ const LeaderboardRow = ({
 			</div>
 
 			{/* Points & Tier Name */}
-			<div className="text-right relative z-10">
+			<div className="relative z-10 text-right">
 				<div
 					className={`font-mono font-medium tracking-tight ${
 						isHighlighted ? "text-foreground" : "text-foreground/80"
@@ -262,7 +255,7 @@ const LeaderboardRow = ({
 					{(entry.challenge.value ?? 0).toLocaleString()}
 				</div>
 				<div
-					className="text-[10px] capitalize leading-none mt-0.5 font-bold tracking-wide"
+					className="mt-0.5 text-[10px] leading-none font-bold tracking-wide capitalize"
 					style={{ color: tierVar }}
 				>
 					{tier?.toLowerCase()}
@@ -333,14 +326,14 @@ export default function ChallengeLeaderboard({
 		<div className="flex flex-col gap-6">
 			{/* Tiers Grid */}
 			<section>
-				<h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-widest mb-3 px-1">
+				<h3 className="text-muted-foreground mb-3 px-1 text-sm font-semibold tracking-widest uppercase">
 					Thresholds
 				</h3>
 				<motion.div
 					variants={containerVariants}
 					initial="hidden"
 					animate="show"
-					className="grid grid-cols-2 tracking-tight select-none xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2"
+					className="xs:grid-cols-3 grid grid-cols-2 gap-2 tracking-tight select-none sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6"
 				>
 					{/* Display Tiers Highest to Lowest (Challenger -> Iron) */}
 					{[...TIER_ORDER].reverse().map((tier) => {
@@ -364,10 +357,10 @@ export default function ChallengeLeaderboard({
 
 			{/* Leaderboard List */}
 			<section>
-				<h3 className="text-sm font-semibold uppercase text-muted-foreground tracking-widest mb-3 px-1">
+				<h3 className="text-muted-foreground mb-3 px-1 text-sm font-semibold tracking-widest uppercase">
 					Leaderboard
 				</h3>
-				<div className="rounded-xl border bg-background/50 overflow-hidden shadow-sm">
+				<div className="bg-background/50 overflow-hidden rounded-xl border shadow-sm">
 					<div className="flex flex-col">
 						{renderEntries(topSection)}
 
@@ -375,18 +368,18 @@ export default function ChallengeLeaderboard({
 							<motion.div
 								initial={{ opacity: 0 }}
 								whileInView={{ opacity: 1 }}
-								className="flex items-center justify-center py-3 bg-muted/20 border-y border-border/40"
+								className="bg-muted/20 border-border/40 flex items-center justify-center border-y py-3"
 							>
-								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
-								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
-								<div className="h-1 w-1 rounded-full bg-muted-foreground/30 mx-0.5" />
+								<div className="bg-muted-foreground/30 mx-0.5 h-1 w-1 rounded-full" />
+								<div className="bg-muted-foreground/30 mx-0.5 h-1 w-1 rounded-full" />
+								<div className="bg-muted-foreground/30 mx-0.5 h-1 w-1 rounded-full" />
 							</motion.div>
 						)}
 
 						{renderEntries(bottomSection, shouldShowSections ? 75 : 0)}
 
 						{leaderboard.length === 0 && (
-							<div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+							<div className="text-muted-foreground flex flex-col items-center justify-center py-12">
 								<p className="text-sm">No players found</p>
 							</div>
 						)}

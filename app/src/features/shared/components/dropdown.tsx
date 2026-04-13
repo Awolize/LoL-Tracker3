@@ -30,7 +30,7 @@ export function Dropdown({ choices, choice, callback, menuLabel }: Props) {
 				<Button
 					variant="secondary"
 					size={"sm"}
-					className="flex min-w-32 max-w-auto flex-row justify-between gap-2"
+					className="max-w-auto flex min-w-32 flex-row justify-between gap-2"
 				>
 					{choice.text}
 					<ChevronsUpDownIcon

@@ -61,11 +61,11 @@ export const DifferentSideBar = ({ challenges, username, region, user }: Differe
 	return (
 		<div className="sticky top-21 left-0 z-20 flex flex-row">
 			<nav
-				className={`max-h-[calc(100vh-168px)] bg-primary-foreground py-4 ${
+				className={`bg-primary-foreground max-h-[calc(100vh-168px)] py-4 ${
 					drawerOpen ? "w-72" : "w-4"
-				} border-t-2 duration-300 overflow-hidden`}
+				} overflow-hidden border-t-2 duration-300`}
 			>
-				<div className="flex h-full flex-col gap-1 overflow-y-auto max-h-[calc(100vh-200px)] w-68 px-2">
+				<div className="flex h-full max-h-[calc(100vh-200px)] w-68 flex-col gap-1 overflow-y-auto px-2">
 					<h3 className="text-center font-bold">Challenges</h3>
 					<hr className="border-gray-600" />
 					<div className="flex justify-evenly gap-1 py-1">
@@ -127,14 +127,14 @@ export const DifferentSideBar = ({ challenges, username, region, user }: Differe
 											className="text-muted-foreground hover:text-primary transition-colors"
 											onClick={(e) => e.stopPropagation()}
 										>
-											<TrophyIcon className="w-4 h-4" />
+											<TrophyIcon className="h-4 w-4" />
 										</Link>
 									</div>
 								</li>
 							);
 						})}
 					</ul>
-					<div className="flex flex-col gap-2 mt-2">
+					<div className="mt-2 flex flex-col gap-2">
 						<FullSummonerUpdate user={user} awaitMatches={true} />
 					</div>
 				</div>
@@ -142,12 +142,12 @@ export const DifferentSideBar = ({ challenges, username, region, user }: Differe
 			<button
 				type="button"
 				onClick={() => setDrawerOpen(!drawerOpen)}
-				className="relative -ml-4 mt-2 z-10 w-8 h-8 cursor-pointer rounded-full border-2 border-background bg-primary-foreground p-1 text-foreground hover:bg-background transition-colors flex items-center justify-center"
+				className="border-background bg-primary-foreground text-foreground hover:bg-background relative z-10 mt-2 -ml-4 flex h-8 w-8 cursor-pointer items-center justify-center rounded-full border-2 p-1 transition-colors"
 			>
 				{drawerOpen ? (
-					<ChevronLeftIcon className="w-5 h-5" />
+					<ChevronLeftIcon className="h-5 w-5" />
 				) : (
-					<ChevronRightIcon className="w-5 h-5" />
+					<ChevronRightIcon className="h-5 w-5" />
 				)}
 			</button>
 		</div>

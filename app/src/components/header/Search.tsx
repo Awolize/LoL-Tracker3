@@ -82,45 +82,45 @@ export default function Search() {
 		<div className="flex h-full w-full items-center justify-center md:py-2">
 			<div className="flex flex-col gap-1 md:flex-row md:gap-4">
 				<div className="flex items-center justify-center">
-					<div className="shrink-0 font-extrabold text-2xl text-foreground tracking-tight md:text-[2rem]">
+					<div className="text-foreground shrink-0 text-2xl font-extrabold tracking-tight md:text-[2rem]">
 						<RegionListSelector
 							selectedRegion={selectedRegion}
 							setSelectedRegion={setSelectedRegion}
 						/>
 					</div>
 				</div>
-				<form onSubmit={onSubmit} className="flex flex-col gap-2 w-full max-w-sm relative">
-					<div className="w-full flex flex-row h-12 gap-1">
-						<div className="relative gap-1 flex w-full">
+				<form onSubmit={onSubmit} className="relative flex w-full max-w-sm flex-col gap-2">
+					<div className="flex h-12 w-full flex-row gap-1">
+						<div className="relative flex w-full gap-1">
 							<input
 								ref={inputRef}
 								value={username}
 								onChange={(e) => setUsername(e.target.value)}
 								placeholder="lol.awot#dev"
-								className="h-12 grow flex rounded-l bg-input border border-input text-foreground text-center text-xl placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+								className="bg-input border-input text-foreground placeholder:text-muted-foreground focus:ring-ring flex h-12 grow rounded-l border text-center text-xl focus:ring-2 focus:outline-none"
 							/>
 
 							{isDropdownOpen && suggestions.length > 0 && (
-								<div className="absolute top-full left-0 right-0 z-10 mt-1 bg-background border border-border rounded-md shadow-lg max-h-60 overflow-y-auto">
+								<div className="bg-background border-border absolute top-full right-0 left-0 z-10 mt-1 max-h-60 overflow-y-auto rounded-md border shadow-lg">
 									{suggestions.map((suggestion, index) => (
 										<div
 											key={suggestion.username + index}
 											onClick={() => selectSuggestion(suggestion.username)}
-											className="px-3 py-2 hover:bg-muted cursor-pointer flex items-center gap-3"
+											className="hover:bg-muted flex cursor-pointer items-center gap-3 px-3 py-2"
 										>
 											<img
 												src={getProfileImage(String(suggestion.iconId))}
 												alt="Profile icon"
-												className="w-8 h-8 rounded-full border"
+												className="h-8 w-8 rounded-full border"
 												onError={(e) => {
 													e.currentTarget.style.display = "none";
 												}}
 											/>
 											<div className="flex-1">
-												<div className="font-medium text-foreground">
+												<div className="text-foreground font-medium">
 													{suggestion.username}
 												</div>
-												<div className="text-sm text-muted-foreground">
+												<div className="text-muted-foreground text-sm">
 													Level {suggestion.level} • {suggestion.region}
 												</div>
 											</div>
@@ -131,10 +131,10 @@ export default function Search() {
 						</div>
 						<button
 							type="submit"
-							className="h-12 min-w-12 max-w-12 rounded-r bg-primary text-primary-foreground hover:bg-primary/90 flex items-center justify-center transition-colors"
+							className="bg-primary text-primary-foreground hover:bg-primary/90 flex h-12 max-w-12 min-w-12 items-center justify-center rounded-r transition-colors"
 							aria-label="Search summoner"
 						>
-							<ArrowRight className="w-5 h-5" />
+							<ArrowRight className="h-5 w-5" />
 						</button>
 					</div>
 

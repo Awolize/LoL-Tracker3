@@ -64,19 +64,19 @@ function RouteComponent() {
 		<UserProvider user={user}>
 			<OptionsProvider persistName={`${user.gameName}-${user.tagLine}`}>
 				<div className="flex min-h-screen flex-col">
-					<header className="sticky top-0 z-30 grid w-screen grid-cols-3 justify-between bg-primary-foreground px-1 md:px-8">
+					<header className="bg-primary-foreground sticky top-0 z-30 grid w-screen grid-cols-3 justify-between px-1 md:px-8">
 						<MainTitleLink />
 						<Profile />
 						<Search />
 
-						<div className="absolute right-4 top-4">
+						<div className="absolute top-4 right-4">
 							<ThemeSelector />
 						</div>
 					</header>
 
-					<main className="flex flex-col px-4 py-8 min-h-screen">
-						<div className="max-w-7xl mx-auto w-full">
-							<div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8 gap-4">
+					<main className="flex min-h-screen flex-col px-4 py-8">
+						<div className="mx-auto w-full max-w-7xl">
+							<div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
 								<div>
 									<h2 className="text-3xl font-bold tracking-tight">
 										Match History
@@ -87,7 +87,7 @@ function RouteComponent() {
 									</p>
 								</div>
 								<div className="flex items-center gap-4">
-									<div className="text-sm text-muted-foreground bg-muted px-3 py-1 rounded-full">
+									<div className="text-muted-foreground bg-muted rounded-full px-3 py-1 text-sm">
 										{matches.length} matches loaded
 									</div>
 									<FullSummonerUpdate user={user} awaitMatches={true} />

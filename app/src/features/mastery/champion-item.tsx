@@ -124,17 +124,17 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 					width={90}
 				/>
 				{showChampionLevels && (
-					<div className="absolute top-1 left-1 bg-black/80 text-white text-xs font-bold px-1.5 py-0.5 rounded z-20">
+					<div className="absolute top-1 left-1 z-20 rounded bg-black/80 px-1.5 py-0.5 text-xs font-bold text-white">
 						{champ.championLevel}
 					</div>
 				)}
 			</div>
 
-			<div className="text-center text-xs mt-1 truncate" title={champ.name}>
+			<div className="mt-1 truncate text-center text-xs" title={champ.name}>
 				{champ.name}
 			</div>
 			{showMasteryPoints && (
-				<div className="items-center justify-center text-center text-xs text-muted-foreground">
+				<div className="text-muted-foreground items-center justify-center text-center text-xs">
 					{champ.championPoints.toLocaleString()}
 				</div>
 			)}

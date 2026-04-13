@@ -39,28 +39,28 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 
 	return (
 		<Card
-			className={`w-full transition-all duration-200 gap-4 py-4 ${isWin ? "border-green-500/20 bg-green-50/10 dark:bg-green-950/10" : "border-red-500/20 bg-red-50/10 dark:bg-red-950/10"} ${
+			className={`w-full gap-4 py-4 transition-all duration-200 ${isWin ? "border-green-500/20 bg-green-50/10 dark:bg-green-950/10" : "border-red-500/20 bg-red-50/10 dark:bg-red-950/10"} ${
 				!isExpanded
-					? "cursor-pointer hover:bg-muted/70 hover:border-muted hover:shadow-md hover:scale-[1.01]"
+					? "hover:bg-muted/70 hover:border-muted cursor-pointer hover:scale-[1.01] hover:shadow-md"
 					: ""
 			}`}
 			onClick={() => setIsExpanded(!isExpanded)}
 		>
-			<CardHeader className="pb-1 px-2">
+			<CardHeader className="px-2 pb-1">
 				<div
-					className={`grid grid-cols-[2fr_1fr_auto_2fr_1fr] items-center place-items-center gap-2 min-w-0 w-full`}
+					className={`grid w-full min-w-0 grid-cols-[2fr_1fr_auto_2fr_1fr] place-items-center items-center gap-2`}
 				>
 					{/* Column 1: Victory + Champion + Chevron */}
-					<div className="flex flex-row items-center gap-4 shrink-0 justify-self-start">
+					<div className="flex shrink-0 flex-row items-center gap-4 justify-self-start">
 						{/* Expand/Collapse Chevron */}
 						{isExpanded ? (
-							<ChevronUp className="w-3 h-3" />
+							<ChevronUp className="h-3 w-3" />
 						) : (
-							<ChevronDown className="w-3 h-3" />
+							<ChevronDown className="h-3 w-3" />
 						)}
 
 						<div
-							className={`px-2 py-0.5 rounded-full text-xs font-semibold w-16 text-center ${
+							className={`w-16 rounded-full px-2 py-0.5 text-center text-xs font-semibold ${
 								isWin
 									? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
 									: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300"
@@ -71,10 +71,10 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 
 						<div className="flex items-center gap-2">
 							{/* Champion Info */}
-							<div className="flex items-center gap-2 ">
+							<div className="flex items-center gap-2">
 								<img
 									src={getChampionImage(`${userParticipant?.championName}.png`)}
-									className="w-10 h-10 rounded"
+									className="h-10 w-10 rounded"
 									alt={userParticipant?.championName}
 								/>
 								<span className="text text-foreground truncate">
@@ -86,8 +86,8 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 
 					{/* Column 2: Game Type (ranked, normal, etc.) */}
 
-					<div className="flexitems-center shrink-0 overflow-hidden justify-self-start">
-						<div className="text-sm font-medium text-foreground">
+					<div className="flexitems-center shrink-0 justify-self-start overflow-hidden">
+						<div className="text-foreground text-sm font-medium">
 							{match.MatchInfo?.gameMode
 								?.replace(/_/g, " ")
 								?.toLowerCase()
@@ -96,7 +96,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 					</div>
 
 					{/* Column 3: K/D/A Stats (centered) */}
-					<div className="flex items-center gap-1 text-lg font-bold justify-center overflow-hidden">
+					<div className="flex items-center justify-center gap-1 overflow-hidden text-lg font-bold">
 						<span className="text-green-600 dark:text-green-400">
 							{userParticipant?.kills}
 						</span>
@@ -112,9 +112,9 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 
 					{/* Column 4: Game Stats (when expanded) or Champion Icons (when collapsed) */}
 
-					<div className="flex flex-col gap-0.5 justify-center overflow-hidden">
+					<div className="flex flex-col justify-center gap-0.5 overflow-hidden">
 						{/* Blue Team Row */}
-						<div className="flex items-center gap-1 justify-center">
+						<div className="flex items-center justify-center gap-1">
 							{(match.MatchInfo.participants as unknown as Array<any>)
 								.filter((p: any) => p.teamId === 100)
 								.map((participant: any) => (
@@ -123,7 +123,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 											src={getChampionImage(
 												`${participant.championName}.png`,
 											)}
-											className={`w-6 h-6 rounded border ${
+											className={`h-6 w-6 rounded border ${
 												participant.puuid === user.puuid
 													? "border-primary shadow-sm"
 													: "border-border"
@@ -135,7 +135,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 								))}
 						</div>
 						{/* Red Team Row */}
-						<div className="flex items-center gap-1 justify-center">
+						<div className="flex items-center justify-center gap-1">
 							{(match.MatchInfo.participants as unknown as Array<any>)
 								.filter((p: any) => p.teamId === 200)
 								.map((participant: any) => (
@@ -144,7 +144,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 											src={getChampionImage(
 												`${participant.championName}.png`,
 											)}
-											className={`w-6 h-6 rounded border ${
+											className={`h-6 w-6 rounded border ${
 												participant.puuid === user.puuid
 													? "border-primary shadow-sm"
 													: "border-border"
@@ -158,11 +158,11 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 					</div>
 
 					{/* Column 5: Champion Icons (when collapsed only - hidden when expanded) */}
-					<div className="text-left shrink-0 overflow-hidden">
-						<div className="text-xs text-muted-foreground">
+					<div className="shrink-0 overflow-hidden text-left">
+						<div className="text-muted-foreground text-xs">
 							{gameDate} • {gameTime}
 						</div>
-						<div className="text-xs text-muted-foreground flex flex-col">
+						<div className="text-muted-foreground flex flex-col text-xs">
 							<div>{match.MatchInfo?.gameType}</div>
 						</div>
 					</div>
@@ -173,10 +173,10 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 				<CardContent>
 					<div className="space-y-4">
 						{/* Teams Layout */}
-						<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+						<div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
 							{/* Team 200 (Red Team) */}
 							<div className="space-y-2">
-								<h4 className="font-semibold text-red-600 dark:text-red-400 text-sm">
+								<h4 className="text-sm font-semibold text-red-600 dark:text-red-400">
 									Red Team
 								</h4>
 								<MatchTable
@@ -188,7 +188,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 
 							{/* Team 100 (Blue Team) */}
 							<div className="space-y-2">
-								<h4 className="font-semibold text-blue-600 dark:text-blue-400 text-sm">
+								<h4 className="text-sm font-semibold text-blue-600 dark:text-blue-400">
 									Blue Team
 								</h4>
 								<MatchTable
@@ -200,11 +200,11 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 						</div>
 
 						{/* Match Footer Info */}
-						<div className="flex items-center justify-between pt-2 border-t">
-							<div className="text-sm text-muted-foreground">
+						<div className="flex items-center justify-between border-t pt-2">
+							<div className="text-muted-foreground text-sm">
 								Map: {match.MatchInfo?.mapId} • Duration: {gameDuration}
 							</div>
-							<div className="text-sm text-muted-foreground">
+							<div className="text-muted-foreground text-sm">
 								{match.participants?.length || 0} players
 							</div>
 						</div>

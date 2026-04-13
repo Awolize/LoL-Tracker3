@@ -75,7 +75,7 @@ export function RouteComponent() {
 		<UserProvider user={user}>
 			<OptionsProvider persistName={`${user.gameName}-${user.tagLine}`}>
 				<div className="flex flex-col">
-					<header className="sticky top-0 z-30 grid grid-cols-3 w-screen justify-between bg-primary-foreground px-1 md:px-8">
+					<header className="bg-primary-foreground sticky top-0 z-30 grid w-screen grid-cols-3 justify-between px-1 md:px-8">
 						<MainTitleLink />
 						<Profile />
 						<Search />

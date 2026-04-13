@@ -148,22 +148,22 @@ function Client() {
 	const { getChallengeIcon } = useDataDragonPath(version);
 
 	return (
-		<div className="min-h-screen bg-background">
+		<div className="bg-background min-h-screen">
 			<div className="container mx-auto px-4 py-8">
-				<div className="max-w-4xl mx-auto space-y-6">
+				<div className="mx-auto max-w-4xl space-y-6">
 					{/* Page Title */}
-					<div className="text-center flex flex-row justify-center gap-4">
+					<div className="flex flex-row justify-center gap-4 text-center">
 						<img
 							src={getChallengeIcon(challengeId, config.config.thresholds)}
 							alt={config.localization?.name || `Challenge ${challengeId}`}
-							className="w-24 h-24 rounded-lg object-cover"
+							className="h-24 w-24 rounded-lg object-cover"
 						/>
 						<div>
-							<h2 className="text-4xl font-bold mb-2">
+							<h2 className="mb-2 text-4xl font-bold">
 								{config.localization?.name || `Challenge ${challengeId}`}
 							</h2>
 							{config.localization?.description && (
-								<p className="text-lg text-muted-foreground">
+								<p className="text-muted-foreground text-lg">
 									{config.localization.description}
 								</p>
 							)}
@@ -192,11 +192,11 @@ function Client() {
 
 function Header({ username, region }: { username?: string; region?: string }) {
 	return (
-		<header className="sticky top-0 z-30 grid w-full grid-cols-3 bg-background/95 backdrop-blur supports-backdrop-filter:bg-background/60 px-4 py-2 border-b">
-			<div className="flex justify-center items-center">
+		<header className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-30 grid w-full grid-cols-3 border-b px-4 py-2 backdrop-blur">
+			<div className="flex items-center justify-center">
 				<MainTitleLink />
 			</div>
-			<div className="flex justify-center items-center">
+			<div className="flex items-center justify-center">
 				{username && region ? (
 					<Link
 						to="/$region/$username"
@@ -210,7 +210,7 @@ function Header({ username, region }: { username?: string; region?: string }) {
 				)}
 			</div>
 
-			<div className="flex items-center w-full relative">
+			<div className="relative flex w-full items-center">
 				<div className="flex-1">
 					<Search />
 				</div>

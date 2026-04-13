@@ -39,14 +39,14 @@ const MatchTable: React.FC<MatchTableProps> = ({ players, teamId, version }) => 
 						<div className="flex justify-center">
 							<img
 								src={getChampionImage(`${player.championName}.png`)}
-								className="w-10 h-10 rounded-lg border border-border"
+								className="border-border h-10 w-10 rounded-lg border"
 								alt={`${player.championName}`}
 							/>
 						</div>
 
 						{/* Champion Name */}
 						<div className="min-w-0">
-							<div className="text-sm font-medium text-foreground truncate">
+							<div className="text-foreground truncate text-sm font-medium">
 								{player.championName}
 							</div>
 						</div>
@@ -85,7 +85,7 @@ const MatchTable: React.FC<MatchTableProps> = ({ players, teamId, version }) => 
 									{player.assists}
 								</span>
 							</div>
-							<div className="text-xs text-muted-foreground">
+							<div className="text-muted-foreground text-xs">
 								{player.deaths === 0
 									? "∞ KDA"
 									: `${((player.kills + player.assists) / player.deaths).toFixed(1)} KDA`}

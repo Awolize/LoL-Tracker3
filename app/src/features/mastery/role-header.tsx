@@ -25,23 +25,23 @@ export function RoleHeader({
 	hiddenCount = 0,
 }: RoleHeaderProps) {
 	return (
-		<div className="flex flex-col gap-2 mb-3">
+		<div className="mb-3 flex flex-col gap-2">
 			{/* Role title */}
-			<h4 className="font-bold text-lg text-center">{role}</h4>
+			<h4 className="text-center text-lg font-bold">{role}</h4>
 
 			{/* Progress bar row with stats */}
 			<div className="flex items-center justify-center gap-2">
-				<span className="text-xs text-muted-foreground whitespace-nowrap">
+				<span className="text-muted-foreground text-xs whitespace-nowrap">
 					{finishedSize}/{size}
 					{hasHidden ? "*" : ""}
 				</span>
-				<div className="w-32 h-2 bg-muted rounded-full overflow-hidden">
+				<div className="bg-muted h-2 w-32 overflow-hidden rounded-full">
 					<div
-						className={`h-full ${getProgressColor(percentage)} transition-all duration-500 ease-out rounded-full`}
+						className={`h-full ${getProgressColor(percentage)} rounded-full transition-all duration-500 ease-out`}
 						style={{ width: `${Math.min(percentage, 100)}%` }}
 					/>
 				</div>
-				<span className="text-xs text-muted-foreground whitespace-nowrap">
+				<span className="text-muted-foreground text-xs whitespace-nowrap">
 					{percentage.toFixed(1)}%
 				</span>
 			</div>

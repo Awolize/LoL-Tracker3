@@ -8,8 +8,8 @@ export const Route = createFileRoute("/")({ component: Home });
 
 export function Home() {
 	return (
-		<main className="flex min-h-screen flex-col items-center justify-center bg-[url('/league-of-legends-background.webp')] bg-center bg-cover">
-			<div className="flex w-full animate-pulse2 flex-col items-center justify-center gap-4 bg-black py-16">
+		<main className="flex min-h-screen flex-col items-center justify-center bg-[url('/league-of-legends-background.webp')] bg-cover bg-center">
+			<div className="animate-pulse2 flex w-full flex-col items-center justify-center gap-4 bg-black py-16">
 				<div>
 					<MainText />
 					<SubText />
@@ -19,7 +19,7 @@ export function Home() {
 
 				<Link
 					to="/challenges"
-					className="mt-4 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
+					className="bg-primary text-primary-foreground hover:bg-primary/90 mt-4 rounded-lg px-6 py-3 font-medium transition-colors"
 				>
 					Browse Challenges
 				</Link>

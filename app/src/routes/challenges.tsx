@@ -87,7 +87,7 @@ export const Route = createFileRoute("/challenges")({
 
 export default function ChallengesPage() {
 	return (
-		<div className="flex min-h-screen flex-col bg-background text-foreground">
+		<div className="bg-background text-foreground flex min-h-screen flex-col">
 			<Header />
 			<main className="flex-1">
 				<ChallengesView />
@@ -98,15 +98,15 @@ export default function ChallengesPage() {
 
 function Header() {
 	return (
-		<header className="sticky top-0 z-30 grid w-full grid-cols-3 bg-background/95 backdrop-blur px-4 py-2 border-b">
-			<div className="flex justify-start items-center">
+		<header className="bg-background/95 sticky top-0 z-30 grid w-full grid-cols-3 border-b px-4 py-2 backdrop-blur">
+			<div className="flex items-center justify-start">
 				<MainTitleLink />
 			</div>
-			<div className="flex justify-center items-center">
+			<div className="flex items-center justify-center">
 				<Profile />
 			</div>
-			<div className="flex items-center w-full justify-end gap-2">
-				<div className="flex-1 max-w-sm">
+			<div className="flex w-full items-center justify-end gap-2">
+				<div className="max-w-sm flex-1">
 					<Search />
 				</div>
 				<ThemeSelector />
@@ -141,20 +141,20 @@ function ChallengesView() {
 	} = useChallengeFilters(categories);
 
 	return (
-		<div className="min-h-screen container mx-auto px-4 py-8">
-			<div className="max-w-7xl mx-auto space-y-8">
+		<div className="container mx-auto min-h-screen px-4 py-8">
+			<div className="mx-auto max-w-7xl space-y-8">
 				{/* Page Title */}
-				<div className="text-center space-y-4">
+				<div className="space-y-4 text-center">
 					<h2 className="text-4xl font-bold tracking-tight">Challenges</h2>
-					<p className="text-muted-foreground max-w-2xl mx-auto">
+					<p className="text-muted-foreground mx-auto max-w-2xl">
 						Browse all available challenges, view tier requirements, and see global
 						leaderboards.
 					</p>
 				</div>
 
 				{/* Controls */}
-				<div className="sticky top-16 z-20 bg-background/95 backdrop-blur py-4 -mx-4 px-4 border-b md:border-none md:static md:bg-transparent md:p-0">
-					<div className="flex flex-col md:flex-row gap-4 justify-between items-center">
+				<div className="bg-background/95 sticky top-16 z-20 -mx-4 border-b px-4 py-4 backdrop-blur md:static md:border-none md:bg-transparent md:p-0">
+					<div className="flex flex-col items-center justify-between gap-4 md:flex-row">
 						<CategoryTabs
 							activeId={activeCategory}
 							onSelect={setActiveCategory}
@@ -191,7 +191,7 @@ function CategoryTabs({
 	hasSearch: boolean;
 }) {
 	return (
-		<div className="flex overflow-x-auto p-2 gap-2 w-full md:w-auto scrollbar-hide">
+		<div className="scrollbar-hide flex w-full gap-2 overflow-x-auto p-2 md:w-auto">
 			{ORDERED_CATEGORY_IDS.map((id) => {
 				const count = counts[id]?.length || 0;
 				const isActive = activeId === id;
@@ -201,24 +201,20 @@ function CategoryTabs({
 					<button
 						key={id}
 						onClick={() => onSelect(id)}
-						className={`
-							whitespace-nowrap px-6 py-2.5 rounded-full text-sm font-medium transition-all relative
-							${
-								isActive
-									? "bg-primary text-primary-foreground shadow-md"
-									: "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-							}
-							${isDimmed ? "opacity-50" : ""}
-						`}
+						className={`relative rounded-full px-6 py-2.5 text-sm font-medium whitespace-nowrap transition-all ${
+							isActive
+								? "bg-primary text-primary-foreground shadow-md"
+								: "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
+						} ${isDimmed ? "opacity-50" : ""} `}
 					>
 						{CATEGORY_CONFIG[id]}
 						<span
-							className={`ml-2 text-xs font-mono transition-colors ${isActive ? "opacity-80" : "opacity-60"}`}
+							className={`ml-2 font-mono text-xs transition-colors ${isActive ? "opacity-80" : "opacity-60"}`}
 						>
 							{count}
 						</span>
 						{hasSearch && count > 0 && !isActive && (
-							<span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-background z-10" />
+							<span className="border-background absolute -top-1 -right-1 z-10 h-3 w-3 rounded-full border-2 bg-green-500" />
 						)}
 					</button>
 				);
@@ -229,23 +225,23 @@ function CategoryTabs({
 
 function SearchBar({ value, onChange }: { value: string; onChange: (v: string) => void }) {
 	return (
-		<div className="relative w-full md:w-72 shrink-0">
-			<div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-				<SearchIcon className="w-4 h-4" />
+		<div className="relative w-full shrink-0 md:w-72">
+			<div className="text-muted-foreground absolute top-1/2 left-3 -translate-y-1/2">
+				<SearchIcon className="h-4 w-4" />
 			</div>
 			<input
 				type="text"
 				placeholder="Filter challenges..."
 				value={value}
 				onChange={(e) => onChange(e.target.value)}
-				className="w-full pl-9 pr-8 py-2 bg-muted/30 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/50"
+				className="bg-muted/30 focus:ring-primary/50 w-full rounded-lg border py-2 pr-8 pl-9 text-sm focus:ring-2 focus:outline-none"
 			/>
 			{value && (
 				<button
 					onClick={() => onChange("")}
-					className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+					className="text-muted-foreground hover:text-foreground absolute top-1/2 right-3 -translate-y-1/2"
 				>
-					<XIcon className="w-3 h-3" />
+					<XIcon className="h-3 w-3" />
 				</button>
 			)}
 		</div>
@@ -265,11 +261,11 @@ function ChallengeGrid({
 }) {
 	if (challenges.length === 0) {
 		return (
-			<div className="text-center py-20 text-muted-foreground bg-muted/10 rounded-xl border border-dashed">
+			<div className="text-muted-foreground bg-muted/10 rounded-xl border border-dashed py-20 text-center">
 				<p>No challenges found matching "{searchQuery}"</p>
 				<button
 					onClick={onClearSearch}
-					className="mt-2 text-primary hover:underline text-sm"
+					className="text-primary mt-2 text-sm hover:underline"
 				>
 					Clear filter
 				</button>
@@ -278,7 +274,7 @@ function ChallengeGrid({
 	}
 
 	return (
-		<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
+		<div className="animate-in fade-in slide-in-from-bottom-4 grid grid-cols-1 gap-4 duration-500 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
 			{challenges.map((challenge) => (
 				<ChallengeCard key={challenge.config.id} challenge={challenge} getIcon={getIcon} />
 			))}
@@ -314,31 +310,31 @@ function ChallengeCard({ challenge, getIcon }: { challenge: Challenge; getIcon: 
 		<Link
 			to="/challenge/$challengeId"
 			params={{ challengeId: id.toString() }}
-			className="group relative flex flex-col bg-card border rounded-xl overflow-hidden hover:border-primary/50 transition-all duration-300 hover:shadow-lg hover:-translate-y-1"
+			className="group bg-card hover:border-primary/50 relative flex flex-col overflow-hidden rounded-xl border transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
 		>
-			<div className="p-4 flex gap-4 items-start h-full">
+			<div className="flex h-full items-start gap-4 p-4">
 				<div className="relative shrink-0">
-					<div className="w-14 h-14 rounded-lg bg-muted/20 overflow-hidden">
+					<div className="bg-muted/20 h-14 w-14 overflow-hidden rounded-lg">
 						<img
 							src={getIcon(id, thresholds)}
 							alt=""
 							loading="lazy"
-							className="w-full h-full object-contain p-1 transition-transform group-hover:scale-110"
+							className="h-full w-full object-contain p-1 transition-transform group-hover:scale-110"
 						/>
 					</div>
 				</div>
 
-				<div className="flex-1 min-w-0 flex flex-col h-full">
-					<h3 className="font-semibold text-sm leading-tight text-card-foreground group-hover:text-primary transition-colors line-clamp-2">
+				<div className="flex h-full min-w-0 flex-1 flex-col">
+					<h3 className="text-card-foreground group-hover:text-primary line-clamp-2 text-sm leading-tight font-semibold transition-colors">
 						{name || "Unknown Challenge"}
 					</h3>
-					<p className="text-xs text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+					<p className="text-muted-foreground mt-1 line-clamp-2 text-xs leading-relaxed">
 						{shortDescription || description}
 					</p>
 
 					{/* Tier Indicators */}
 					{/* Added 'items-end' to align bars at bottom, 'h-10' to reserve space for numbers */}
-					<div className="mt-auto pt-4 flex items-end gap-1 h-12">
+					<div className="mt-auto flex h-12 items-end gap-1 pt-4">
 						{tiers.map((tier) => {
 							const value = thresholds?.[tier];
 							const isActive = value !== undefined;
@@ -347,7 +343,7 @@ function ChallengeCard({ challenge, getIcon }: { challenge: Challenge; getIcon: 
 								// Wrapped in a column to stack Number + Bar
 								<div
 									key={tier}
-									className="flex-1 flex flex-col items-center gap-0.5 group/tier cursor-help"
+									className="group/tier flex flex-1 cursor-help flex-col items-center gap-0.5"
 									title={
 										isActive
 											? `${tier}: ${value?.toLocaleString()}`
@@ -356,14 +352,14 @@ function ChallengeCard({ challenge, getIcon }: { challenge: Challenge; getIcon: 
 								>
 									{/* The Number Label */}
 									<span
-										className={`text-[9px] font-mono leading-none tracking-tighter text-muted-foreground/80 ${isActive ? "opacity-100" : "opacity-0"}`}
+										className={`text-muted-foreground/80 font-mono text-[9px] leading-none tracking-tighter ${isActive ? "opacity-100" : "opacity-0"}`}
 									>
 										{isActive ? formatValue(value) : "-"}
 									</span>
 
 									{/* The Color Bar */}
 									<div
-										className={`h-2 w-full rounded-full relative transition-colors ${
+										className={`relative h-2 w-full rounded-full transition-colors ${
 											isActive ? "" : "bg-muted/40"
 										}`}
 										style={{

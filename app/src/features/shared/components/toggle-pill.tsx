@@ -20,7 +20,7 @@ export const TogglePill = ({ label, checked, onChange, icon }: TogglePillProps) 
 					: "bg-muted/50 text-muted-foreground border-border hover:bg-muted hover:text-foreground",
 			)}
 		>
-			{icon && <span className="w-3.5 h-3.5">{icon}</span>}
+			{icon && <span className="h-3.5 w-3.5">{icon}</span>}
 			{label}
 		</button>
 	);
@@ -31,5 +31,5 @@ interface TogglePillGroupProps {
 }
 
 export const TogglePillGroup = ({ children }: TogglePillGroupProps) => {
-	return <div className="flex items-center gap-1.5 p-1 bg-muted/30 rounded-full">{children}</div>;
+	return <div className="bg-muted/30 flex items-center gap-1.5 rounded-full p-1">{children}</div>;
 };

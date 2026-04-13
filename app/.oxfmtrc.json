@@ -1,16 +1,16 @@
 {
-  "$schema": "./node_modules/oxfmt/configuration_schema.json",
-  "ignorePatterns": [
-    "src/routeTree.gen.ts",
-    "src/styles.css",
-    ".nitro/**",
-    ".output/**",
-    ".tanstack/**"
-  ],
-  "lineWidth": 120,
-  "useTabs": true,
-  "singleQuote": false,
-  "tabWidth": 4,
-  "sortTailwindcss": true,
-  "sortImports": true
+	"$schema": "./node_modules/oxfmt/configuration_schema.json",
+	"ignorePatterns": [
+		"src/routeTree.gen.ts",
+		"src/styles.css",
+		".nitro/**",
+		".output/**",
+		".tanstack/**"
+	],
+	"lineWidth": 120,
+	"useTabs": true,
+	"singleQuote": false,
+	"tabWidth": 4,
+	"sortTailwindcss": true,
+	"sortImports": true
 }

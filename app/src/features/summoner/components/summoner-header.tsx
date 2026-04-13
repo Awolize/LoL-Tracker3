@@ -117,7 +117,7 @@ export default function Header({ champions }: { champions: CompleteChampionInfo[
 					version={0}
 				/>
 			</div>
-			<div className="flex flex-row items-center justify-center gap-2 mx-auto">
+			<div className="mx-auto flex flex-row items-center justify-center gap-2">
 				<FullSummonerUpdate user={user} awaitMatches={false} />
 				<div className="h-8 w-px bg-gray-500" />
 				<TogglePill label={"By Role"} checked={byRole} onChange={toggleSortedByRole} />

@@ -11,8 +11,8 @@ export const MatchHistory = ({ matches }: MatchHistoryProps) => {
 		return (
 			<div className="flex items-center justify-center py-12">
 				<div className="text-center">
-					<p className="text-lg text-muted-foreground mb-2">No matches found</p>
-					<p className="text-sm text-muted-foreground">
+					<p className="text-muted-foreground mb-2 text-lg">No matches found</p>
+					<p className="text-muted-foreground text-sm">
 						Click the update button on your profile to fetch the latest matches.
 						<br />
 						This can take a LONG time but you should start seeing your latest games in a

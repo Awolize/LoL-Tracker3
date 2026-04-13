@@ -19,7 +19,7 @@ export function ChallengeHeaderProgress({
 	const missingValue = finishedValue - completedChampionsSize;
 
 	return (
-		<div className="flex flex-col text-sm text-muted-foreground">
+		<div className="text-muted-foreground flex flex-col text-sm">
 			<div className="flex gap-1">
 				<div>According to Riot, you have completed</div>
 				<b className="text-primary">{finishedValue}</b>

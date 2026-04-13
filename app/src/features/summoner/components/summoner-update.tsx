@@ -105,7 +105,7 @@ export const FullSummonerUpdate = ({ user, awaitMatches = true }: FullSummonerUp
 			<Button
 				variant="outline"
 				size="sm"
-				className="px-3 py-1.5 text-sm min-w-[150px] relative overflow-hidden"
+				className="relative min-w-[150px] overflow-hidden px-3 py-1.5 text-sm"
 				onClick={() => refreshMutation.mutate()}
 				disabled={status === "loading"}
 			>
@@ -136,7 +136,7 @@ export const FullSummonerUpdate = ({ user, awaitMatches = true }: FullSummonerUp
 				</AnimatePresence>
 			</Button>
 
-			<div className="h-4 flex items-center justify-center">
+			<div className="flex h-4 items-center justify-center">
 				<AnimatePresence mode="wait" presenceAffectsLayout={false}>
 					{lastUpdateQuery.data && (
 						<motion.span
@@ -145,10 +145,10 @@ export const FullSummonerUpdate = ({ user, awaitMatches = true }: FullSummonerUp
 							animate={{ opacity: 1, y: 0 }}
 							exit={{ opacity: 0, y: -4 }}
 							transition={{ duration: 0.18 }}
-							className="text-xs text-muted-foreground"
+							className="text-muted-foreground text-xs"
 						>
 							Last updated{" "}
-							<span className="font-mono px-1.5 py-0.5 rounded-sm shadow-sm bg-gray-200 text-gray-900 dark:bg-primary-foreground dark:text-white">
+							<span className="dark:bg-primary-foreground rounded-sm bg-gray-200 px-1.5 py-0.5 font-mono text-gray-900 shadow-sm dark:text-white">
 								{formatTimeAgo(lastUpdateQuery.data)}
 							</span>
 						</motion.span>
@@ -163,7 +163,7 @@ export const FullSummonerUpdate = ({ user, awaitMatches = true }: FullSummonerUp
 						initial={{ opacity: 0 }}
 						animate={{ opacity: 1 }}
 						exit={{ opacity: 0 }}
-						className="text-red-500 text-xs text-center px-2 overflow-hidden"
+						className="overflow-hidden px-2 text-center text-xs text-red-500"
 					>
 						{refreshMutation.error?.message || "Update failed"}
 					</motion.div>

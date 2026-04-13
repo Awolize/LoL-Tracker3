@@ -41,7 +41,7 @@ export const RegionListSelector = ({
 						<ListboxOption key={region.id} value={region} disabled={region.disabled}>
 							<button
 								type="button"
-								className="w-full text-left hover:bg-gray-500 hover:bg-opacity-20 hover:text-[hsl(280,100%,70%)]"
+								className="hover:bg-opacity-20 w-full text-left hover:bg-gray-500 hover:text-[hsl(280,100%,70%)]"
 							>
 								{region.name}
 							</button>
