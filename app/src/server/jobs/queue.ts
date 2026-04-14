@@ -48,12 +48,12 @@ async function notifyIndexNow(urls: string[]) {
 		headers: { "Content-Type": "application/json; charset=utf-8" },
 		body: JSON.stringify({
 			host: "lol.awot.dev",
-			key: "12cb155ebbb645c9a5eb01992526f734"!,
+			key: "12cb155ebbb645c9a5eb01992526f734",
 			keyLocation: `${BASE_URL}/12cb155ebbb645c9a5eb01992526f734.txt`,
 			urlList: urls,
 		}),
 	});
-	console.log(res.status, res.json());
+	console.log(res.status, res.text());
 }
 
 // --- Helper ---
