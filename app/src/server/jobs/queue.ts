@@ -43,16 +43,17 @@ function queueIndexNowUrl(url: string) {
 }
 
 async function notifyIndexNow(urls: string[]) {
-	await fetch("https://api.indexnow.org/indexnow", {
+	const res = await fetch("https://api.indexnow.org/indexnow", {
 		method: "POST",
 		headers: { "Content-Type": "application/json; charset=utf-8" },
 		body: JSON.stringify({
 			host: "lol.awot.dev",
 			key: "12cb155ebbb645c9a5eb01992526f734"!,
-			keyLocation: `${BASE_URL}/${"12cb155ebbb645c9a5eb01992526f734"}.txt`,
+			keyLocation: `${BASE_URL}/12cb155ebbb645c9a5eb01992526f734.txt`,
 			urlList: urls,
 		}),
 	});
+	console.log(res.status, res.json());
 }
 
 // --- Helper ---
