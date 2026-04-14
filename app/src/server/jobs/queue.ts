@@ -14,6 +14,7 @@ import { upsertSummoner } from "~/server/summoner/upsertSummoner";
 import { connection } from "./redis";
 
 const QUEUE_NAME = "riot-updates";
+const BASE_URL = "https://lol.awot.dev";
 
 export const updateQueue = new Queue(QUEUE_NAME, {
 	connection,
@@ -24,12 +25,40 @@ export const updateQueueEvents = new QueueEvents(QUEUE_NAME, { connection });
 
 updateQueueEvents.on("error", (err) => console.error("[QueueEvents] Error:", err));
 
+// --- IndexNow buffer ---
+const pendingIndexNowUrls = new Set<string>();
+
+function scheduleIndexNowFlush() {
+	updateQueue.add(
+		"indexnow-flush",
+		{},
+		{ jobId: "indexnow-flush", delay: 10 * 60 * 1000 },
+	).catch((err) => console.error("[IndexNow] Failed to schedule flush:", err));
+}
+
+function queueIndexNowUrl(url: string) {
+	const wasEmpty = pendingIndexNowUrls.size === 0;
+	pendingIndexNowUrls.add(url);
+	if (wasEmpty) scheduleIndexNowFlush();
+}
+
+async function notifyIndexNow(urls: string[]) {
+	await fetch("https://api.indexnow.org/indexnow", {
+		method: "POST",
+		headers: { "Content-Type": "application/json; charset=utf-8" },
+		body: JSON.stringify({
+			host: "lol.awot.dev",
+			key: "12cb155ebbb645c9a5eb01992526f734"!,
+			keyLocation: `${BASE_URL}/${"12cb155ebbb645c9a5eb01992526f734"}.txt`,
+			urlList: urls,
+		}),
+	});
+}
+
 // --- Helper ---
 async function ensureSummoner(gameName: string, tagLine: string, region: Regions) {
 	const data = await getSummonerByUsernameRateLimit(`${gameName}#${tagLine}`, region);
 	if (!data.summoner) throw new Error(`Summoner not found: ${gameName}#${tagLine}`);
-
-	// Always update the DB with the latest account info
 	await upsertSummoner(data.summoner, data.account, region);
 	return data;
 }
@@ -43,11 +72,10 @@ if (!global.__riotWorker) {
 		QUEUE_NAME,
 		async (job) => {
 			const { name, data } = job;
-			const { gameName, tagLine, region: rawRegion, matchId, waitForMatches = false } = data;
+			const { gameName, tagLine, region: rawRegion, matchId, challengeId, waitForMatches = false } = data;
 			const region = rawRegion as Regions;
 
-			// "Name#Tag" OR "MatchID"
-			const identifier = gameName ? `${gameName}#${tagLine}` : matchId;
+			const identifier = gameName ? `${gameName}#${tagLine}` : (matchId ?? challengeId);
 			console.log(`[Worker] Start: ${name} (${identifier})`);
 
 			try {
@@ -60,11 +88,13 @@ if (!global.__riotWorker) {
 							updateChallengesConfigServer(region),
 							updateChampionDetails(),
 						]);
+						queueIndexNowUrl(`${BASE_URL}/summoner/${region}/${gameName}-${tagLine}`);
 						return { success: true, puuid: account.puuid };
 					}
 
 					case "update-summoner-only": {
 						const { account } = await ensureSummoner(gameName, tagLine, region);
+						queueIndexNowUrl(`${BASE_URL}/summoner/${region}/${gameName}-${tagLine}`);
 						return { success: true, puuid: account.puuid };
 					}
 
@@ -76,6 +106,7 @@ if (!global.__riotWorker) {
 					case "update-mastery": {
 						const { account } = await ensureSummoner(gameName, tagLine, region);
 						await upsertMastery(account, region);
+						queueIndexNowUrl(`${BASE_URL}/summoner/${region}/${gameName}-${tagLine}`);
 						return { success: true, puuid: account.puuid };
 					}
 
@@ -87,6 +118,10 @@ if (!global.__riotWorker) {
 					case "update-challenges": {
 						const { account } = await ensureSummoner(gameName, tagLine, region);
 						await upsertPlayerChallenges(region, account);
+						queueIndexNowUrl(`${BASE_URL}/summoner/${region}/${gameName}-${tagLine}`);
+						if (challengeId) {
+							queueIndexNowUrl(`${BASE_URL}/challenge/${challengeId}`);
+						}
 						return { success: true, puuid: account.puuid };
 					}
 
@@ -105,7 +140,6 @@ if (!global.__riotWorker) {
 								{ matchId: id, region },
 								{ priority: waitForMatches ? 10 : 50, jobId: id },
 							);
-
 							job.waitUntilFinished(updateQueueEvents).catch((err) =>
 								console.error(`[Queue] Error in match ${id}:`, err),
 							);
@@ -119,6 +153,17 @@ if (!global.__riotWorker) {
 							username: `${gameName}#${tagLine}`,
 							region,
 						});
+					}
+
+					case "indexnow-flush": {
+						const urls = [...pendingIndexNowUrls];
+						pendingIndexNowUrls.clear();
+						if (urls.length === 0) return { success: true, submitted: 0 };
+						await notifyIndexNow(urls).catch((err) =>
+							console.warn("[IndexNow] Ping failed:", err)
+						);
+						console.log(`[IndexNow] Submitted ${urls.length} URLs`);
+						return { success: true, submitted: urls.length };
 					}
 
 					default:
