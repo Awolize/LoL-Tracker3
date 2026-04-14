@@ -10,8 +10,8 @@ export default defineConfig(() => ({
 	plugins: [
 		devtools(),
 		tailwindcss(),
-		tanstackStart({ srcDirectory: "src" }),
-		nitro({ preset: "node-server" }),
+		tanstackStart(),
+		nitro({ output: { dir: ".output" } }),
 		viteReact(),
 		sentryTanstackStart({
 			org: "awot",

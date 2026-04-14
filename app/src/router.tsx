@@ -1,52 +1,55 @@
 import * as Sentry from "@sentry/tanstackstart-react";
-import { createRouter } from "@tanstack/react-router";
+import { createRouter as createTanStackRouter } from "@tanstack/react-router";
+import { QueryClient } from "@tanstack/react-query";
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query";
 
-import * as TanstackQuery from "./integrations/tanstack-query/root-provider";
-// Import the generated route tree
 import { routeTree } from "./routeTree.gen";
 
 // Create a new router instance
 export const getRouter = () => {
-	const rqContext = TanstackQuery.getContext();
+  const queryClient = new QueryClient();
 
-	const router = createRouter({
-		routeTree,
-		context: { ...rqContext },
-		defaultPreload: "intent",
-		Wrap: (props: { children: React.ReactNode }) => {
-			return <TanstackQuery.Provider {...rqContext}>{props.children}</TanstackQuery.Provider>;
-		},
-	});
+  const router = createTanStackRouter({
+    routeTree,
+    defaultPreload: "intent",
+    scrollRestoration: true,
+    context: { queryClient: queryClient },
+  });
 
-	setupRouterSsrQueryIntegration({
-		router,
-		queryClient: rqContext.queryClient,
-	});
+  setupRouterSsrQueryIntegration({
+    router,
+    queryClient,
+  });
 
-	if (!router.isServer) {
-		Sentry.init({
-			dsn: import.meta.env.VITE_SENTRY_DSN,
+  if (!router.isServer) {
+    Sentry.init({
+      dsn: import.meta.env.VITE_SENTRY_DSN,
 
-			// Adds request headers and IP for users, for more info visit:
-			// https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/configuration/options/#sendDefaultPii
-			sendDefaultPii: true,
+      // Adds request headers and IP for users, for more info visit:
+      // https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/configuration/options/#sendDefaultPii
+      sendDefaultPii: true,
 
-			integrations: [
-				Sentry.tanstackRouterBrowserTracingIntegration(router),
-				// Sentry.replayIntegration(),
-				// Sentry.feedbackIntegration({ colorScheme: "system" }),
-			],
-			enableLogs: true,
-			tracesSampleRate: 1.0,
-			replaysSessionSampleRate: 0.1,
-			replaysOnErrorSampleRate: 1.0,
-		});
+      integrations: [
+        Sentry.tanstackRouterBrowserTracingIntegration(router),
+        // Sentry.replayIntegration(),
+        // Sentry.feedbackIntegration({ colorScheme: "system" }),
+      ],
+      enableLogs: true,
+      tracesSampleRate: 1.0,
+      replaysSessionSampleRate: 0.1,
+      replaysOnErrorSampleRate: 1.0,
+    });
 
-		Sentry.logger.info("User triggered test log", {
-			log_source: "sentry_test",
-		});
-	}
+    Sentry.logger.info("User triggered test log", {
+      log_source: "sentry_test",
+    });
+  }
 
-	return router;
+  return router;
 };
+
+declare module "@tanstack/react-router" {
+  interface Register {
+    router: ReturnType<typeof getRouter>;
+  }
+}
