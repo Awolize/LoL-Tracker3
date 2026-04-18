@@ -10,6 +10,7 @@ import Search from "~/components/header/Search";
 import { ThemeSelector } from "~/components/theme-toggle";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { getChallengesConfig, getDataDragonVersion } from "~/server/api/mutations";
+import { seo } from "~/utils/seo";
 
 // --- Types ---
 type Challenge = Awaited<ReturnType<typeof getChallengesConfig>>[0];
@@ -81,6 +82,15 @@ export const Route = createFileRoute("/challenges")({
 		return { categories: processChallenges(challenges) };
 	},
 	component: ChallengesPage,
+	head: () => ({
+		meta: [
+			...seo({
+				title: "League of Legends challenges — browse tiers, thresholds & leaderboards",
+				description:
+					"Explore every League of Legends seasonal and legacy challenge in one directory: filter by Veterancy, Expertise, Teamwork, and more, inspect Crystal tier thresholds, then open leaderboards to compare top summoners worldwide.",
+			}),
+		],
+	}),
 });
 
 // --- Components ---

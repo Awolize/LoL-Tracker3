@@ -14,6 +14,7 @@ import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
 import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
 import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
 import { checkNameChangeFn, getUserByNameAndRegionFn } from "~/server/summoner/mutations";
+import { seo } from "~/utils/seo";
 
 /** Path strings avoid importing sibling route modules into this chunk. */
 const NAV_ITEMS = [
@@ -73,20 +74,42 @@ export const Route = createFileRoute("/$region/$username/")({
 	component: RouteComponent,
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
-		const { username, region } = loaderData;
+		const { username, region, summonerData, error } = loaderData;
+
+		if (error === "rate_limit") {
+			return {
+				meta: [
+					...seo({
+						title: `League profile temporarily unavailable — ${username} (${region})`,
+						description: `Riot's League of Legends API rate limit was hit while loading ${username} on ${region}. Wait a few seconds, refresh, and try again to open mastery, challenges, and match history.`,
+						keywords: [region, username, "LoL", "mastery", "tracker"].join(", "),
+					}),
+				],
+			};
+		}
+
+		if (!summonerData) {
+			return {
+				meta: [
+					...seo({
+						title: `Summoner not found — ${username} (${region})`,
+						description: `We could not find ${username} on the ${region} shard. Double-check the Riot ID spelling, tag line, and region, then search again to load champion mastery, challenge helpers, and match history.`,
+						keywords: [region, username, "LoL", "mastery", "tracker"].join(", "),
+					}),
+				],
+			};
+		}
+
+		const { summonerLevel } = summonerData;
 		return {
 			meta: [
-				{ name: "application-name", content: "LoL Mastery Tracker" },
-				{
-					name: "description",
-					content:
-						"Made using Riot API. Repo can be found at https://github.com/Awolize. Built with Tanstack Start",
-				},
-				{
-					name: "keywords",
-					content: [region, username, "LoL", "mastery", "tracker"].join(", "),
-				},
-				{ name: "title", content: `LoL Mastery Tracker: ${username} Profile` },
+				...seo({
+					title: `${username} (${region}) — League mastery, challenges & match hub`,
+					description: `Explore ${username}'s League of Legends profile on ${region} (summoner level ${summonerLevel}). Jump into champion mastery totals, seasonal challenge trackers, and recent match results sourced from Riot's official League API.`,
+					keywords: [region, username, "LoL", "mastery", "tracker", "challenges"].join(
+						", ",
+					),
+				}),
 			],
 		};
 	},
@@ -134,25 +157,28 @@ function Client() {
 				animate="show"
 			>
 				<motion.div variants={itemVariants} className="flex flex-col items-center gap-6">
-					<div className="flex flex-col items-center gap-4 sm:flex-row">
-						<div className="relative">
-							<img
-								src={
-									profileIconUrl ??
-									"/api/images/cdn/latest/img/profileicon/29.webp"
-								}
-								alt={username}
-								className="border-primary bg-accent h-24 w-24 rounded-full border-4 object-cover shadow-lg"
-							/>
+					<div className="flex w-full flex-col gap-6 sm:grid sm:grid-cols-[1fr_auto_1fr] sm:items-center sm:gap-4">
+						<div className="flex w-full shrink-0 justify-start sm:w-auto sm:justify-self-start">
+							<div className="relative shrink-0">
+								<img
+									src={
+										profileIconUrl ??
+										"/api/images/cdn/latest/img/profileicon/29.webp"
+									}
+									alt={username}
+									className="border-primary bg-accent h-24 w-24 rounded-full border-4 object-cover shadow-lg"
+								/>
+							</div>
 						</div>
-						<div className="flex flex-col items-center sm:items-start">
-							<h2 className="bg-linear-to-r from-green-600 via-sky-600 to-purple-600 bg-clip-text text-center text-4xl font-bold text-transparent sm:text-left md:text-6xl">
-								{username}
-							</h2>
-							<div className="text-muted-foreground flex items-center gap-4 text-sm font-bold">
-								<span className="uppercase">{region}</span>
-								<span>•</span>
-								<span>Level {summonerLevel}</span>
+						<div className="mx-auto w-max max-w-full min-w-0 sm:mx-0">
+							<div className="grid w-full grid-cols-1 justify-items-center text-center">
+								<h2 className="bg-linear-to-r from-green-600 via-sky-600 to-purple-600 bg-clip-text text-4xl font-bold text-transparent md:text-6xl">
+									{username}
+								</h2>
+								<div className="text-muted-foreground mt-1 flex w-full min-w-0 justify-between gap-4 text-sm font-bold">
+									<span className="uppercase">{region}</span>
+									<span className="shrink-0 tabular-nums">Level {summonerLevel}</span>
+								</div>
 							</div>
 						</div>
 					</div>

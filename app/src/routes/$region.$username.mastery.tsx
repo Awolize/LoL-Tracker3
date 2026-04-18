@@ -13,6 +13,7 @@ import Header from "~/features/summoner/components/summoner-header";
 import { getSummonerByNameRegion } from "~/server/summoner/mutations";
 import { OptionsProvider, useOptionsPersistentContext } from "~/stores/options-persistent-store";
 import { UserProvider } from "~/stores/user-store";
+import { metaDescription } from "~/utils/seo";
 
 export const Route = createFileRoute("/$region/$username/mastery")({
 	loader: async ({ params: { username, region } }) => {
@@ -45,7 +46,9 @@ export const Route = createFileRoute("/$region/$username/mastery")({
 				{ name: "application-name", content: "LoL Mastery Tracker" },
 				{
 					name: "description",
-					content: `Track League of Legends champion mastery points for ${username}. View mastery levels, chests available, and progress towards mastery milestones.`,
+					content: metaDescription(
+						`Track League of Legends champion mastery points for ${username} on ${region}. Compare mastery levels, chest eligibility, high-water marks, and per-champion milestones in a sortable roster synced from Riot.`,
+					),
 				},
 				{
 					name: "keywords",

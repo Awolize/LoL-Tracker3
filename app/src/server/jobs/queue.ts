@@ -29,11 +29,9 @@ updateQueueEvents.on("error", (err) => console.error("[QueueEvents] Error:", err
 const pendingIndexNowUrls = new Set<string>();
 
 function scheduleIndexNowFlush() {
-	updateQueue.add(
-		"indexnow-flush",
-		{},
-		{ jobId: "indexnow-flush", delay: 10 * 60 * 1000 },
-	).catch((err) => console.error("[IndexNow] Failed to schedule flush:", err));
+	updateQueue
+		.add("indexnow-flush", {}, { jobId: "indexnow-flush", delay: 10 * 60 * 1000 })
+		.catch((err) => console.error("[IndexNow] Failed to schedule flush:", err));
 }
 
 function queueIndexNowUrl(url: string) {
@@ -73,7 +71,14 @@ if (!global.__riotWorker) {
 		QUEUE_NAME,
 		async (job) => {
 			const { name, data } = job;
-			const { gameName, tagLine, region: rawRegion, matchId, challengeId, waitForMatches = false } = data;
+			const {
+				gameName,
+				tagLine,
+				region: rawRegion,
+				matchId,
+				challengeId,
+				waitForMatches = false,
+			} = data;
 			const region = rawRegion as Regions;
 
 			const identifier = gameName ? `${gameName}#${tagLine}` : (matchId ?? challengeId);
@@ -161,7 +166,7 @@ if (!global.__riotWorker) {
 						pendingIndexNowUrls.clear();
 						if (urls.length === 0) return { success: true, submitted: 0 };
 						await notifyIndexNow(urls).catch((err) =>
-							console.warn("[IndexNow] Ping failed:", err)
+							console.warn("[IndexNow] Ping failed:", err),
 						);
 						console.log(`[IndexNow] Submitted ${urls.length} URLs`);
 						return { success: true, submitted: urls.length };

@@ -11,6 +11,7 @@ import { FullSummonerUpdate } from "~/features/summoner/components/summoner-upda
 import { getMatchesFn } from "~/server/matches/mutations";
 import { OptionsProvider } from "~/stores/options-persistent-store";
 import { UserProvider } from "~/stores/user-store";
+import { metaDescription } from "~/utils/seo";
 
 export const Route = createFileRoute("/$region/$username/matches")({
 	loader: async ({ params: { username, region } }) => {
@@ -38,7 +39,9 @@ export const Route = createFileRoute("/$region/$username/matches")({
 				{ name: "application-name", content: "LoL Match History" },
 				{
 					name: "description",
-					content: `View recent League of Legends match history for ${username}. Analyze game results, KDA, win rates, and performance statistics.`,
+					content: metaDescription(
+						`Review recent League of Legends match history for ${username} on ${region}. Scan queue types, wins and losses, KDA, damage share, vision, and other post-game stats across the latest games returned from Riot.`,
+					),
 				},
 				{
 					name: "keywords",

@@ -3,8 +3,20 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { MainText } from "~/components/header/MainText";
 import Search from "~/components/header/Search";
 import { SubText } from "~/components/header/SubText";
+import { seo } from "~/utils/seo";
 
-export const Route = createFileRoute("/")({ component: Home });
+export const Route = createFileRoute("/")({
+	component: Home,
+	head: () => ({
+		meta: [
+			...seo({
+				title: "Awot's Challenge Tracker — League of Legends mastery, challenges & matches",
+				description:
+					"Search a Riot ID and region to open a League of Legends hub with champion mastery progress, challenge tracking helpers, optional leaderboards, and detailed recent match results backed by Riot data.",
+			}),
+		],
+	}),
+});
 
 export function Home() {
 	return (

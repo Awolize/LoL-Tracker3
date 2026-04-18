@@ -13,6 +13,7 @@ import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { getChallengeConfig } from "~/server/api/get-challenge-config.api";
 import { getChallengeLeaderboardWithHighlight } from "~/server/api/get-challenge-leaderboard.api";
 import { getDataDragonVersion } from "~/server/api/mutations";
+import { metaDescription } from "~/utils/seo";
 
 interface ChallengeConfig {
 	config: {
@@ -79,25 +80,29 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 	},
 	component: RouteComponent,
 	head: ({ loaderData }) => {
-		const { config, challengeId, search } = loaderData!;
+		if (!loaderData) return {};
+
+		const { config, challengeId, search } = loaderData;
 		const challengeName = config?.localization?.name || `Challenge ${challengeId}`;
 		const challengeDescription =
 			config?.localization?.description || "Complete this challenge to earn rewards";
 
 		let title = `LoL Mastery Tracker: ${challengeName}`;
-		let description = `League of Legends challenge leaderboard. ${challengeDescription}`;
+		let description = `League of Legends challenge leaderboard for ${challengeName}. ${challengeDescription}`;
 
 		// Include highlighted user in SEO if present
 		if (search.username) {
 			const cleanUsername = search.username.replace("-", "#");
 			title = `${cleanUsername} - ${challengeName} | LoL Mastery Tracker`;
-			description = `View ${cleanUsername}'s ranking in the ${challengeName} challenge. ${challengeDescription}`;
+			description = `View ${cleanUsername}'s ranking in the ${challengeName} challenge on Awot's Challenge Tracker. ${challengeDescription}`;
 		}
+
+		const resolvedDescription = metaDescription(description);
 
 		return {
 			meta: [
 				{ name: "application-name", content: "LoL Mastery Tracker" },
-				{ name: "description", content: description },
+				{ name: "description", content: resolvedDescription },
 				{
 					name: "keywords",
 					content: [
@@ -112,13 +117,13 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 				{ name: "title", content: title },
 				// Open Graph tags for social sharing
 				{ property: "og:title", content: title },
-				{ property: "og:description", content: description },
+				{ property: "og:description", content: resolvedDescription },
 				{ property: "og:type", content: "website" },
 				{ property: "og:site_name", content: "LoL Mastery Tracker" },
 				// Twitter Card tags
 				{ name: "twitter:card", content: "summary" },
 				{ name: "twitter:title", content: title },
-				{ name: "twitter:description", content: description },
+				{ name: "twitter:description", content: resolvedDescription },
 			],
 		};
 	},

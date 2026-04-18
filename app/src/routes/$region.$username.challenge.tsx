@@ -25,6 +25,7 @@ import { ChallengeProvider } from "~/stores/challenge-store";
 import { OptionsProvider } from "~/stores/options-persistent-store";
 import { SelectedChallengeProvider } from "~/stores/selected-challenge-context";
 import { UserProvider } from "~/stores/user-store";
+import { metaDescription } from "~/utils/seo";
 
 const searchSchema = z.object({
 	challengeId: z.number().optional(),
@@ -62,7 +63,9 @@ export const Route = createFileRoute("/$region/$username/challenge")({
 				{ name: "application-name", content: "LoL Challenge Tracker" },
 				{
 					name: "description",
-					content: `Track progress for specific League of Legends challenges like Jack of All Champs, Champion Ocean, and Invincible for ${username}.`,
+					content: metaDescription(
+						`Track targeted League of Legends seasonal challenges for ${username} on ${region}, including Jack of All Champs, Champion Ocean, Adapt to All Situations, and Invincible, with champion lists aligned to each challenge ruleset.`,
+					),
 				},
 				{
 					name: "keywords",
@@ -82,8 +85,7 @@ export const Route = createFileRoute("/$region/$username/challenge")({
 });
 
 export function RouteComponent() {
-	const { user, playerChampionInfo, challenges, version, username, region } =
-		Route.useLoaderData();
+	const { user, playerChampionInfo, challenges, version, region } = Route.useLoaderData();
 
 	playerChampionInfo.sort((a: CompleteChampionInfo, b: CompleteChampionInfo) =>
 		a.name.localeCompare(b.name),
