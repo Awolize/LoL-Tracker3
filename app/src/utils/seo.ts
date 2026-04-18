@@ -42,9 +42,9 @@ export const seo = ({
 		{ title },
 		...(resolvedDescription
 			? [
-				{ name: "description", content: resolvedDescription },
-				{ property: "og:description", content: resolvedDescription },
-			]
+					{ name: "description", content: resolvedDescription },
+					{ property: "og:description", content: resolvedDescription },
+				]
 			: []),
 		{ name: "keywords", content: keywords ?? DEFAULT_KEYWORDS },
 		{ name: "theme-color", content: "#4FB8B2" },
@@ -53,14 +53,14 @@ export const seo = ({
 		{ property: "og:site_name", content: "Awot's Challenge Tracker" },
 		...(image
 			? [
-				{ property: "og:image", content: image },
-				{ property: "og:image:alt", content: title },
-				{ name: "twitter:card", content: "summary_large_image" },
-				{ name: "twitter:title", content: title },
-				...(resolvedDescription
-					? [{ name: "twitter:description", content: resolvedDescription }]
-					: []),
-			]
+					{ property: "og:image", content: image },
+					{ property: "og:image:alt", content: title },
+					{ name: "twitter:card", content: "summary_large_image" },
+					{ name: "twitter:title", content: title },
+					...(resolvedDescription
+						? [{ name: "twitter:description", content: resolvedDescription }]
+						: []),
+				]
 			: []),
 	];
 	return tags;

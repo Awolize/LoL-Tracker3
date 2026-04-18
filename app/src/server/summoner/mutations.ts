@@ -9,12 +9,12 @@ import { regionToConstant } from "~/features/shared/champs";
 import { getChallengesConfig } from "~/server/api/get-challenges-config";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { getCompleteChampionData } from "~/server/champions/get-complete-champion-data";
+import { updateQueue, updateQueueEvents } from "~/server/jobs/queue";
 import {
 	stableGlobalJobOpts,
 	stableRegionShardJobOpts,
 	stableSummonerJobOpts,
 } from "~/server/jobs/queue-stable-job-opts";
-import { updateQueue, updateQueueEvents } from "~/server/jobs/queue";
 import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
 
 type NameChangeResult =
@@ -261,7 +261,12 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 			updateQueue.add(
 				"update-matches",
 				{ ...jobData, waitForMatches: awaitMatches },
-				stableSummonerJobOpts("update-matches", jobData, { priority: 5 }, String(awaitMatches)),
+				stableSummonerJobOpts(
+					"update-matches",
+					jobData,
+					{ priority: 5 },
+					String(awaitMatches),
+				),
 			),
 			updateQueue.add(
 				"update-challenges",

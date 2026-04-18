@@ -8,8 +8,8 @@ import { SiteHeader } from "~/components/header/SiteHeader";
 import { DifferentSideBar } from "~/features/challenges/challenge-side-bar";
 import { ChampionListHeader } from "~/features/mastery/champion-list-header";
 import { RoleChampionList } from "~/features/mastery/role-champion-list";
-import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
 import { regionToDisplay } from "~/features/shared/champs";
+import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
 import {
 	getAdaptToAllSituations,
 	getChampionOcean,
