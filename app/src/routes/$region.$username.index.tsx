@@ -8,7 +8,7 @@ import { MainTitleLink } from "~/components/header/MainTitleLink";
 import Profile from "~/components/header/Profile";
 import Search from "~/components/header/Search";
 import { ThemeSelector } from "~/components/theme-toggle";
-import { regionToConstant } from "~/features/shared/champs";
+import { regionToConstant, regionToDisplay } from "~/features/shared/champs";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
 import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
 import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
@@ -176,7 +176,7 @@ function Client() {
 									{username}
 								</h2>
 								<div className="text-muted-foreground mt-1 flex w-full min-w-0 justify-between gap-4 text-sm font-bold">
-									<span className="uppercase">{region}</span>
+									<span className="uppercase">{regionToDisplay(region)}</span>
 									<span className="shrink-0 tabular-nums">Level {summonerLevel}</span>
 								</div>
 							</div>

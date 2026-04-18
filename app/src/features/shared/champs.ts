@@ -78,28 +78,34 @@ export const sortAlgorithm = (
 	}
 };
 
-export const regionToConstant = (region: string) => {
-	const regionMap = {
-		BR: Regions.BRAZIL,
-		EUNE: Regions.EU_EAST,
-		EUW: Regions.EU_WEST,
-		EUW1: Regions.EU_WEST,
-		KR: Regions.KOREA,
-		LA1: Regions.LAT_NORTH,
-		LA2: Regions.LAT_SOUTH,
-		NA1: Regions.AMERICA_NORTH,
-		OC1: Regions.OCEANIA,
-		TR1: Regions.TURKEY,
-		RU: Regions.RUSSIA,
-		JP1: Regions.JAPAN,
-		PBE1: Regions.PBE,
-	} as Record<string, Regions>;
+/** URL/search param spellings (uppercase) that map to a Riot platform id. */
+const REGION_PARAM_TO_CONSTANT = {
+	BR: Regions.BRAZIL,
+	EUNE: Regions.EU_EAST,
+	EUW: Regions.EU_WEST,
+	EUW1: Regions.EU_WEST,
+	KR: Regions.KOREA,
+	LA1: Regions.LAT_NORTH,
+	LA2: Regions.LAT_SOUTH,
+	NA1: Regions.AMERICA_NORTH,
+	OC1: Regions.OCEANIA,
+	TR1: Regions.TURKEY,
+	RU: Regions.RUSSIA,
+	JP1: Regions.JAPAN,
+	PBE1: Regions.PBE,
+} as Record<string, Regions>;
 
-	if (!regionMap[region]) {
+export const isShardRegionParam = (region: string): boolean =>
+	Boolean(REGION_PARAM_TO_CONSTANT[region.toUpperCase()]);
+
+export const regionToConstant = (region: string) => {
+	const key = region.toUpperCase();
+	const mapped = REGION_PARAM_TO_CONSTANT[key];
+	if (!mapped) {
 		throw new Error(`Invalid region: ${region}`);
 	}
 
-	return regionMap[region];
+	return mapped;
 };
 
 export const regionToDisplay = (region: string): string => {

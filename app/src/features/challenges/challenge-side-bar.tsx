@@ -114,8 +114,8 @@ export const DifferentSideBar = ({ challenges, username, region, user }: Differe
 											</p>
 										</div>
 										<Link
-											to="/challenge/$id"
-											params={{ id: item.config.id.toString() }}
+											to="/challenge/$challengeId"
+											params={{ challengeId: item.config.id.toString() }}
 											search={
 												username && region
 													? {

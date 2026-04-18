@@ -1,19 +1,24 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 
-import { regionToDisplay } from "~/features/shared/champs";
+import { isShardRegionParam, regionToDisplay } from "~/features/shared/champs";
 
 export default function Profile() {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
-	const [_, server, username] = pathname.split("/");
+	const segments = pathname.split("/").filter(Boolean);
+	const [regionSegment, usernameSegment] = segments;
+
+	if (!regionSegment || !usernameSegment || !isShardRegionParam(regionSegment)) {
+		return null;
+	}
 
 	return (
 		<div className="flex h-full w-full flex-row items-center justify-center px-4 align-middle">
 			<Link
 				to="/$region/$username"
-				params={{ region: server, username: username }}
+				params={{ region: regionSegment, username: usernameSegment }}
 				className="rounded p-1 hover:bg-gray-600"
 			>
-				{username?.replace("-", "#")} ({regionToDisplay(server)})
+				{usernameSegment.replace("-", "#")} ({regionToDisplay(regionSegment)})
 			</Link>
 		</div>
 	);
