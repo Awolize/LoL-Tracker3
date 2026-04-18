@@ -4,10 +4,7 @@ import { motion } from "motion/react";
 
 import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
-import { MainTitleLink } from "~/components/header/MainTitleLink";
-import Profile from "~/components/header/Profile";
-import Search from "~/components/header/Search";
-import { ThemeSelector } from "~/components/theme-toggle";
+import { SiteHeader } from "~/components/header/SiteHeader";
 import { regionToConstant, regionToDisplay } from "~/features/shared/champs";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
 import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
@@ -217,26 +214,7 @@ function Client() {
 }
 
 function Header() {
-	return (
-		<header className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-30 grid w-full grid-cols-3 border-b px-4 py-2 backdrop-blur">
-			<div className="flex items-center justify-center">
-				<MainTitleLink />
-			</div>
-			<div className="flex items-center justify-center">
-				<Profile />
-			</div>
-
-			<div className="relative flex w-full items-center">
-				<div className="flex-1">
-					<Search />
-				</div>
-
-				<div className="absolute top-0 right-0">
-					<ThemeSelector />
-				</div>
-			</div>
-		</header>
-	);
+	return <SiteHeader variant="hub" />;
 }
 
 function Footer() {

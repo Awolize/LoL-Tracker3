@@ -4,10 +4,7 @@ import { z } from "zod";
 
 import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
-import { MainTitleLink } from "~/components/header/MainTitleLink";
-import Profile from "~/components/header/Profile";
-import Search from "~/components/header/Search";
-import { ThemeSelector } from "~/components/theme-toggle";
+import { SiteHeader } from "~/components/header/SiteHeader";
 import ChallengeLeaderboard from "~/features/challenges/challenge-leaderboard";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { getChallengeConfig } from "~/server/api/get-challenge-config.api";
@@ -134,7 +131,23 @@ export default function RouteComponent() {
 
 	return (
 		<div className="flex min-h-screen flex-col">
-			<Header username={search.username} region={search.region} />
+			<SiteHeader
+				variant="hub"
+				center={
+					search.username && search.region ? (
+						<Link
+							to="/$region/$username"
+							params={{
+								region: search.region,
+								username: search.username.replace("#", "-"),
+							}}
+							className="rounded p-1 hover:bg-gray-600"
+						>
+							{search.username.replace("-", "#")} ({search.region.toUpperCase()})
+						</Link>
+					) : undefined
+				}
+			/>
 			<main className="flex-1">
 				<Client />
 			</main>
@@ -192,39 +205,6 @@ function Client() {
 				</div>
 			</div>
 		</div>
-	);
-}
-
-function Header({ username, region }: { username?: string; region?: string }) {
-	return (
-		<header className="bg-background/95 supports-backdrop-filter:bg-background/60 sticky top-0 z-30 grid w-full grid-cols-3 border-b px-4 py-2 backdrop-blur">
-			<div className="flex items-center justify-center">
-				<MainTitleLink />
-			</div>
-			<div className="flex items-center justify-center">
-				{username && region ? (
-					<Link
-						to="/$region/$username"
-						params={{ region, username: username.replace("#", "-") }}
-						className="rounded p-1 hover:bg-gray-600"
-					>
-						{username.replace("-", "#")} ({region.toUpperCase()})
-					</Link>
-				) : (
-					<Profile />
-				)}
-			</div>
-
-			<div className="relative flex w-full items-center">
-				<div className="flex-1">
-					<Search />
-				</div>
-
-				<div className="absolute top-0 right-0">
-					<ThemeSelector />
-				</div>
-			</div>
-		</header>
 	);
 }
 

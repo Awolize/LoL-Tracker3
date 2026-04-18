@@ -2,10 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
-import { MainTitleLink } from "~/components/header/MainTitleLink";
-import Profile from "~/components/header/Profile";
-import Search from "~/components/header/Search";
-import { ThemeSelector } from "~/components/theme-toggle";
+import { SiteHeader } from "~/components/header/SiteHeader";
 import ChampionList from "~/features/mastery/champions-list";
 import SortedChampionList from "~/features/mastery/role-sorted-champion-list";
 import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
@@ -78,15 +75,7 @@ export function RouteComponent() {
 		<UserProvider user={user}>
 			<OptionsProvider persistName={`${user.gameName}-${user.tagLine}`}>
 				<div className="flex flex-col">
-					<header className="bg-primary-foreground relative sticky top-0 z-30 grid w-full min-w-0 grid-cols-3 justify-between border-b px-1 py-2 md:px-8">
-						<MainTitleLink />
-						<Profile />
-						<Search />
-
-						<div className="absolute top-2 right-2 md:top-3 md:right-6">
-							<ThemeSelector />
-						</div>
-					</header>
+					<SiteHeader variant="subpage" />
 
 					<Main playerChampionInfo={playerChampionInfo} user={user} version={version} />
 

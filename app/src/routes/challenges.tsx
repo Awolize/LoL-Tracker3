@@ -4,10 +4,7 @@ import { SearchIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 // Local imports (assuming these exist based on your code)
-import { MainTitleLink } from "~/components/header/MainTitleLink";
-import Profile from "~/components/header/Profile";
-import Search from "~/components/header/Search";
-import { ThemeSelector } from "~/components/theme-toggle";
+import { SiteHeader } from "~/components/header/SiteHeader";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { getChallengesConfig, getDataDragonVersion } from "~/server/api/mutations";
 import { seo } from "~/utils/seo";
@@ -107,22 +104,7 @@ export default function ChallengesPage() {
 }
 
 function Header() {
-	return (
-		<header className="bg-background/95 sticky top-0 z-30 grid w-full grid-cols-3 border-b px-4 py-2 backdrop-blur">
-			<div className="flex items-center justify-start">
-				<MainTitleLink />
-			</div>
-			<div className="flex items-center justify-center">
-				<Profile />
-			</div>
-			<div className="flex w-full items-center justify-end gap-2">
-				<div className="max-w-sm flex-1">
-					<Search />
-				</div>
-				<ThemeSelector />
-			</div>
-		</header>
-	);
+	return <SiteHeader variant="hub" />;
 }
 
 /**
