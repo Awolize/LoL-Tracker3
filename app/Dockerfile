@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
 # Simple single-stage build for smoke-testing
-FROM node:25
+FROM node:latest
 
-RUN corepack enable
+RUN npm install -g pnpm
 WORKDIR /app
 
 # Install ALL deps (no split prod/dev)
