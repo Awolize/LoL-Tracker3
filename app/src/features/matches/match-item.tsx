@@ -74,6 +74,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 							<div className="flex min-w-0 items-center gap-2">
 								<img
 									src={getChampionImage(`${userParticipant?.championName}.png`)}
+									loading="lazy"
 									className="h-10 w-10 shrink-0 rounded"
 									alt={userParticipant?.championName}
 								/>
@@ -123,6 +124,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 											src={getChampionImage(
 												`${participant.championName}.png`,
 											)}
+											loading="lazy"
 											className={`h-6 w-6 rounded border ${
 												participant.puuid === user.puuid
 													? "border-primary shadow-sm"
@@ -144,6 +146,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 											src={getChampionImage(
 												`${participant.championName}.png`,
 											)}
+											loading="lazy"
 											className={`h-6 w-6 rounded border ${
 												participant.puuid === user.puuid
 													? "border-primary shadow-sm"

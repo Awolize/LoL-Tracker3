@@ -111,6 +111,7 @@ export default function Search() {
 											<img
 												src={getProfileImage(String(suggestion.iconId))}
 												alt="Profile icon"
+												loading="lazy"
 												className="h-8 w-8 rounded-full border"
 												onError={(e) => {
 													e.currentTarget.style.display = "none";

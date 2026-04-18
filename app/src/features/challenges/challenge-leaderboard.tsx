@@ -83,6 +83,7 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 			<img
 				src={iconUrl}
 				alt={tier}
+				loading="lazy"
 				className="mb-2 h-8 w-8 object-contain drop-shadow-md"
 				onError={(e) => {
 					// Fallback for missing images
@@ -203,6 +204,7 @@ const LeaderboardRow = ({
 						<img
 							src={getProfileImage(String(entry.summoner.profileIconId))}
 							alt=""
+							loading="lazy"
 							className="bg-muted h-8 w-8 rounded-full border-2 object-cover"
 							style={{ borderColor: tierVar }}
 						/>

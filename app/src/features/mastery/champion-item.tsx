@@ -107,6 +107,7 @@ const ChampionItem: React.FC<ChampionItemProps> = ({
 			>
 				<img
 					src={getChampionImage(champ.full)}
+					loading="lazy"
 					style={{
 						zIndex: -1,
 						opacity: disabled ? "40%" : "100%",

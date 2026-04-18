@@ -20,6 +20,7 @@ export const DifferentChampionItem = ({
 			<div className="relative z-10">
 				<img
 					onClick={onClick}
+					loading="lazy"
 					src={getChampionImage(champ.full)}
 					style={{
 						zIndex: -1,

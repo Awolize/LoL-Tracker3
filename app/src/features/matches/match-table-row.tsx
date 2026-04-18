@@ -39,6 +39,7 @@ const MatchTable: React.FC<MatchTableProps> = ({ players, teamId, version }) => 
 						<div className="flex justify-center">
 							<img
 								src={getChampionImage(`${player.championName}.png`)}
+								loading="lazy"
 								className="border-border h-10 w-10 rounded-lg border"
 								alt={`${player.championName}`}
 							/>
