@@ -32,7 +32,10 @@ ENV VITE_SENTRY_PROJECT=$VITE_SENTRY_PROJECT
 ENV SENTRY_AUTH_TOKEN=$SENTRY_AUTH_TOKEN
 ENV NODE_ENV=production
 
-RUN pnpm run build
+RUN pnpm run build \
+	&& test -f .output/server/index.mjs \
+	&& test -d .output/public/assets \
+	&& test -n "$(find .output/public/assets -maxdepth 1 -name '*.css' | head -n 1)"
 
 # 5. Runner Stage
 FROM base AS runner
@@ -52,8 +55,9 @@ COPY --from=prod-deps --chown=tanstack:nodejs /app/node_modules ./node_modules
 # -----------------------------
 
 COPY --from=builder --chown=tanstack:nodejs /app/.output ./.output
-COPY --chown=tanstack:nodejs ./instrument.server.mjs ./.output/server
-COPY --from=builder /app/package.json ./package.json
+# Same layout as `pnpm start`: instrument at app root, Nitro bundle under `.output/server/`
+COPY --chown=tanstack:nodejs ./instrument.server.mjs ./instrument.server.mjs
+COPY --from=builder --chown=tanstack:nodejs /app/package.json ./package.json
 
 USER tanstack
 
@@ -62,5 +66,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
-# Chain the migration script BEFORE the server start
-CMD ["sh", "-c", "node prod-migrate.mjs && node --import ./.output/server/instrument.server.mjs .output/server/index.mjs"]
+# Mirrors package.json `start` (Sentry preload + Nitro server). Avoid nesting instrument under `.output/`.
+CMD ["node", "--import", "./instrument.server.mjs", ".output/server/index.mjs"]
