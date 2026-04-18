@@ -26,6 +26,10 @@ RUN pnpm run build \
   && test -d .output/public/assets \
   && test -n "$(find .output/public/assets -maxdepth 1 -name '*.css' | head -n 1)"
 
+# After pnpm run build, add this:
+RUN ACTUAL=$(ls /app/.output/public/assets/*.css | xargs -n1 basename | sed 's/styles-//;s/\.css//') && \
+  find /app/.output/server/ -name "*.mjs" -exec sed -i "s/styles-[A-Za-z0-9_-]*\.css/styles-${ACTUAL}.css/g" {} \;
+
 # Runtime
 ENV PORT=3000
 ENV HOST=0.0.0.0
