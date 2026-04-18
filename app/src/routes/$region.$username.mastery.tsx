@@ -7,6 +7,7 @@ import ChampionList from "~/features/mastery/champions-list";
 import SortedChampionList from "~/features/mastery/role-sorted-champion-list";
 import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
 import Header from "~/features/summoner/components/summoner-header";
+import { regionToDisplay } from "~/features/shared/champs";
 import { getSummonerByNameRegion } from "~/server/summoner/mutations";
 import { OptionsProvider, useOptionsPersistentContext } from "~/stores/options-persistent-store";
 import { UserProvider } from "~/stores/user-store";
@@ -36,21 +37,22 @@ export const Route = createFileRoute("/$region/$username/mastery")({
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
 		const { username, region } = loaderData;
+		const regionLabel = regionToDisplay(region);
 
 		return {
-			title: `Champion Mastery: ${username} (${region})`,
+			title: `Champion Mastery: ${username} (${regionLabel})`,
 			meta: [
 				{ name: "application-name", content: "LoL Mastery Tracker" },
 				{
 					name: "description",
 					content: metaDescription(
-						`Track League of Legends champion mastery points for ${username} on ${region}. Compare mastery levels, chest eligibility, high-water marks, and per-champion milestones in a sortable roster synced from Riot.`,
+						`Track League of Legends champion mastery points for ${username} on ${regionLabel}. Compare mastery levels, chest eligibility, high-water marks, and per-champion milestones in a sortable roster synced from Riot.`,
 					),
 				},
 				{
 					name: "keywords",
 					content: [
-						region,
+						regionLabel,
 						username,
 						"LoL",
 						"champion mastery",

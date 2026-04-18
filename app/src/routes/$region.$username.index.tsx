@@ -72,14 +72,15 @@ export const Route = createFileRoute("/$region/$username/")({
   head: ({ loaderData }) => {
     if (!loaderData) return {};
     const { username, region, summonerData, error } = loaderData;
+    const regionLabel = regionToDisplay(region);
 
     if (error === "rate_limit") {
       return {
         meta: [
           ...seo({
-            title: `League profile temporarily unavailable — ${username} (${region})`,
-            description: `Riot's League of Legends API rate limit was hit while loading ${username} on ${region}. Wait a few seconds, refresh, and try again to open mastery, challenges, and match history.`,
-            keywords: [region, username, "LoL", "mastery", "tracker"].join(", "),
+            title: `League profile temporarily unavailable - ${username} (${regionLabel})`,
+            description: `Riot's League of Legends API rate limit was hit while loading ${username} on ${regionLabel}. Wait a few seconds, refresh, and try again to open mastery, challenges, and match history.`,
+            keywords: [regionLabel, username, "LoL", "mastery", "tracker"].join(", "),
           }),
         ],
       };
@@ -89,9 +90,9 @@ export const Route = createFileRoute("/$region/$username/")({
       return {
         meta: [
           ...seo({
-            title: `Summoner not found — ${username} (${region})`,
-            description: `We could not find ${username} on the ${region} shard. Double-check the Riot ID spelling, tag line, and region, then search again to load champion mastery, challenge helpers, and match history.`,
-            keywords: [region, username, "LoL", "mastery", "tracker"].join(", "),
+            title: `Summoner not found - ${username} (${regionLabel})`,
+            description: `We could not find ${username} on the ${regionLabel} shard. Double-check the Riot ID spelling, tag line, and region, then search again to load champion mastery, challenge helpers, and match history.`,
+            keywords: [regionLabel, username, "LoL", "mastery", "tracker"].join(", "),
           }),
         ],
       };
@@ -101,9 +102,9 @@ export const Route = createFileRoute("/$region/$username/")({
     return {
       meta: [
         ...seo({
-          title: `${username} (${region}) — League mastery, challenges & match hub`,
-          description: `${username} on ${region}, summoner level ${summonerLevel}: champion mastery totals, challenges, and recent LoL match history (Riot API).`,
-          keywords: [region, username, "LoL", "mastery", "tracker", "challenges"].join(", "),
+          title: `${username} (${regionLabel}) - League mastery, challenges and match hub`,
+          description: `${username} on ${regionLabel}, summoner level ${summonerLevel}: champion mastery totals, challenges, and recent LoL match history (Riot API).`,
+          keywords: [regionLabel, username, "LoL", "mastery", "tracker", "challenges"].join(", "),
         }),
       ],
     };

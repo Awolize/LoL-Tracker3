@@ -5,6 +5,7 @@ import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
 import { MatchHistory } from "~/features/matches/match-history";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
+import { regionToDisplay } from "~/features/shared/champs";
 import { getMatchesFn } from "~/server/matches/mutations";
 import { OptionsProvider } from "~/stores/options-persistent-store";
 import { UserProvider } from "~/stores/user-store";
@@ -29,21 +30,22 @@ export const Route = createFileRoute("/$region/$username/matches")({
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
 		const { username, region } = loaderData;
+		const regionLabel = regionToDisplay(region);
 
 		return {
-			title: `Match History: ${username} (${region})`,
+			title: `Match History: ${username} (${regionLabel})`,
 			meta: [
 				{ name: "application-name", content: "LoL Match History" },
 				{
 					name: "description",
 					content: metaDescription(
-						`Review recent League of Legends match history for ${username} on ${region}. Scan queue types, wins and losses, KDA, damage share, vision, and other post-game stats across the latest games returned from Riot.`,
+						`Review recent League of Legends match history for ${username} on ${regionLabel}. Scan queue types, wins and losses, KDA, damage share, vision, and other post-game stats across the latest games returned from Riot.`,
 					),
 				},
 				{
 					name: "keywords",
 					content: [
-						region,
+						regionLabel,
 						username,
 						"LoL",
 						"match history",

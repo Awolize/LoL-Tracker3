@@ -82,7 +82,7 @@ export const Route = createFileRoute("/challenges")({
 	head: () => ({
 		meta: [
 			...seo({
-				title: "League of Legends challenges — browse tiers, thresholds & leaderboards",
+				title: "League of Legends challenges - browse tiers, thresholds and leaderboards",
 				description:
 					"Explore every League of Legends seasonal and legacy challenge in one directory: filter by Veterancy, Expertise, Teamwork, and more, inspect Crystal tier thresholds, then open leaderboards to compare top summoners worldwide.",
 			}),

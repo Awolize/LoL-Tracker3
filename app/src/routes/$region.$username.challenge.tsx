@@ -9,6 +9,7 @@ import { DifferentSideBar } from "~/features/challenges/challenge-side-bar";
 import { ChampionListHeader } from "~/features/mastery/champion-list-header";
 import { RoleChampionList } from "~/features/mastery/role-champion-list";
 import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
+import { regionToDisplay } from "~/features/shared/champs";
 import {
 	getAdaptToAllSituations,
 	getChampionOcean,
@@ -53,21 +54,22 @@ export const Route = createFileRoute("/$region/$username/challenge")({
 	head: ({ loaderData }) => {
 		if (!loaderData) return {};
 		const { username, region } = loaderData;
+		const regionLabel = regionToDisplay(region);
 
 		return {
-			title: `Challenge Tracker: ${username} (${region})`,
+			title: `Challenge Tracker: ${username} (${regionLabel})`,
 			meta: [
 				{ name: "application-name", content: "LoL Challenge Tracker" },
 				{
 					name: "description",
 					content: metaDescription(
-						`Track targeted League of Legends seasonal challenges for ${username} on ${region}, including Jack of All Champs, Champion Ocean, Adapt to All Situations, and Invincible, with champion lists aligned to each challenge ruleset.`,
+						`Track targeted League of Legends seasonal challenges for ${username} on ${regionLabel}, including Jack of All Champs, Champion Ocean, Adapt to All Situations, and Invincible, with champion lists aligned to each challenge ruleset.`,
 					),
 				},
 				{
 					name: "keywords",
 					content: [
-						region,
+						regionLabel,
 						username,
 						"LoL",
 						"challenges",
