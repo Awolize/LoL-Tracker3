@@ -1,20 +1,28 @@
 // jobs/queue.ts
 import { Queue, QueueEvents, Worker } from "bullmq";
+import { eq } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 
+import { db } from "~/db";
+import { challengesConfig } from "~/db/schema";
 import { runAllChallengeUpdatesWorker } from "~/server/challenges/update-challenges";
 import { updateChallengesConfigServer } from "~/server/challenges/update-challenges-config";
 import { upsertPlayerChallenges } from "~/server/challenges/update-player-challenges";
 import { updateChampionDetails } from "~/server/champions/update-champion-details";
 import { upsertMastery } from "~/server/champions/upsertMastery";
 import { fetchMatchIds, updateGamesSingle } from "~/server/matches/updateGames";
+import {
+	challengeLeaderboardUrl,
+	getSiteHostname,
+	getSiteOrigin,
+	summonerSeoUrls,
+} from "~/server/seo/site-urls";
 import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
 import { upsertSummoner } from "~/server/summoner/upsertSummoner";
 
 import { connection } from "./redis";
 
 const QUEUE_NAME = "riot-updates";
-const BASE_URL = "https://lol.awot.dev";
 
 export const updateQueue = new Queue(QUEUE_NAME, {
 	connection,
@@ -40,18 +48,36 @@ function queueIndexNowUrl(url: string) {
 	if (wasEmpty) scheduleIndexNowFlush();
 }
 
+function queueSummonerSeoIndexNow(regionShard: string, gameName: string, tagLine: string) {
+	for (const url of summonerSeoUrls(regionShard, gameName, tagLine)) {
+		queueIndexNowUrl(url);
+	}
+}
+
+async function queueLeaderboardChallengeUrls() {
+	const rows = await db
+		.select({ id: challengesConfig.id })
+		.from(challengesConfig)
+		.where(eq(challengesConfig.leaderboard, true));
+	for (const row of rows) {
+		queueIndexNowUrl(challengeLeaderboardUrl(row.id));
+	}
+}
+
 async function notifyIndexNow(urls: string[]) {
+	const origin = getSiteOrigin();
 	const res = await fetch("https://api.indexnow.org/indexnow", {
 		method: "POST",
 		headers: { "Content-Type": "application/json; charset=utf-8" },
 		body: JSON.stringify({
-			host: "lol.awot.dev",
+			host: getSiteHostname(),
 			key: "12cb155ebbb645c9a5eb01992526f734",
-			keyLocation: `${BASE_URL}/12cb155ebbb645c9a5eb01992526f734.txt`,
+			keyLocation: `${origin}/12cb155ebbb645c9a5eb01992526f734.txt`,
 			urlList: urls,
 		}),
 	});
-	console.log(res.status, res.text());
+	const body = await res.text();
+	console.log(res.status, body);
 }
 
 // --- Helper ---
@@ -94,13 +120,14 @@ if (!global.__riotWorker) {
 							updateChallengesConfigServer(region),
 							updateChampionDetails(),
 						]);
-						queueIndexNowUrl(`${BASE_URL}/summoner/${region}/${gameName}-${tagLine}`);
+						queueSummonerSeoIndexNow(region, gameName, tagLine);
+						await queueLeaderboardChallengeUrls();
 						return { success: true, puuid: account.puuid };
 					}
 
 					case "update-summoner-only": {
 						const { account } = await ensureSummoner(gameName, tagLine, region);
-						queueIndexNowUrl(`${BASE_URL}/summoner/${region}/${gameName}-${tagLine}`);
+						queueSummonerSeoIndexNow(region, gameName, tagLine);
 						return { success: true, puuid: account.puuid };
 					}
 
@@ -112,21 +139,22 @@ if (!global.__riotWorker) {
 					case "update-mastery": {
 						const { account } = await ensureSummoner(gameName, tagLine, region);
 						await upsertMastery(account, region);
-						queueIndexNowUrl(`${BASE_URL}/summoner/${region}/${gameName}-${tagLine}`);
+						queueSummonerSeoIndexNow(region, gameName, tagLine);
 						return { success: true, puuid: account.puuid };
 					}
 
 					case "update-challenges-config": {
 						await updateChallengesConfigServer(region);
+						await queueLeaderboardChallengeUrls();
 						return { success: true };
 					}
 
 					case "update-challenges": {
 						const { account } = await ensureSummoner(gameName, tagLine, region);
 						await upsertPlayerChallenges(region, account);
-						queueIndexNowUrl(`${BASE_URL}/summoner/${region}/${gameName}-${tagLine}`);
+						queueSummonerSeoIndexNow(region, gameName, tagLine);
 						if (challengeId) {
-							queueIndexNowUrl(`${BASE_URL}/challenge/${challengeId}`);
+							queueIndexNowUrl(challengeLeaderboardUrl(challengeId));
 						}
 						return { success: true, puuid: account.puuid };
 					}
@@ -150,6 +178,8 @@ if (!global.__riotWorker) {
 								console.error(`[Queue] Error in match ${id}:`, err),
 							);
 						});
+
+						queueSummonerSeoIndexNow(region, gameName, tagLine);
 
 						return { success: true, queuedMatches: matchIds.length };
 					}

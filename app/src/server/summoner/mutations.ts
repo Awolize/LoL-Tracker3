@@ -9,6 +9,11 @@ import { regionToConstant } from "~/features/shared/champs";
 import { getChallengesConfig } from "~/server/api/get-challenges-config";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { getCompleteChampionData } from "~/server/champions/get-complete-champion-data";
+import {
+	stableGlobalJobOpts,
+	stableRegionShardJobOpts,
+	stableSummonerJobOpts,
+} from "~/server/jobs/queue-stable-job-opts";
 import { updateQueue, updateQueueEvents } from "~/server/jobs/queue";
 import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
 
@@ -230,42 +235,44 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 			`[API] Update request for ${gameName}#${tagLine} (Await Matches: ${awaitMatches})`,
 		);
 
-		// Make jobId unique per request to avoid collisions
-		const makeId = (type: string) => `${type}-${gameName}-${tagLine}-${Date.now()}`;
-
 		const jobPromises = [
-			updateQueue.add("update-summoner-only", jobData, {
-				priority: 1,
-				jobId: makeId("update-summoner"),
-			}),
-			updateQueue.add("update-champion-details", jobData, {
-				priority: 2,
-				jobId: makeId("update-champion-details"),
-			}),
-			updateQueue.add("update-challenges-config", jobData, {
-				priority: 3,
-				jobId: makeId("update-challenges-config"),
-			}),
-			updateQueue.add("update-mastery", jobData, {
-				priority: 4,
-				jobId: makeId("update-mastery"),
-			}),
+			updateQueue.add(
+				"update-summoner-only",
+				jobData,
+				stableSummonerJobOpts("update-summoner-only", jobData, { priority: 1 }),
+			),
+			updateQueue.add(
+				"update-champion-details",
+				jobData,
+				stableGlobalJobOpts("update-champion-details", { priority: 2 }),
+			),
+			updateQueue.add(
+				"update-challenges-config",
+				jobData,
+				stableRegionShardJobOpts("update-challenges-config", String(regionEnum), {
+					priority: 3,
+				}),
+			),
+			updateQueue.add(
+				"update-mastery",
+				jobData,
+				stableSummonerJobOpts("update-mastery", jobData, { priority: 4 }),
+			),
 			updateQueue.add(
 				"update-matches",
 				{ ...jobData, waitForMatches: awaitMatches },
-				{
-					priority: 5,
-					jobId: makeId("update-matches"),
-				},
+				stableSummonerJobOpts("update-matches", jobData, { priority: 5 }, String(awaitMatches)),
 			),
-			updateQueue.add("update-challenges", jobData, {
-				priority: 20,
-				jobId: makeId("update-challenges"),
-			}),
-			updateQueue.add("run-challenges-computation", jobData, {
-				priority: 21,
-				jobId: makeId("run-challenges-computation"),
-			}),
+			updateQueue.add(
+				"update-challenges",
+				jobData,
+				stableSummonerJobOpts("update-challenges", jobData, { priority: 20 }),
+			),
+			updateQueue.add(
+				"run-challenges-computation",
+				jobData,
+				stableSummonerJobOpts("run-challenges-computation", jobData, { priority: 21 }),
+			),
 		];
 
 		try {
