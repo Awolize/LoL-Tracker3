@@ -177,7 +177,9 @@ function Client() {
 								</h2>
 								<div className="text-muted-foreground mt-1 flex w-full min-w-0 justify-between gap-4 text-sm font-bold">
 									<span className="uppercase">{regionToDisplay(region)}</span>
-									<span className="shrink-0 tabular-nums">Level {summonerLevel}</span>
+									<span className="shrink-0 tabular-nums">
+										Level {summonerLevel}
+									</span>
 								</div>
 							</div>
 						</div>
