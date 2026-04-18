@@ -162,12 +162,12 @@ export function RouteComponent() {
 						selectedChallengeId={selectedChallengeId}
 						setSelectedChallengeId={setSelectedChallengeId}
 					>
-						<header className="bg-primary-foreground sticky top-0 z-30 grid w-screen grid-cols-3 justify-between px-1 md:px-8">
+						<header className="bg-primary-foreground relative sticky top-0 z-30 grid w-full min-w-0 grid-cols-3 justify-between border-b px-1 py-2 md:px-8">
 							<MainTitleLink />
 							<Profile />
 							<Search />
 
-							<div className="absolute top-4 right-4">
+							<div className="absolute top-2 right-2 md:top-3 md:right-6">
 								<ThemeSelector />
 							</div>
 						</header>

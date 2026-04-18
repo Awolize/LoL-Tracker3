@@ -48,10 +48,10 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 		>
 			<CardHeader className="px-2 pb-1">
 				<div
-					className={`grid w-full min-w-0 grid-cols-[2fr_1fr_auto_2fr_1fr] place-items-center items-center gap-2`}
+					className={`grid w-full min-w-0 grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto_minmax(0,2fr)_minmax(0,1fr)] place-items-center items-center gap-2 sm:gap-3`}
 				>
 					{/* Column 1: Victory + Champion + Chevron */}
-					<div className="flex shrink-0 flex-row items-center gap-4 justify-self-start">
+					<div className="flex min-w-0 flex-row items-center gap-2 justify-self-start sm:gap-3">
 						{/* Expand/Collapse Chevron */}
 						{isExpanded ? (
 							<ChevronUp className="h-3 w-3" />
@@ -69,15 +69,15 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 							{isWin ? "VICTORY" : "DEFEAT"}
 						</div>
 
-						<div className="flex items-center gap-2">
+						<div className="flex min-w-0 items-center gap-2">
 							{/* Champion Info */}
-							<div className="flex items-center gap-2">
+							<div className="flex min-w-0 items-center gap-2">
 								<img
 									src={getChampionImage(`${userParticipant?.championName}.png`)}
-									className="h-10 w-10 rounded"
+									className="h-10 w-10 shrink-0 rounded"
 									alt={userParticipant?.championName}
 								/>
-								<span className="text text-foreground truncate">
+								<span className="text text-foreground min-w-0 truncate">
 									{userParticipant?.championName}
 								</span>
 							</div>
@@ -86,7 +86,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 
 					{/* Column 2: Game Type (ranked, normal, etc.) */}
 
-					<div className="flexitems-center shrink-0 justify-self-start overflow-hidden">
+					<div className="flex min-w-0 shrink-0 items-center justify-self-start overflow-hidden">
 						<div className="text-foreground text-sm font-medium">
 							{match.MatchInfo?.gameMode
 								?.replace(/_/g, " ")
@@ -112,7 +112,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 
 					{/* Column 4: Game Stats (when expanded) or Champion Icons (when collapsed) */}
 
-					<div className="flex flex-col justify-center gap-0.5 overflow-hidden">
+					<div className="flex min-w-0 flex-col justify-center gap-0.5 overflow-hidden">
 						{/* Blue Team Row */}
 						<div className="flex items-center justify-center gap-1">
 							{(match.MatchInfo.participants as unknown as Array<any>)
