@@ -2,7 +2,6 @@
 # Simple single-stage build for smoke-testing
 FROM node:25
 
-RUN apk add --no-cache libc6-compat
 RUN corepack enable
 WORKDIR /app
 
