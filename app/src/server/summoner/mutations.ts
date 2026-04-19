@@ -5,8 +5,11 @@ import type { Regions } from "twisted/dist/constants";
 
 import { db } from "~/db";
 import { championMastery, summoner } from "~/db/schema";
+import type { ProfileHubChallengesPayload } from "~/features/challenges/types/profile-challenge-row";
 import { regionToConstant } from "~/features/shared/champs";
 import { getChallengesConfig } from "~/server/api/get-challenges-config";
+import { buildProfileChallengeRows } from "~/server/challenges/build-profile-challenge-rows";
+import { getChallengesProgressMapForPuuid } from "~/server/challenges/challenges-progress-map";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { getCompleteChampionData } from "~/server/champions/get-complete-champion-data";
 import { updateQueue, updateQueueEvents } from "~/server/jobs/queue";
@@ -389,5 +392,22 @@ export const getSummonerByNameRegion = createServerFn({
 			playerChampionInfo: completeChampionsData.completeChampionsData,
 			challenges,
 			version: completeChampionsData.completeChampionsData[0]?.version || "latest",
+		};
+	});
+
+/** Profile hub: all challenges + Riot progress (same module as other profile serverFns). */
+export const getProfileHubChallengesFn = createServerFn({ method: "GET" })
+	.inputValidator((input: { puuid: string }) => input)
+	.handler(async ({ data }): Promise<ProfileHubChallengesPayload> => {
+		const [configs, progressMap, versionRow] = await Promise.all([
+			getChallengesConfig(),
+			getChallengesProgressMapForPuuid(data.puuid),
+			db.query.championDetails.findFirst({ columns: { version: true } }),
+		]);
+
+		return {
+			rows: buildProfileChallengeRows(configs, progressMap),
+			challengesSynced: progressMap !== null,
+			dataDragonVersion: versionRow?.version ?? "latest",
 		};
 	});

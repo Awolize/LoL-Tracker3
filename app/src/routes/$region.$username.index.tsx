@@ -5,12 +5,18 @@ import { motion } from "motion/react";
 import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
+import { ProfileChallengesSection } from "~/features/challenges/profile-challenges-section";
+import type { ProfileHubChallengesPayload } from "~/features/challenges/types/profile-challenge-row";
 import { regionToConstant, regionToDisplay } from "~/features/shared/champs";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
 import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
 import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
 import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
-import { checkNameChangeFn, getUserByNameAndRegionFn } from "~/server/summoner/mutations";
+import {
+	checkNameChangeFn,
+	getProfileHubChallengesFn,
+	getUserByNameAndRegionFn,
+} from "~/server/summoner/mutations";
 import { seo } from "~/utils/seo";
 
 /** Path strings avoid importing sibling route modules into this chunk. */
@@ -66,7 +72,15 @@ export const Route = createFileRoute("/$region/$username/")({
 			}
 		}
 
-		return { username, region, rawUsername, rawRegion, ...result };
+		let profileChallenges: ProfileHubChallengesPayload | null = null;
+
+		if (result.error === null && result.summonerData) {
+			profileChallenges = await getProfileHubChallengesFn({
+				data: { puuid: result.summonerData.puuid },
+			});
+		}
+
+		return { username, region, rawUsername, rawRegion, profileChallenges, ...result };
 	},
 	component: RouteComponent,
 	head: ({ loaderData }) => {
@@ -131,8 +145,16 @@ export default function RouteComponent() {
 }
 
 function Client() {
-	const { username, region, rawUsername, rawRegion, summonerData, profileIconUrl, error } =
-		Route.useLoaderData();
+	const {
+		username,
+		region,
+		rawUsername,
+		rawRegion,
+		summonerData,
+		profileIconUrl,
+		error,
+		profileChallenges,
+	} = Route.useLoaderData();
 
 	if (error === "rate_limit")
 		return (
@@ -154,7 +176,7 @@ function Client() {
 	return (
 		<div className="flex w-full justify-center px-4 py-8">
 			<motion.div
-				className="flex w-full max-w-2xl flex-col gap-12"
+				className="flex w-full max-w-3xl flex-col gap-12"
 				variants={containerVariants}
 				initial="hidden"
 				animate="show"
@@ -214,6 +236,19 @@ function Client() {
 						</motion.div>
 					))}
 				</nav>
+
+				{profileChallenges ? (
+					<motion.div variants={itemVariants}>
+						<ProfileChallengesSection
+							rows={profileChallenges.rows}
+							challengesSynced={profileChallenges.challengesSynced}
+							dataDragonVersion={profileChallenges.dataDragonVersion}
+							rawRegion={rawRegion}
+							rawUsername={rawUsername}
+							hubUsername={username}
+						/>
+					</motion.div>
+				) : null}
 			</motion.div>
 		</div>
 	);

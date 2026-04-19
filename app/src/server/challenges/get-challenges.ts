@@ -2,10 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 
 import { db } from "~/db";
-import { challenges, challengesDetails } from "~/db/schema";
+import { challenges } from "~/db/schema";
 import { regionToConstant } from "~/features/shared/champs";
 import type { ChampionDetails } from "~/features/shared/types";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
+import { getChallengesProgressMapForPuuid } from "~/server/challenges/challenges-progress-map";
 
 export const getJackOfAllChamps = createServerFn()
 	.inputValidator((input: { username: string; region: string }) => input)
@@ -125,33 +126,7 @@ export const getPlayerChallengesProgress = createServerFn()
 		}
 
 		try {
-			// Get the challenge progress from our database instead of Riot API
-			const userChallengesDetails = await db.query.challengesDetails.findFirst({
-				where: eq(challengesDetails.puuid, user.puuid),
-				with: { challenges: true },
-			});
-
-			if (!userChallengesDetails) {
-				console.error(`Could not find challenge data for user ${user.puuid}`);
-				return null;
-			}
-
-			// Return challenges as a Record<number, any> where key is challengeId
-			const challengesMap = userChallengesDetails.challenges.reduce(
-				(map: Record<number, any>, challenge) => {
-					map[challenge.challengeId as number] = {
-						challengeId: challenge.challengeId,
-						percentile: challenge.percentile,
-						level: challenge.level,
-						value: challenge.value,
-						achievedTime: challenge.achievedTime,
-					};
-					return map;
-				},
-				{} as Record<number, any>,
-			);
-
-			return challengesMap;
+			return await getChallengesProgressMapForPuuid(user.puuid);
 		} catch (error) {
 			console.error("Failed to fetch player challenges progress from database:", error);
 			return null;
