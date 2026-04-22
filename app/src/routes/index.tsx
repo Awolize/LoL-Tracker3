@@ -10,7 +10,7 @@ export const Route = createFileRoute("/")({
 	head: () => ({
 		meta: [
 			...seo({
-				title: "Awot's Challenge Tracker - League of Legends",
+				title: "Awot's Challenge Tracker for League of Legends",
 				description:
 					"Search by username#tag + region and track champion mastery progress, challenges, leaderboards, and match history. From Riot's API for League of Legends.",
 			}),

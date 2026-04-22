@@ -21,7 +21,7 @@ export const Route = createRootRouteWithContext<{
 			...seo({
 				title: "Awot's Challenge Tracker for League of Legends",
 				description:
-					"Look up any Riot ID to explore champion mastery, seasonal and legacy League of Legends challenges, public leaderboards, and recent match history with data refreshed from Riot's official API.",
+					"Search by username#tag + region and track champion mastery progress, challenges, leaderboards, and match history. From Riot's API for League of Legends.",
 			}),
 		],
 		links: [
