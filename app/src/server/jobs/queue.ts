@@ -1,10 +1,10 @@
 // jobs/queue.ts
 import { Queue, QueueEvents, Worker } from "bullmq";
-import { eq } from "drizzle-orm";
+import { and, eq, ilike } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 
 import { db } from "~/db";
-import { challengesConfig } from "~/db/schema";
+import { challengesConfig, summoner } from "~/db/schema";
 import { runAllChallengeUpdatesWorker } from "~/server/challenges/update-challenges";
 import { updateChallengesConfigServer } from "~/server/challenges/update-challenges-config";
 import { upsertPlayerChallenges } from "~/server/challenges/update-player-challenges";
@@ -17,7 +17,10 @@ import {
 	getSiteOrigin,
 	summonerSeoUrls,
 } from "~/server/seo/site-urls";
-import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
+import {
+	getSummonerByPuuidRateLimit,
+	getSummonerByUsernameRateLimit,
+} from "~/server/summoner/get-summoner-by-username-rate-limit";
 import { upsertSummoner } from "~/server/summoner/upsertSummoner";
 
 import { connection } from "./redis";
@@ -82,10 +85,29 @@ async function notifyIndexNow(urls: string[]) {
 
 // --- Helper ---
 async function ensureSummoner(gameName: string, tagLine: string, region: Regions) {
-	const data = await getSummonerByUsernameRateLimit(`${gameName}#${tagLine}`, region);
-	if (!data.summoner) throw new Error(`Summoner not found: ${gameName}#${tagLine}`);
-	await upsertSummoner(data.summoner, data.account, region);
-	return data;
+	try {
+		const data = await getSummonerByUsernameRateLimit(`${gameName}#${tagLine}`, region);
+		if (!data.summoner) throw new Error(`Summoner not found: ${gameName}#${tagLine}`);
+		await upsertSummoner(data.summoner, data.account, region);
+		return data;
+	} catch (error: any) {
+		// Old Riot IDs can 404 after rename; fall back via cached PUUID.
+		if (error?.status !== 404) throw error;
+
+		const knownUser = await db.query.summoner.findFirst({
+			where: and(
+				ilike(summoner.gameName, gameName),
+				ilike(summoner.tagLine, tagLine),
+				eq(summoner.region, region),
+			),
+		});
+		if (!knownUser?.puuid) throw error;
+
+		const data = await getSummonerByPuuidRateLimit(knownUser.puuid, region);
+		if (!data.summoner) throw new Error(`Summoner not found by PUUID: ${knownUser.puuid}`);
+		await upsertSummoner(data.summoner, data.account, region);
+		return data;
+	}
 }
 
 declare global {
