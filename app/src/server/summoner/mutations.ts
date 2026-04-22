@@ -8,9 +8,9 @@ import { championMastery, summoner } from "~/db/schema";
 import type { ProfileHubChallengesPayload } from "~/features/challenges/types/profile-challenge-row";
 import { regionToConstant } from "~/features/shared/champs";
 import { getChallengesConfig } from "~/server/api/get-challenges-config";
+import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { buildProfileChallengeRows } from "~/server/challenges/build-profile-challenge-rows";
 import { getChallengesProgressMapForPuuid } from "~/server/challenges/challenges-progress-map";
-import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { getCompleteChampionData } from "~/server/champions/get-complete-champion-data";
 import { updateQueue, updateQueueEvents } from "~/server/jobs/queue";
 import {
@@ -18,7 +18,10 @@ import {
 	stableRegionShardJobOpts,
 	stableSummonerJobOpts,
 } from "~/server/jobs/queue-stable-job-opts";
-import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
+import {
+	getSummonerByPuuidRateLimit,
+	getSummonerByUsernameRateLimit,
+} from "~/server/summoner/get-summoner-by-username-rate-limit";
 
 type NameChangeResult =
 	| { found: false; newUsername?: never }
@@ -81,48 +84,50 @@ type SummonerResult = {
 		summonerLevel: number;
 	} | null;
 	profileIconUrl: string | null;
-	error: "rate_limit" | "not_found" | null;
+	error: "rate_limit" | "not_found" | "name_changed" | null;
+	newUsername?: string;
 	isCached: boolean;
 	lastUpdated: Date | null;
 };
 
-export const getUserByNameAndRegionFn = createServerFn({
-	method: "GET",
-})
+export const getUserByNameAndRegionFn = createServerFn({ method: "GET" })
 	.inputValidator((input: { username: string; region: string; forceRefresh?: boolean }) => input)
 	.handler(async ({ data }): Promise<SummonerResult> => {
 		const { username, region, forceRefresh = false } = data;
 		const regionEnum = regionToConstant(region);
-		const [gameName, tagLine] = username.toLowerCase().split("#");
+		// Keep lowercase only for DB lookup — never store this
+		const [gameNameLower, tagLineLower] = username.toLowerCase().split("#");
+
+		const now = new Date();
+
+		// Helper to get version/profileIconUrl (called in multiple paths)
+		const getProfileIconUrl = async (profileIconId: number | null) => {
+			if (!profileIconId) return null;
+			const versionRow = await db.query.championDetails.findFirst({
+				columns: { version: true },
+			});
+			const version = versionRow?.version ?? "latest";
+			return `/api/images/cdn/${version}/img/profileicon/${profileIconId}.webp`;
+		};
 
 		try {
-			// 1. Try to find in database by current username
+			// 1. Look up by lowercased name in DB
 			const cachedUser = await db.query.summoner.findFirst({
 				where: and(
-					eq(summoner.gameName, gameName),
-					eq(summoner.tagLine, tagLine),
+					eq(summoner.gameName, gameNameLower),
+					eq(summoner.tagLine, tagLineLower),
 					eq(summoner.region, regionEnum),
 				),
 			});
 
-			const now = new Date();
 			const shouldUpdate =
 				forceRefresh ||
 				!cachedUser ||
 				(cachedUser.updatedAt &&
 					now.getTime() - cachedUser.updatedAt.getTime() > CHECK_INTERVAL_MS);
 
-			// 2. If cache is fresh and no force refresh, return cached data
+			// 2. Cache is fresh — return early
 			if (cachedUser && !shouldUpdate) {
-				const versionRow = await db.query.championDetails.findFirst({
-					columns: { version: true },
-				});
-				const version = versionRow?.version ?? "latest";
-
-				const profileIconUrl = cachedUser.profileIconId
-					? `/api/images/cdn/${version}/img/profileicon/${cachedUser.profileIconId}.webp`
-					: null;
-
 				return {
 					summonerData: {
 						puuid: cachedUser.puuid,
@@ -131,71 +136,118 @@ export const getUserByNameAndRegionFn = createServerFn({
 						profileIconId: cachedUser.profileIconId,
 						summonerLevel: cachedUser.summonerLevel,
 					},
-					profileIconUrl,
+					profileIconUrl: await getProfileIconUrl(cachedUser.profileIconId),
 					error: null,
 					isCached: true,
 					lastUpdated: cachedUser.updatedAt,
 				};
 			}
 
-			// 3. Fetch from Riot API
-			const user = await getSummonerByUsernameRateLimit(username.toLowerCase(), regionEnum);
+			// 3. Try Riot API by name
+			let riotUser: Awaited<ReturnType<typeof getSummonerByUsernameRateLimit>> | null = null;
+			try {
+				riotUser = await getSummonerByUsernameRateLimit(username.toLowerCase(), regionEnum);
+			} catch (err: any) {
+				// Name returned 404 — if we have a PUUID, try resolving by that instead
+				if (err?.status === 404 && cachedUser?.puuid) {
+					const freshAccount = await getSummonerByPuuidRateLimit(
+						cachedUser.puuid,
+						regionEnum,
+					);
 
-			if (!user.summoner) {
-				throw new Error("Summoner not found");
+					if (!freshAccount?.account) throw new Error("Summoner not found");
+
+					const newGameName = freshAccount.account.gameName;
+					const newTagLine = freshAccount.account.tagLine;
+
+					// ✅ Store canonical casing from Riot
+					await db
+						.insert(summoner)
+						.values({
+							puuid: cachedUser.puuid,
+							gameName: newGameName.toLowerCase(),
+							tagLine: newTagLine.toLowerCase(),
+							region: regionEnum,
+							profileIconId:
+								freshAccount.summoner?.profileIconId ?? cachedUser.profileIconId,
+							summonerLevel:
+								freshAccount.summoner?.summonerLevel ?? cachedUser.summonerLevel,
+							summonerId: freshAccount.summoner?.id ?? cachedUser.summonerId,
+							accountId: freshAccount.summoner?.accountId ?? cachedUser.accountId,
+							revisionDate: freshAccount.summoner?.revisionDate
+								? new Date(freshAccount.summoner.revisionDate)
+								: cachedUser.revisionDate,
+							updatedAt: now,
+						})
+						.onConflictDoUpdate({
+							target: summoner.puuid,
+							set: {
+								gameName: newGameName.toLowerCase(),
+								tagLine: newTagLine.toLowerCase(),
+								updatedAt: now,
+							},
+						});
+
+					// Signal to the route to redirect to the new name
+					return {
+						summonerData: null,
+						profileIconUrl: null,
+						error: "name_changed",
+						newUsername: `${newGameName}#${newTagLine}`,
+						isCached: false,
+						lastUpdated: null,
+					};
+				}
+				throw err; // 429, 500, etc — fall through to outer catch
 			}
 
-			const versionRow = await db.query.championDetails.findFirst({
-				columns: { version: true },
-			});
-			const version = versionRow?.version ?? "latest";
+			if (!riotUser?.summoner) throw new Error("Summoner not found");
 
-			const profileIconUrl = user.summoner.profileIconId
-				? `/api/images/cdn/${version}/img/profileicon/${user.summoner.profileIconId}.webp`
-				: null;
+			// ✅ Use Riot's canonical casing for display, lowercase for DB lookup
+			const canonicalGameName = riotUser.account.gameName;
+			const canonicalTagLine = riotUser.account.tagLine;
 
-			// 4. Upsert into database
+			// 4. Upsert with lowercased name for consistent lookups
 			await db
 				.insert(summoner)
 				.values({
-					puuid: user.summoner.puuid,
-					gameName: gameName,
-					tagLine: tagLine,
+					puuid: riotUser.summoner.puuid,
+					gameName: canonicalGameName.toLowerCase(),
+					tagLine: canonicalTagLine.toLowerCase(),
 					region: regionEnum,
-					profileIconId: user.summoner.profileIconId,
-					summonerLevel: user.summoner.summonerLevel,
-					summonerId: user.summoner.id,
-					accountId: user.summoner.accountId,
-					revisionDate: new Date(user.summoner.revisionDate),
+					profileIconId: riotUser.summoner.profileIconId,
+					summonerLevel: riotUser.summoner.summonerLevel,
+					summonerId: riotUser.summoner.id,
+					accountId: riotUser.summoner.accountId,
+					revisionDate: new Date(riotUser.summoner.revisionDate),
 					updatedAt: now,
 				})
 				.onConflictDoUpdate({
 					target: summoner.puuid,
 					set: {
-						gameName: gameName,
-						tagLine: tagLine,
-						profileIconId: user.summoner.profileIconId,
-						summonerLevel: user.summoner.summonerLevel,
+						gameName: canonicalGameName.toLowerCase(),
+						tagLine: canonicalTagLine.toLowerCase(),
+						profileIconId: riotUser.summoner.profileIconId,
+						summonerLevel: riotUser.summoner.summonerLevel,
 						updatedAt: now,
 					},
 				});
 
 			return {
 				summonerData: {
-					puuid: user.summoner.puuid,
-					gameName: user.account.gameName,
-					tagLine: user.account.tagLine,
-					profileIconId: user.summoner.profileIconId,
-					summonerLevel: user.summoner.summonerLevel,
+					puuid: riotUser.summoner.puuid,
+					gameName: canonicalGameName, // ✅ canonical for display
+					tagLine: canonicalTagLine,
+					profileIconId: riotUser.summoner.profileIconId,
+					summonerLevel: riotUser.summoner.summonerLevel,
 				},
-				profileIconUrl,
+				profileIconUrl: await getProfileIconUrl(riotUser.summoner.profileIconId),
 				error: null,
 				isCached: false,
 				lastUpdated: now,
 			};
 		} catch (err: any) {
 			console.error("Error fetching summoner:", err);
-
 			const error = err?.status === 429 ? "rate_limit" : "not_found";
 			return {
 				summonerData: null,

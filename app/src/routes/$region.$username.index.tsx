@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/tanstackstart-react";
-import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
 import FooterLinks from "~/components/footer/FooterLinks";
@@ -51,30 +51,41 @@ const itemVariants = {
 
 export const Route = createFileRoute("/$region/$username/")({
 	loader: async ({ params: { username: rawUsername, region: rawRegion } }) => {
-		const username = rawUsername.replace("-", "#");
+		const lastDash = rawUsername.lastIndexOf("-");
+		const username = rawUsername.slice(0, lastDash) + "#" + rawUsername.slice(lastDash + 1);
 		const region = regionToConstant(rawRegion.toUpperCase());
 
 		Sentry.metrics.count("profile_view", 1, {
-			attributes: { endpoint: `/${region}/${rawUsername}`, region, username },
+			attributes: { endpoint: `/${rawRegion}/${rawUsername}`, region, username },
 		});
 
 		const result = await getUserByNameAndRegionFn({
 			data: { username, region },
 		});
 
+		// Name changed — PUUID fallback found the new name
+		if (result.error === "name_changed" && result.newUsername) {
+			throw redirect({
+				to: "/$region/$username",
+				params: {
+					region: rawRegion,
+					username: result.newUsername.replace("#", "-"),
+				},
+				statusCode: 301,
+			});
+		}
+
+		// Truly not found — 404 the page
 		if (result.error === "not_found") {
-			const migration = await checkNameChangeFn({ data: { username, region } });
-			if (migration.found) {
-				throw redirect({
-					to: "/$region/$username",
-					params: { region: rawRegion, username: migration.newUsername },
-				});
-			}
+			throw notFound();
+		}
+
+		if (result.error === "rate_limit") {
+			throw redirect({ to: "/", search: { error: "rate_limit" } });
 		}
 
 		let profileChallenges: ProfileHubChallengesPayload | null = null;
-
-		if (result.error === null && result.summonerData) {
+		if (result.summonerData) {
 			profileChallenges = await getProfileHubChallengesFn({
 				data: { puuid: result.summonerData.puuid },
 			});
