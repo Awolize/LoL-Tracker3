@@ -4,6 +4,7 @@ import type { Regions } from "twisted/dist/constants";
 import { db } from "~/db";
 import { summoner } from "~/db/schema";
 import type { Summoner } from "~/features/shared/types";
+import { getSummonerByPuuidRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
 import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
 
 export async function getUserByNameAndRegion(username: string, region: Regions) {
@@ -27,11 +28,20 @@ export async function getUserByNameAndRegion(username: string, region: Regions) 
 
 		console.log("Could not find summoner in DB", username, region);
 
-		// Fetch from Riot API
-		const { summoner: riotSummoner, account } = await getSummonerByUsernameRateLimit(
-			username,
-			region,
-		);
+		let riotSummoner;
+		let account;
+		try {
+			// Primary path: resolve by Riot ID.
+			const resolvedByName = await getSummonerByUsernameRateLimit(username, region);
+			riotSummoner = resolvedByName.summoner;
+			account = resolvedByName.account;
+		} catch (error: any) {
+			// Rename fallback: if the old Riot ID 404s but we already know PUUID, resolve by PUUID.
+			if (error?.status !== 404 || !user?.puuid) throw error;
+			const resolvedByPuuid = await getSummonerByPuuidRateLimit(user.puuid, region);
+			riotSummoner = resolvedByPuuid.summoner;
+			account = resolvedByPuuid.account;
+		}
 
 		// Find duplicates
 		const existingUsers = await db.query.summoner.findMany({

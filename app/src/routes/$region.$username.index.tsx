@@ -13,7 +13,6 @@ import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
 import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
 import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
 import {
-	checkNameChangeFn,
 	getProfileHubChallengesFn,
 	getUserByNameAndRegionFn,
 } from "~/server/summoner/mutations";
