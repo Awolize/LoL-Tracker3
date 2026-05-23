@@ -36,13 +36,25 @@ export async function getUserByNameAndRegion(username: string, region: Regions) 
 			riotSummoner = resolvedByName.summoner;
 			account = resolvedByName.account;
 		} catch (error: any) {
-			// Rename fallback: if the old Riot ID 404s but we already know PUUID, resolve by PUUID.
+			// Rename fallback: old Riot ID 404s but we know the PUUID — try resolving by PUUID.
 			if (error?.status !== 404 || !user?.puuid) throw error;
-			const resolvedByPuuid = await getSummonerByPuuidRateLimit(user.puuid, region);
-			riotSummoner = resolvedByPuuid.summoner;
-			account = resolvedByPuuid.account;
-		}
 
+			try {
+				const resolvedByPuuid = await getSummonerByPuuidRateLimit(user.puuid, region);
+				riotSummoner = resolvedByPuuid.summoner;
+				account = resolvedByPuuid.account;
+			} catch (puuidError: any) {
+				// Name 404'd AND puuid 404'd → account is genuinely gone. Prune it.
+				if (puuidError?.status === 404) {
+					await db.delete(summoner).where(eq(summoner.puuid, user.puuid));
+					console.log(
+						new Date().toLocaleString(),
+						`Pruned dead summoner ${gameName}#${tagLine} (puuid ${user.puuid})`,
+					);
+				}
+				throw puuidError; // re-throw either way; outer catch wraps it
+			}
+		}
 		// Find duplicates
 		const existingUsers = await db.query.summoner.findMany({
 			where: (s) =>
