@@ -1,4 +1,4 @@
-import { and, eq, ilike, inArray, notInArray } from "drizzle-orm";
+import { and, eq, inArray, notInArray, sql } from "drizzle-orm";
 import type { Regions } from "twisted/dist/constants";
 
 import { db } from "~/db";
@@ -18,7 +18,11 @@ export async function getUserByNameAndRegion(username: string, region: Regions) 
 
 		const user = await db.query.summoner.findFirst({
 			where: (s) =>
-				and(eq(s.gameName, gameName), eq(s.tagLine, tagLine), eq(s.region, region)),
+				and(
+					sql`lower(${s.gameName}) = lower(${gameName})`,
+					sql`lower(${s.tagLine}) = lower(${tagLine})`,
+					eq(s.region, region),
+				),
 		});
 
 		if (user && isWithinThreshold(user.updatedAt)) {
@@ -58,8 +62,8 @@ export async function getUserByNameAndRegion(username: string, region: Regions) 
 		const existingUsers = await db.query.summoner.findMany({
 			where: (s) =>
 				and(
-					ilike(s.gameName, account.gameName),
-					ilike(s.tagLine, account.tagLine),
+					sql`lower(${s.gameName}) = lower(${gameName})`,
+					sql`lower(${s.tagLine}) = lower(${tagLine})`,
 					notInArray(s.puuid, [riotSummoner.puuid]),
 					eq(s.region, region),
 				),
