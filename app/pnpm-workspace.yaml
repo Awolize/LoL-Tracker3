@@ -1,10 +1,10 @@
 allowBuilds:
-  '@sentry/cli': true
-  esbuild: true
-  msgpackr-extract: true
-  sharp: true
+    "@sentry/cli": true
+    esbuild: true
+    msgpackr-extract: true
+    sharp: true
 onlyBuiltDependencies:
-  - "@sentry/cli"
-  - esbuild
-  - msgpackr-extract
-  - sharp
+    - "@sentry/cli"
+    - esbuild
+    - msgpackr-extract
+    - sharp

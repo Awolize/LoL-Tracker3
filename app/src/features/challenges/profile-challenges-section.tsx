@@ -4,12 +4,7 @@ import { Fragment, useEffect, useMemo, useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
-import {
-	Tooltip,
-	TooltipContent,
-	TooltipProvider,
-	TooltipTrigger,
-} from "~/components/ui/tooltip";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "~/components/ui/tooltip";
 import { cn } from "~/components/utils";
 import {
 	buildChallengeLadderSegments,
@@ -97,9 +92,7 @@ function ChallengeTierThresholdPill({
 	return (
 		<span
 			className={tierPillClass(state)}
-			title={
-				suppressTitle ? undefined : `${tier}: ${points.toLocaleString()} pts`
-			}
+			title={suppressTitle ? undefined : `${tier}: ${points.toLocaleString()} pts`}
 			style={c ? { color: c, opacity } : { opacity }}
 		>
 			{formatCompactChallengePoints(points)}
@@ -129,7 +122,7 @@ function ChallengeLadderPills({
 	suppressNativeTitles: boolean;
 }) {
 	return (
-		<div className="text-muted-foreground flex max-w-full flex-nowrap items-center justify-end gap-x-px [scrollbar-width:thin]">
+		<div className="text-muted-foreground flex max-w-full [scrollbar-width:thin] flex-nowrap items-center justify-end gap-x-px">
 			{segments.map((seg, si) => (
 				<Fragment key={`${rowId}-lad-${si}`}>
 					{si > 0 ? ladderSeparator() : null}
@@ -181,7 +174,7 @@ function formatProgressCell(
 		if (!topLabel) return null;
 		return (
 			<div className="flex flex-col items-end gap-px text-right leading-tight">
-				<span className="text-muted-foreground text-[10px] font-medium tabular-nums tracking-tight">
+				<span className="text-muted-foreground text-[10px] font-medium tracking-tight tabular-nums">
 					{topLabel}
 				</span>
 			</div>
@@ -278,7 +271,7 @@ export function ProfileChallengesSection({
 		<section className="border-border bg-card overflow-hidden rounded-lg border shadow-sm">
 			<div className="flex flex-col gap-4 px-6 pt-6 pb-5">
 				<div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between sm:gap-4">
-					<h2 className="text-lg font-semibold tracking-tight shrink-0">Challenges</h2>
+					<h2 className="shrink-0 text-lg font-semibold tracking-tight">Challenges</h2>
 					<div
 						className="text-muted-foreground -mx-0.5 flex min-w-0 flex-wrap items-baseline justify-start gap-x-3 gap-y-1 text-xs leading-relaxed sm:justify-end"
 						role="group"
@@ -288,7 +281,10 @@ export function ProfileChallengesSection({
 							<>
 								<button
 									type="button"
-									className={cn(filterChipClass(tierFilter === "all"), "whitespace-nowrap")}
+									className={cn(
+										filterChipClass(tierFilter === "all"),
+										"whitespace-nowrap",
+									)}
 									onClick={() => setTierFilter("all")}
 									title="Show all challenges"
 									aria-pressed={tierFilter === "all"}
@@ -297,7 +293,10 @@ export function ProfileChallengesSection({
 								</button>
 								<button
 									type="button"
-									className={cn(filterChipClass(tierFilter === "maxed"), "whitespace-nowrap")}
+									className={cn(
+										filterChipClass(tierFilter === "maxed"),
+										"whitespace-nowrap",
+									)}
 									onClick={() => setTierFilter("maxed")}
 									title="Show maxed challenges only"
 									aria-pressed={tierFilter === "maxed"}
@@ -306,17 +305,21 @@ export function ProfileChallengesSection({
 								</button>
 								<button
 									type="button"
-									className={cn(filterChipClass(tierFilter === "leftToMax"), "whitespace-nowrap")}
+									className={cn(
+										filterChipClass(tierFilter === "leftToMax"),
+										"whitespace-nowrap",
+									)}
 									onClick={() => setTierFilter("leftToMax")}
 									title="Show challenges still below top tier"
 									aria-pressed={tierFilter === "leftToMax"}
 								>
-									<span className="tabular-nums">{stats.remainingToMax}</span> left to max
+									<span className="tabular-nums">{stats.remainingToMax}</span>{" "}
+									left to max
 								</button>
 							</>
 						) : (
 							<span className="whitespace-nowrap">
-								<span className="tabular-nums font-medium text-foreground/90">
+								<span className="text-foreground/90 font-medium tabular-nums">
 									{stats.total}
 								</span>
 								<span> in catalog</span>
@@ -326,7 +329,7 @@ export function ProfileChallengesSection({
 				</div>
 
 				{!challengesSynced ? (
-					<p className="text-muted-foreground border-primary/20 bg-primary/5 text-sm leading-relaxed rounded-md border px-3 py-2.5">
+					<p className="text-muted-foreground border-primary/20 bg-primary/5 rounded-md border px-3 py-2.5 text-sm leading-relaxed">
 						No challenge progress stored yet. Run{" "}
 						<span className="text-foreground font-medium">Update profile</span> above,
 						wait a moment, then refresh.
@@ -365,122 +368,148 @@ export function ProfileChallengesSection({
 			<div className="border-border h-[min(28rem,55vh)] shrink-0 overflow-hidden border-t">
 				<TooltipProvider delayDuration={250}>
 					<ul className="flex h-full min-h-0 flex-col overflow-y-auto overscroll-y-contain">
-					{displayedRows.length === 0 ? (
-						<li className="text-muted-foreground flex flex-1 flex-col items-center justify-center px-6 py-8 text-center text-sm">
-							{tierFiltered.length === 0
-								? "No challenges for this filter."
-								: "No challenges match your search."}
-						</li>
-					) : (
-						displayedRows.map((row) => {
-							const strip = getProfileChallengeThresholdStripModel(row, challengesSynced);
-							const maxed = isChallengeAtHighestTier(row, challengesSynced);
-							const ladderSegments =
-								strip.entries.length > 0
-									? buildChallengeLadderSegments(strip.entries, strip.currentValue)
-									: [];
-							return (
-								<li
-									key={row.id}
-									className={cn(
-										"border-border bg-background/40 hover:bg-accent/30 border-b transition-colors last:border-b-0",
-										maxed &&
-											"border-l-emerald-500/70 bg-emerald-500/[0.05] hover:bg-emerald-500/[0.08] border-l-2",
-									)}
-								>
-									<div className="flex flex-col gap-1 px-3 py-2 sm:px-5">
-										<div className="flex w-full min-w-0 items-center gap-2">
-											<div className="bg-muted/30 relative h-9 w-9 shrink-0 overflow-hidden rounded-md">
-												<img
-													src={getChallengeIcon(row.id, row.thresholds)}
-													alt=""
-													className="h-full w-full object-contain p-px"
-													loading="lazy"
-												/>
-											</div>
-											<div className="flex min-w-0 flex-1 flex-col gap-0.5">
-												<Link
-													to={CHALLENGE_TRACKER_PATH}
-													params={{ region: rawRegion, username: rawUsername }}
-													search={{ challengeId: row.id }}
-													className="text-foreground hover:text-primary min-w-0 py-0.5 text-left text-[13px] leading-snug font-semibold transition-colors line-clamp-2"
-												>
-													{row.name}
-												</Link>
-												{row.shortDescription ? (
-													<p className="text-muted-foreground line-clamp-1 text-[11px] leading-tight">
-														{row.shortDescription}
-													</p>
-												) : null}
-											</div>
-											<div className="flex min-h-9 min-w-0 shrink-0 items-center gap-2">
-												{strip.entries.length > 0 ? (
-													<div className="flex min-h-0 min-w-0 max-w-[min(11rem,calc(100vw-8rem))] items-center justify-end sm:max-w-[min(18rem,calc(100vw-10rem))]">
-														{strip.footerHint && !maxed ? (
-															<Tooltip>
-																<TooltipTrigger asChild>
-																	<div
-																		className="-m-0.5 flex max-w-full cursor-default items-center justify-end overflow-x-auto overflow-y-visible rounded-md p-0.5 outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
-																		tabIndex={0}
-																	>
-																		<ChallengeLadderPills
-																			rowId={row.id}
-																			segments={ladderSegments}
-																			strip={strip}
-																			levelForScoreColor={row.progress?.level}
-																			suppressNativeTitles
-																		/>
-																	</div>
-																</TooltipTrigger>
-																<TooltipContent
-																	side="top"
-																	align="end"
-																	sideOffset={6}
-																	className="max-w-sm px-3 py-2.5 text-left"
-																>
-																	<p className="text-background/75 mb-1 text-[10px] font-semibold tracking-wide uppercase">
-																		Progress to next tier
-																	</p>
-																	<p className="text-background text-sm leading-snug font-medium">
-																		{strip.footerHint}
-																	</p>
-																</TooltipContent>
-															</Tooltip>
-														) : (
-															<div className="flex max-w-full items-center justify-end overflow-x-auto overflow-y-visible">
-																<ChallengeLadderPills
-																	rowId={row.id}
-																	segments={ladderSegments}
-																	strip={strip}
-																	levelForScoreColor={row.progress?.level}
-																	suppressNativeTitles={false}
-																/>
-															</div>
+						{displayedRows.length === 0 ? (
+							<li className="text-muted-foreground flex flex-1 flex-col items-center justify-center px-6 py-8 text-center text-sm">
+								{tierFiltered.length === 0
+									? "No challenges for this filter."
+									: "No challenges match your search."}
+							</li>
+						) : (
+							displayedRows.map((row) => {
+								const strip = getProfileChallengeThresholdStripModel(
+									row,
+									challengesSynced,
+								);
+								const maxed = isChallengeAtHighestTier(row, challengesSynced);
+								const ladderSegments =
+									strip.entries.length > 0
+										? buildChallengeLadderSegments(
+												strip.entries,
+												strip.currentValue,
+											)
+										: [];
+								return (
+									<li
+										key={row.id}
+										className={cn(
+											"border-border bg-background/40 hover:bg-accent/30 border-b transition-colors last:border-b-0",
+											maxed &&
+												"border-l-emerald-500/70 bg-emerald-500/[0.05] hover:bg-emerald-500/[0.08] border-l-2",
+										)}
+									>
+										<div className="flex flex-col gap-1 px-3 py-2 sm:px-5">
+											<div className="flex w-full min-w-0 items-center gap-2">
+												<div className="bg-muted/30 relative h-9 w-9 shrink-0 overflow-hidden rounded-md">
+													<img
+														src={getChallengeIcon(
+															row.id,
+															row.thresholds,
 														)}
-													</div>
-												) : null}
-												<div className="flex shrink-0 items-center gap-1.5">
-													{formatProgressCell(row, challengesSynced, strip)}
+														alt=""
+														className="h-full w-full object-contain p-px"
+														loading="lazy"
+													/>
+												</div>
+												<div className="flex min-w-0 flex-1 flex-col gap-0.5">
 													<Link
-														to={GLOBAL_CHALLENGE_LEADERBOARD_PATH}
-														params={{ challengeId: String(row.id) }}
-														search={{
-															username: hubUsername.replace("#", "-"),
+														to={CHALLENGE_TRACKER_PATH}
+														params={{
 															region: rawRegion,
+															username: rawUsername,
 														}}
-														className="text-muted-foreground hover:text-primary transition-colors"
-														title="Leaderboard"
+														search={{ challengeId: row.id }}
+														className="text-foreground hover:text-primary line-clamp-2 min-w-0 py-0.5 text-left text-[13px] leading-snug font-semibold transition-colors"
 													>
-														<TrophyIcon className="h-3.5 w-3.5" />
+														{row.name}
 													</Link>
+													{row.shortDescription ? (
+														<p className="text-muted-foreground line-clamp-1 text-[11px] leading-tight">
+															{row.shortDescription}
+														</p>
+													) : null}
+												</div>
+												<div className="flex min-h-9 min-w-0 shrink-0 items-center gap-2">
+													{strip.entries.length > 0 ? (
+														<div className="flex min-h-0 max-w-[min(11rem,calc(100vw-8rem))] min-w-0 items-center justify-end sm:max-w-[min(18rem,calc(100vw-10rem))]">
+															{strip.footerHint && !maxed ? (
+																<Tooltip>
+																	<TooltipTrigger asChild>
+																		<div
+																			className="focus-visible:ring-ring/50 -m-0.5 flex max-w-full cursor-default items-center justify-end overflow-x-auto overflow-y-visible rounded-md p-0.5 outline-none focus-visible:ring-[3px]"
+																			tabIndex={0}
+																		>
+																			<ChallengeLadderPills
+																				rowId={row.id}
+																				segments={
+																					ladderSegments
+																				}
+																				strip={strip}
+																				levelForScoreColor={
+																					row.progress
+																						?.level
+																				}
+																				suppressNativeTitles
+																			/>
+																		</div>
+																	</TooltipTrigger>
+																	<TooltipContent
+																		side="top"
+																		align="end"
+																		sideOffset={6}
+																		className="max-w-sm px-3 py-2.5 text-left"
+																	>
+																		<p className="text-background/75 mb-1 text-[10px] font-semibold tracking-wide uppercase">
+																			Progress to next tier
+																		</p>
+																		<p className="text-background text-sm leading-snug font-medium">
+																			{strip.footerHint}
+																		</p>
+																	</TooltipContent>
+																</Tooltip>
+															) : (
+																<div className="flex max-w-full items-center justify-end overflow-x-auto overflow-y-visible">
+																	<ChallengeLadderPills
+																		rowId={row.id}
+																		segments={ladderSegments}
+																		strip={strip}
+																		levelForScoreColor={
+																			row.progress?.level
+																		}
+																		suppressNativeTitles={false}
+																	/>
+																</div>
+															)}
+														</div>
+													) : null}
+													<div className="flex shrink-0 items-center gap-1.5">
+														{formatProgressCell(
+															row,
+															challengesSynced,
+															strip,
+														)}
+														<Link
+															to={GLOBAL_CHALLENGE_LEADERBOARD_PATH}
+															params={{ challengeId: String(row.id) }}
+															search={{
+																username: hubUsername.replace(
+																	"#",
+																	"-",
+																),
+																region: rawRegion,
+															}}
+															className="text-muted-foreground hover:text-primary transition-colors"
+															title="Leaderboard"
+														>
+															<TrophyIcon className="h-3.5 w-3.5" />
+														</Link>
+													</div>
 												</div>
 											</div>
 										</div>
-									</div>
-								</li>
-							);
-						})
-					)}
+									</li>
+								);
+							})
+						)}
 					</ul>
 				</TooltipProvider>
 			</div>

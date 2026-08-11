@@ -13,17 +13,12 @@ export async function getUserByNameAndRegion(username: string, region: Regions) 
 		return Date.now() - date.getTime() <= oneDayInMillis;
 	}
 
-
 	try {
 		const [gameName, tagLine] = username.toLowerCase().split("#");
 
 		const user = await db.query.summoner.findFirst({
 			where: (s) =>
-				and(
-					eq(s.gameName, gameName),
-					eq(s.tagLine, tagLine),
-					eq(s.region, region),
-				),
+				and(eq(s.gameName, gameName), eq(s.tagLine, tagLine), eq(s.region, region)),
 		});
 
 		if (user && isWithinThreshold(user.updatedAt)) {
@@ -99,7 +94,7 @@ export async function getUserByNameAndRegion(username: string, region: Regions) 
 			updatedAt: new Date(),
 			accountId: null,
 			summonerId: null,
-			createdAt: new Date()
+			createdAt: new Date(),
 		};
 
 		let savedUser: Summoner;

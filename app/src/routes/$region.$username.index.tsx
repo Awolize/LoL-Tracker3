@@ -12,10 +12,7 @@ import { FullSummonerUpdate } from "~/features/summoner/components/summoner-upda
 import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
 import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
 import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
-import {
-	getProfileHubChallengesFn,
-	getUserByNameAndRegionFn,
-} from "~/server/summoner/mutations";
+import { getProfileHubChallengesFn, getUserByNameAndRegionFn } from "~/server/summoner/mutations";
 import { seo } from "~/utils/seo";
 
 /** Path strings avoid importing sibling route modules into this chunk. */

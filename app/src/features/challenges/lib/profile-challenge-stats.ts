@@ -48,7 +48,10 @@ export function formatChallengeTopPercentLabel(percentile: number): string | nul
 				: topPct >= 0.1
 					? topPct.toFixed(1).replace(/\.?0+$/, "") || "0"
 					: topPct >= 0.01
-						? topPct.toFixed(2).replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "")
+						? topPct
+								.toFixed(2)
+								.replace(/(\.\d*?)0+$/, "$1")
+								.replace(/\.$/, "")
 						: "<0.01";
 
 	return `Top ${body}%`;
@@ -240,10 +243,7 @@ export function isChallengeAtHighestTier(
 }
 
 /** Has a tier ladder and is not yet at the top tier (includes no progress yet). */
-export function isLeftToMaxChallenge(
-	row: ProfileChallengeRow,
-	challengesSynced: boolean,
-): boolean {
+export function isLeftToMaxChallenge(row: ProfileChallengeRow, challengesSynced: boolean): boolean {
 	if (!challengesSynced) return false;
 	if (getHighestTierForChallenge(row.thresholds) === null) return false;
 	return !isChallengeAtHighestTier(row, challengesSynced);
@@ -266,8 +266,7 @@ export function computeProfileChallengeStats(
 		}
 	}
 
-	const remainingToMax =
-		challengesSynced ? Math.max(0, withTierLadder - maxed) : 0;
+	const remainingToMax = challengesSynced ? Math.max(0, withTierLadder - maxed) : 0;
 
 	return {
 		total,
@@ -281,10 +280,7 @@ export function computeProfileChallengeStats(
  * Ascending sort key: lower = closer to finishing the tier ladder (1 = one tier below cap).
  * Buckets: gaps 1…n, then unknown progress, maxed, no ladder.
  */
-function nearCompletionSortKey(
-	row: ProfileChallengeRow,
-	challengesSynced: boolean,
-): number {
+function nearCompletionSortKey(row: ProfileChallengeRow, challengesSynced: boolean): number {
 	if (!challengesSynced) return 0;
 	const cap = getHighestTierForChallenge(row.thresholds);
 	if (!cap) return 10_000;
