@@ -10,7 +10,7 @@ importers:
     dependencies:
       drizzle-orm:
         specifier: ^0.45.0
-        version: 0.45.0(@types/pg@8.15.6)(pg@8.16.3)
+        version: 0.45.2(@types/pg@8.15.6)(pg@8.16.3)
       pg:
         specifier: ^8.16.3
         version: 8.16.3
@@ -81,8 +81,8 @@ packages:
     resolution: {integrity: sha512-58lmxKSA4BNyLz+HHMUzlOEpg09FV+ev6ZMe3vJihgdxzgcwZ8VoEEPmALCZG9LmqfVoNMMKpttIYTVG6uDY7A==}
     engines: {node: '>=0.3.1'}
 
-  drizzle-orm@0.45.0:
-    resolution: {integrity: sha512-lyd9VRk3SXKRjV/gQckQzmJgkoYMvVG3A2JAV0vh3L+Lwk+v9+rK5Gj0H22y+ZBmxsrRBgJ5/RbQCN7DWd1dtQ==}
+  drizzle-orm@0.45.2:
+    resolution: {integrity: sha512-kY0BSaTNYWnoDMVoyY8uxmyHjpJW1geOmBMdSSicKo9CIIWkSxMIj2rkeSR51b8KAPB7m+qysjuHme5nKP+E5Q==}
     peerDependencies:
       '@aws-sdk/client-rds-data': '>=3'
       '@cloudflare/workers-types': '>=4'
@@ -308,7 +308,7 @@ snapshots:
 
   diff@4.0.2: {}
 
-  drizzle-orm@0.45.0(@types/pg@8.15.6)(pg@8.16.3):
+  drizzle-orm@0.45.2(@types/pg@8.15.6)(pg@8.16.3):
     optionalDependencies:
       '@types/pg': 8.15.6
       pg: 8.16.3
