@@ -1,6 +1,10 @@
+allowBuilds:
+  '@sentry/cli': true
+  esbuild: true
+  msgpackr-extract: true
+  sharp: true
 onlyBuiltDependencies:
-    - esbuild
-    - msgpackr-extract
-    - sharp
-
-# minimumReleaseAge: 4000
+  - "@sentry/cli"
+  - esbuild
+  - msgpackr-extract
+  - sharp
