@@ -49,4 +49,16 @@ export default defineConfig(() => ({
 	resolve: {
 		tsconfigPaths: true,
 	},
+	build: {
+		rollupOptions: {
+			// `motion` pulls in framer-motion, whose dist ships React Server Components
+			// "use client" directives. TanStack Start has no RSC, so the directive is a
+			// no-op here, but rolldown warns once per module — ~169 lines per build,
+			// which buries real warnings. Drop only this code; everything else reports.
+			onLog(level, log, handler) {
+				if (log?.code === "MODULE_LEVEL_DIRECTIVE") return;
+				handler(level, log);
+			},
+		},
+	},
 }));
