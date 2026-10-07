@@ -1,9 +1,8 @@
-import type { Regions } from "twisted/dist/constants";
-
 import { db } from "~/db";
 import { championDetails } from "~/db/schema";
 import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
 import { masteryBySummoner } from "~/server/champions/mastery-by-summoner";
+import type { Regions } from "~/server/external/riot/twisted";
 
 import rolesJson from "./roles.json";
 

@@ -1,10 +1,9 @@
 import assert from "node:assert";
 
-import type { Regions } from "twisted/dist/constants";
-
 import { lolApiSummonerByPUUID } from "~/server/api/lol-api-summoner-by-puuid";
 import { riotApiAccountByPUUID } from "~/server/api/riot-api-account-by-puuid";
 import { riotApiAccountByUsername } from "~/server/api/riot-api-account-by-username";
+import type { Regions } from "~/server/external/riot/twisted";
 
 export const getSummonerByUsernameRateLimit = async (username: string, region: Regions) => {
 	assert(username.includes("#"), "Username did not include a #");

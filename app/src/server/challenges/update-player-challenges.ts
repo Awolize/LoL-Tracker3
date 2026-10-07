@@ -1,6 +1,3 @@
-import type { Regions } from "twisted/dist/constants";
-import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
-
 import { db } from "~/db";
 import {
 	categoryPoints,
@@ -10,6 +7,12 @@ import {
 	totalPoints,
 } from "~/db/schema";
 import { lolApi } from "~/server/external/riot/lol-api";
+import type {
+	AccountDto,
+	PlayerChallengeDTO,
+	PlayerPreferencesDTO,
+	Regions,
+} from "~/server/external/riot/twisted";
 
 export const upsertPlayerChallenges = async (region: Regions, user: AccountDto) => {
 	const response = (await lolApi.Challenges.PlayerChallenges(user.puuid, region)).response;
@@ -22,7 +25,10 @@ export const upsertPlayerChallenges = async (region: Regions, user: AccountDto) 
 			createdAt: new Date(),
 			updatedAt: new Date(),
 		})
-		.onConflictDoNothing();
+		.onConflictDoUpdate({
+			target: challengesDetails.puuid,
+			set: { updatedAt: new Date() },
+		});
 
 	// Upsert totalPoints
 	await db
@@ -32,6 +38,7 @@ export const upsertPlayerChallenges = async (region: Regions, user: AccountDto) 
 			current: response.totalPoints.current,
 			level: response.totalPoints.level,
 			max: response.totalPoints.max,
+			percentile: response.totalPoints.percentile ?? null,
 		})
 		.onConflictDoUpdate({
 			target: totalPoints.challengesDetailsId,
@@ -39,6 +46,7 @@ export const upsertPlayerChallenges = async (region: Regions, user: AccountDto) 
 				current: response.totalPoints.current,
 				level: response.totalPoints.level,
 				max: response.totalPoints.max,
+				percentile: response.totalPoints.percentile ?? null,
 			},
 		});
 
@@ -66,25 +74,41 @@ export const upsertPlayerChallenges = async (region: Regions, user: AccountDto) 
 	}
 
 	// Upsert preferences
+	// The upstream preferences DTO predates `crestBorder` / `prestigeCrestBorderLevel`.
+	const preferencesDto = response.preferences as PlayerPreferencesDTO & {
+		crestBorder?: string;
+		prestigeCrestBorderLevel?: number;
+	};
+	// Riot documents `challengeIds` as `List[string]` (Twisted types it as number[]),
+	// so coerce to the integer[] column either way.
+	const challengeIds = preferencesDto.challengeIds?.map(Number) ?? null;
 	await db
 		.insert(preferences)
 		.values({
 			challengesDetailsId: user.puuid,
-			bannerAccent: response.preferences.bannerAccent,
-			title: response.preferences.title,
-			challengeIds: response.preferences.challengeIds,
+			bannerAccent: preferencesDto.bannerAccent,
+			title: preferencesDto.title,
+			challengeIds,
+			crestBorder: preferencesDto.crestBorder ?? null,
+			prestigeCrestBorderLevel: preferencesDto.prestigeCrestBorderLevel ?? null,
 		})
 		.onConflictDoUpdate({
 			target: preferences.challengesDetailsId,
 			set: {
-				bannerAccent: response.preferences.bannerAccent,
-				title: response.preferences.title,
-				challengeIds: response.preferences.challengeIds,
+				bannerAccent: preferencesDto.bannerAccent,
+				title: preferencesDto.title,
+				challengeIds,
+				crestBorder: preferencesDto.crestBorder ?? null,
+				prestigeCrestBorderLevel: preferencesDto.prestigeCrestBorderLevel ?? null,
 			},
 		});
 
 	// Upsert individual challenges
-	for (const ch of response.challenges) {
+	// The upstream challenge DTO predates `playersInLevel` / `position`.
+	for (const ch of response.challenges as (PlayerChallengeDTO & {
+		playersInLevel?: number;
+		position?: number;
+	})[]) {
 		await db
 			.insert(challenge)
 			.values({
@@ -94,6 +118,8 @@ export const upsertPlayerChallenges = async (region: Regions, user: AccountDto) 
 				level: ch.level,
 				value: ch.value,
 				achievedTime: ch.achievedTime ? new Date(ch.achievedTime) : null,
+				playersInLevel: ch.playersInLevel ?? null,
+				position: ch.position ?? null,
 			})
 			.onConflictDoUpdate({
 				target: [challenge.challengesDetailsId, challenge.challengeId],
@@ -102,6 +128,8 @@ export const upsertPlayerChallenges = async (region: Regions, user: AccountDto) 
 					level: ch.level,
 					value: ch.value,
 					achievedTime: ch.achievedTime ? new Date(ch.achievedTime) : null,
+					playersInLevel: ch.playersInLevel ?? null,
+					position: ch.position ?? null,
 				},
 			});
 	}

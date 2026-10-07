@@ -16,7 +16,9 @@ interface ChallengeConfig {
 	config: {
 		id: number;
 		state: string | null;
+		tracking: string | null;
 		leaderboard: boolean;
+		startTimestamp: Date | null;
 		endTimestamp: Date | null;
 		thresholds: Record<string, number>;
 	};

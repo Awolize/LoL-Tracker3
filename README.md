@@ -10,7 +10,7 @@ cp .env.example .env
 # Edit .env and add your RIOT_API_KEY
 
 # 2. Create directories
-mkdir -p db/data db/share db/scripts minio/data
+mkdir -p db/data db/share db/scripts rustfs/data rustfs/logs
 
 # 3. Start everything
 docker-compose up -d --build
@@ -25,10 +25,10 @@ docker-compose exec app sh -c "pnpm run db:push"
 ## Tech Stack
 
 - **TanStack Start** - React SSR framework
-- **PostgreSQL** - Database
-- **MinIO** - Object storage for game assets
+- **PostgreSQL** - Database (Postgres 18)
+- **RustFS** - S3-compatible object storage for game assets (MinIO successor)
 - **Drizzle ORM** - Type-safe database queries
-- **Riot API** - Game data via [Twisted](https://github.com/Sansossio/twisted)
+- **Riot API** - Game data via [Twisted](https://github.com/justadev-afk/twisted)
 
 ## Environment Variables
 
@@ -40,6 +40,10 @@ Required in `.env`:
 RIOT_API_KEY=RGAPI-your-key-here
 DATABASE_URL=postgresql://postgres:password@db:5432/lol_tracker
 POSTGRES_PASSWORD=password
+# Object storage credentials. The names are still MINIO_* because
+# app/src/server/external/minio.ts reads them; RustFS uses the values.
+MINIO_ENDPOINT=rustfs
+MINIO_PORT=9000
 MINIO_ACCESS_KEY=minioadmin
 MINIO_SECRET_KEY=minioadmin
 ```
@@ -72,13 +76,13 @@ docker-compose down
 
 # Clean everything (deletes data!)
 docker-compose down -v
-rm -rf db/data/* minio/data/*
+rm -rf db/data/* rustfs/data/*
 ```
 
 ## Local Development (without Docker)
 
 ```bash
-# 1. Start DB and MinIO only
+# 1. Start DB and object storage only
 docker-compose -f docker-compose.dev.yml up -d
 
 # 2. Update .env to use localhost instead of 'db'
@@ -110,8 +114,31 @@ app/
 
 - **9003** - Application
 - **5432** - PostgreSQL
-- **9000** - MinIO API
-- **9005** - MinIO Console (login: minioadmin/minioadmin)
+- **9100** - RustFS S3 API
+- **9105** - RustFS Console → http://localhost:9105/rustfs/console/ (login with `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY`)
+
+## Object Storage (RustFS)
+
+MinIO's community edition was archived in 2026: the `minio/minio` Docker Hub repository
+was withdrawn (old tags no longer pull), the management UI features were moved to their
+commercial AIStor product, and no community binaries or images are published any more.
+`docker-compose.yml` therefore runs [RustFS](https://rustfs.com) 1.0.1 (Apache-2.0), a
+drop-in S3-compatible replacement; the app's `minio` SDK and `MINIO_*` env var names are
+unchanged and were verified against it (put/get/list all work).
+
+Notes:
+
+- The app expects a bucket named **`images`** but never creates it. The `rustfs-init`
+  service creates it on every `docker-compose up` (idempotent). If you ever need to do it
+  by hand, open the console and create `images`.
+- RustFS's container defaults to UID/GID `10001`; the compose files run it as `1000:1000`
+  so the `./rustfs/data` and `./rustfs/logs` bind mounts stay writable. If your deploy user
+  is not UID/GID 1000, change the `user:` line (and make sure those directories exist and
+  are owned by it before the first `up`).
+- Nothing needs migrating: the object store only caches Riot assets, and
+  `app/src/routes/api/images/$.ts` re-fetches and re-stores them on a cache miss. The old
+  `./minio/` volume (MinIO's proprietary on-disk layout) has been removed, and its
+  `.gitignore` entry went with it.
 
 ## Troubleshooting
 

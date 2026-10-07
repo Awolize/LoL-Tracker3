@@ -1,5 +1,6 @@
 import type { JobsOptions } from "bullmq";
-import type { Regions } from "twisted/dist/constants";
+
+import type { Regions } from "~/server/external/riot/twisted";
 
 /** Payload shape used by `riot-updates` summoner jobs. */
 export type SummonerQueueJobData = {

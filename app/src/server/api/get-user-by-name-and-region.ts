@@ -1,9 +1,9 @@
 import { and, eq, inArray, notInArray, sql } from "drizzle-orm";
-import type { Regions } from "twisted/dist/constants";
 
 import { db } from "~/db";
 import { summoner } from "~/db/schema";
 import type { Summoner } from "~/features/shared/types";
+import type { Regions } from "~/server/external/riot/twisted";
 import { getSummonerByPuuidRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
 import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
 
@@ -96,9 +96,7 @@ export async function getUserByNameAndRegion(username: string, region: Regions) 
 			summonerLevel: riotSummoner.summonerLevel,
 			revisionDate: new Date(riotSummoner.revisionDate),
 			updatedAt: new Date(),
-			accountId: null,
-			summonerId: null,
-			createdAt: new Date(),
+			createdAt: existing?.createdAt ?? new Date(),
 		};
 
 		let savedUser: Summoner;

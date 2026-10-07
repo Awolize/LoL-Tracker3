@@ -23,12 +23,12 @@ services:
     restart: unless-stopped
     depends_on:
       - db
-      - minio
+      - rustfs
     networks:
       - internal-net
 
   db:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     container_name: db-dev
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -38,24 +38,55 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - ./db/data:/var/lib/postgresql/data
+      - ./db/data:/var/lib/postgresql
       - ./db/share:/pgshare
       - ./db/scripts:/pgscripts:ro
     networks:
       - internal-net
 
-  minio:
-    image: minio/minio:latest
-    container_name: lol-minio-dev
+  # RustFS — S3-compatible object storage (Apache-2.0), the MinIO successor.
+  rustfs:
+    image: rustfs/rustfs:1.0.1
+    container_name: lol-rustfs-dev
+    user: "1000:1000" # match the host user so ./rustfs/data stays writable
     environment:
-      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY}
-      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY}
+      RUSTFS_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${MINIO_SECRET_KEY}
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_OBS_LOG_DIRECTORY: /logs
     ports:
-      - "9000:9000"
-      - "9005:9005"
+      - "9000:9000" # S3 API
+      - "9001:9001" # Console -> http://localhost:9001/rustfs/console/
     volumes:
-      - ./minio/data:/data
-    command: server /data --console-address ":9005"
+      - ./rustfs/data:/data
+      - ./rustfs/logs:/logs
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - internal-net
+
+  # One-shot: creates the "images" bucket the app expects (idempotent).
+  # Uses `rc`, the RustFS project's own mc-compatible S3 CLI (MIT/Apache-2.0).
+  rustfs-init:
+    image: rustfs/rc:v0.1.36
+    container_name: lol-rustfs-init-dev
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      RC_ENDPOINT: http://rustfs:9000
+      RC_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      RC_SECRET_KEY: ${MINIO_SECRET_KEY}
+    entrypoint: ["/bin/sh", "-ec"]
+    command:
+      - rc alias set local "$$RC_ENDPOINT" "$$RC_ACCESS_KEY" "$$RC_SECRET_KEY" && rc bucket create local/images --ignore-existing
+    restart: "no"
     networks:
       - internal-net
 

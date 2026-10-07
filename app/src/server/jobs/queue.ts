@@ -1,7 +1,6 @@
 // jobs/queue.ts
 import { Queue, QueueEvents, Worker } from "bullmq";
 import { and, eq, ilike } from "drizzle-orm";
-import type { Regions } from "twisted/dist/constants";
 
 import { db } from "~/db";
 import { challengesConfig, summoner } from "~/db/schema";
@@ -10,6 +9,7 @@ import { updateChallengesConfigServer } from "~/server/challenges/update-challen
 import { upsertPlayerChallenges } from "~/server/challenges/update-player-challenges";
 import { updateChampionDetails } from "~/server/champions/update-champion-details";
 import { upsertMastery } from "~/server/champions/upsertMastery";
+import type { Regions } from "~/server/external/riot/twisted";
 import { fetchMatchIds, updateGamesSingle } from "~/server/matches/updateGames";
 import {
 	challengeLeaderboardUrl,

@@ -121,8 +121,6 @@ export const getUserByNameAndRegionFn = createServerFn({ method: "GET" })
 								freshAccount.summoner?.profileIconId ?? cachedUser.profileIconId,
 							summonerLevel:
 								freshAccount.summoner?.summonerLevel ?? cachedUser.summonerLevel,
-							summonerId: freshAccount.summoner?.id ?? cachedUser.summonerId,
-							accountId: freshAccount.summoner?.accountId ?? cachedUser.accountId,
 							revisionDate: freshAccount.summoner?.revisionDate
 								? new Date(freshAccount.summoner.revisionDate)
 								: cachedUser.revisionDate,
@@ -166,8 +164,6 @@ export const getUserByNameAndRegionFn = createServerFn({ method: "GET" })
 					region: regionEnum,
 					profileIconId: riotUser.summoner.profileIconId,
 					summonerLevel: riotUser.summoner.summonerLevel,
-					summonerId: riotUser.summoner.id,
-					accountId: riotUser.summoner.accountId,
 					revisionDate: new Date(riotUser.summoner.revisionDate),
 					updatedAt: now,
 				})

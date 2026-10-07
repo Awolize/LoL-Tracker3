@@ -16,6 +16,7 @@ import {
 	championMastery,
 	match,
 	matchInfo,
+	matchParticipant,
 	matchSummoners,
 	preferences,
 	summoner,
@@ -32,6 +33,7 @@ export const matchInfoRelations = relations(matchInfo, ({ one }) => ({
 export const matchRelations = relations(match, ({ many }) => ({
 	matchInfos: many(matchInfo),
 	matchSummoners: many(matchSummoners),
+	matchParticipants: many(matchParticipant),
 }));
 
 export const challengesRelations = relations(challenges, ({ one, many }) => ({
@@ -51,6 +53,18 @@ export const summonerRelations = relations(summoner, ({ many }) => ({
 	championMasteries: many(championMastery),
 	challengesDetails: many(challengesDetails),
 	matchSummoners: many(matchSummoners),
+	matchParticipants: many(matchParticipant),
+}));
+
+export const matchParticipantRelations = relations(matchParticipant, ({ one }) => ({
+	match: one(match, {
+		fields: [matchParticipant.matchId],
+		references: [match.gameId],
+	}),
+	summoner: one(summoner, {
+		fields: [matchParticipant.puuid],
+		references: [summoner.puuid],
+	}),
 }));
 
 export const championMasteryRelations = relations(championMastery, ({ one }) => ({

@@ -1,10 +1,36 @@
+# Dependency lifecycle scripts are denied by default. pnpm 11 removed
+# `onlyBuiltDependencies` / `neverBuiltDependencies` in favour of `allowBuilds`,
+# so the previous list here was dead config. Anything not listed is unreviewed.
+# https://pnpm.io/settings/build#allowbuilds
+strictDepBuilds: true
+
 allowBuilds:
-    "@sentry/cli": true
-    esbuild: true
-    msgpackr-extract: true
-    sharp: true
-onlyBuiltDependencies:
-    - "@sentry/cli"
-    - esbuild
-    - msgpackr-extract
-    - sharp
+  # Required: links the platform binary. Vite, Rolldown and tsx all rely on it.
+  esbuild: true
+
+  # Denied: this script does not link anything. It only decides whether to
+  # *rebuild* sharp from source against a globally-installed libvips
+  # (sharp/install/check.js). The @img/sharp-* platform packages carry the
+  # prebuilt binding, and sharp loads the bundled libvips at runtime, so the
+  # script is dead weight here (app/src/routes/api/images/$.ts).
+  #
+  # On any host where pkg-config sees libvips >= 8.17.3 (Arch's `libvips`,
+  # common dev setups) check.js exits 1, which makes pnpm run
+  # `node install/build.js` -> node-gyp -> "Please add node-addon-api to your
+  # dependencies", and `strictDepBuilds` then fails the whole install with
+  # ERR_PNPM_EXECUTOR_LIFECYCLE_SCRIPT_FAILED. Denying the script keeps
+  # installs deterministic on every machine. To intentionally build against a
+  # global libvips, set SHARP_FORCE_GLOBAL_LIBVIPS=1, add node-addon-api, and
+  # flip this to true.
+  sharp: false
+
+  # Required: the Sentry Vite plugin in vite.config.ts uploads source maps with
+  # this CLI, so its binary has to be fetched at install time.
+  '@sentry/cli': true
+
+  # Optional native accelerator for msgpackr (pulled in by BullMQ). msgpackr
+  # wraps the require in try/catch and falls back to pure JS, so its build
+  # script — and the native compilation that comes with it — stays denied.
+  msgpackr-extract: false
+
+# minimumReleaseAge: 4000

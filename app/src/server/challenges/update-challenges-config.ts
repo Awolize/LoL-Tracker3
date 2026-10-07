@@ -1,18 +1,17 @@
 import { and, eq } from "drizzle-orm";
-import type { Regions } from "twisted/dist/constants";
-import type { ConfigDTO } from "twisted/dist/models-dto";
 
 import { db } from "~/db";
 import { challengeLocalization, challengesConfig } from "~/db/schema";
 import type { ChallengesConfig } from "~/features/shared/types";
 import { lolApi } from "~/server/external/riot/lol-api";
+import type { ChallengeConfigDTO, Regions } from "~/server/external/riot/twisted";
 
 export const updateChallengesConfigServer = async (region: Regions) => {
-	const configs: ConfigDTO.Config[] = (await lolApi.Challenges.Configs(region)).response;
+	const configs: ChallengeConfigDTO[] = (await lolApi.Challenges.Configs(region)).response;
 	return Promise.all(configs.map((config) => updateConfig(config)));
 };
 
-const updateConfig = async (config: ConfigDTO.Config): Promise<ChallengesConfig> => {
+const updateConfig = async (config: ChallengeConfigDTO): Promise<ChallengesConfig> => {
 	const existing = await db
 		.select()
 		.from(challengesConfig)
@@ -22,10 +21,11 @@ const updateConfig = async (config: ConfigDTO.Config): Promise<ChallengesConfig>
 	const rowData = {
 		id: config.id,
 		state: config.state ?? null,
+		tracking: config.tracking ?? null,
 		leaderboard: config.leaderboard,
+		startTimestamp: config.startTimestamp ? new Date(config.startTimestamp) : null,
 		endTimestamp: config.endTimestamp ? new Date(config.endTimestamp) : null,
 		thresholds: config.thresholds,
-		parentId: (config as any).parentId ?? null,
 	};
 
 	if (existing) {

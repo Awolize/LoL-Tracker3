@@ -9,31 +9,26 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as ChallengeChallengeIdRouteImport } from './routes/challenge.$challengeId'
+import { Route as ChallengesRouteImport } from './routes/challenges'
 import { Route as ApiSitemapDotxmlRouteImport } from './routes/api/sitemap[.]xml'
+import { Route as ChallengeChallengeIdRouteImport } from './routes/challenge.$challengeId'
 import { Route as RegionUsernameIndexRouteImport } from './routes/$region.$username.index'
-import { Route as ApiSitemapPageDotxmlRouteImport } from './routes/api/sitemap.$page[.]xml'
-import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
-import { Route as RegionUsernameMatchesRouteImport } from './routes/$region.$username.matches'
-import { Route as RegionUsernameMasteryRouteImport } from './routes/$region.$username.mastery'
-import { Route as RegionUsernameDifferentRouteImport } from './routes/$region.$username.different'
 import { Route as RegionUsernameChallengeRouteImport } from './routes/$region.$username.challenge'
+import { Route as RegionUsernameDifferentRouteImport } from './routes/$region.$username.different'
+import { Route as RegionUsernameMasteryRouteImport } from './routes/$region.$username.mastery'
+import { Route as RegionUsernameMatchesRouteImport } from './routes/$region.$username.matches'
+import { Route as ApiImagesSplatRouteImport } from './routes/api/images/$'
+import { Route as ApiSitemapPageDotxmlRouteImport } from './routes/api/sitemap.$page[.]xml'
 
-const ChallengesRoute = ChallengesRouteImport.update({
-  id: '/challenges',
-  path: '/challenges',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ChallengeChallengeIdRoute = ChallengeChallengeIdRouteImport.update({
-  id: '/challenge/$challengeId',
-  path: '/challenge/$challengeId',
+const ChallengesRoute = ChallengesRouteImport.update({
+  id: '/challenges',
+  path: '/challenges',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiSitemapDotxmlRoute = ApiSitemapDotxmlRouteImport.update({
@@ -41,29 +36,19 @@ const ApiSitemapDotxmlRoute = ApiSitemapDotxmlRouteImport.update({
   path: '/api/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChallengeChallengeIdRoute = ChallengeChallengeIdRouteImport.update({
+  id: '/challenge/$challengeId',
+  path: '/challenge/$challengeId',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegionUsernameIndexRoute = RegionUsernameIndexRouteImport.update({
   id: '/$region/$username/',
   path: '/$region/$username/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiSitemapPageDotxmlRoute = ApiSitemapPageDotxmlRouteImport.update({
-  id: '/api/sitemap/$page.xml',
-  path: '/api/sitemap/$page.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
-  id: '/api/images/$',
-  path: '/api/images/$',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegionUsernameMatchesRoute = RegionUsernameMatchesRouteImport.update({
-  id: '/$region/$username/matches',
-  path: '/$region/$username/matches',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const RegionUsernameMasteryRoute = RegionUsernameMasteryRouteImport.update({
-  id: '/$region/$username/mastery',
-  path: '/$region/$username/mastery',
+const RegionUsernameChallengeRoute = RegionUsernameChallengeRouteImport.update({
+  id: '/$region/$username/challenge',
+  path: '/$region/$username/challenge',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RegionUsernameDifferentRoute = RegionUsernameDifferentRouteImport.update({
@@ -71,9 +56,24 @@ const RegionUsernameDifferentRoute = RegionUsernameDifferentRouteImport.update({
   path: '/$region/$username/different',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RegionUsernameChallengeRoute = RegionUsernameChallengeRouteImport.update({
-  id: '/$region/$username/challenge',
-  path: '/$region/$username/challenge',
+const RegionUsernameMasteryRoute = RegionUsernameMasteryRouteImport.update({
+  id: '/$region/$username/mastery',
+  path: '/$region/$username/mastery',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegionUsernameMatchesRoute = RegionUsernameMatchesRouteImport.update({
+  id: '/$region/$username/matches',
+  path: '/$region/$username/matches',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiImagesSplatRoute = ApiImagesSplatRouteImport.update({
+  id: '/api/images/$',
+  path: '/api/images/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSitemapPageDotxmlRoute = ApiSitemapPageDotxmlRouteImport.update({
+  id: '/api/sitemap/$page.xml',
+  path: '/api/sitemap/$page.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -175,13 +175,6 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/challenges': {
-      id: '/challenges'
-      path: '/challenges'
-      fullPath: '/challenges'
-      preLoaderRoute: typeof ChallengesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/': {
       id: '/'
       path: '/'
@@ -189,11 +182,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/challenge/$challengeId': {
-      id: '/challenge/$challengeId'
-      path: '/challenge/$challengeId'
-      fullPath: '/challenge/$challengeId'
-      preLoaderRoute: typeof ChallengeChallengeIdRouteImport
+    '/challenges': {
+      id: '/challenges'
+      path: '/challenges'
+      fullPath: '/challenges'
+      preLoaderRoute: typeof ChallengesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/sitemap.xml': {
@@ -203,6 +196,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiSitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/challenge/$challengeId': {
+      id: '/challenge/$challengeId'
+      path: '/challenge/$challengeId'
+      fullPath: '/challenge/$challengeId'
+      preLoaderRoute: typeof ChallengeChallengeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$region/$username/': {
       id: '/$region/$username/'
       path: '/$region/$username'
@@ -210,32 +210,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionUsernameIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/sitemap/$page.xml': {
-      id: '/api/sitemap/$page.xml'
-      path: '/api/sitemap/$page.xml'
-      fullPath: '/api/sitemap/$page.xml'
-      preLoaderRoute: typeof ApiSitemapPageDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/images/$': {
-      id: '/api/images/$'
-      path: '/api/images/$'
-      fullPath: '/api/images/$'
-      preLoaderRoute: typeof ApiImagesSplatRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$region/$username/matches': {
-      id: '/$region/$username/matches'
-      path: '/$region/$username/matches'
-      fullPath: '/$region/$username/matches'
-      preLoaderRoute: typeof RegionUsernameMatchesRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$region/$username/mastery': {
-      id: '/$region/$username/mastery'
-      path: '/$region/$username/mastery'
-      fullPath: '/$region/$username/mastery'
-      preLoaderRoute: typeof RegionUsernameMasteryRouteImport
+    '/$region/$username/challenge': {
+      id: '/$region/$username/challenge'
+      path: '/$region/$username/challenge'
+      fullPath: '/$region/$username/challenge'
+      preLoaderRoute: typeof RegionUsernameChallengeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$region/$username/different': {
@@ -245,11 +224,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegionUsernameDifferentRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$region/$username/challenge': {
-      id: '/$region/$username/challenge'
-      path: '/$region/$username/challenge'
-      fullPath: '/$region/$username/challenge'
-      preLoaderRoute: typeof RegionUsernameChallengeRouteImport
+    '/$region/$username/mastery': {
+      id: '/$region/$username/mastery'
+      path: '/$region/$username/mastery'
+      fullPath: '/$region/$username/mastery'
+      preLoaderRoute: typeof RegionUsernameMasteryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$region/$username/matches': {
+      id: '/$region/$username/matches'
+      path: '/$region/$username/matches'
+      fullPath: '/$region/$username/matches'
+      preLoaderRoute: typeof RegionUsernameMatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/images/$': {
+      id: '/api/images/$'
+      path: '/api/images/$'
+      fullPath: '/api/images/$'
+      preLoaderRoute: typeof ApiImagesSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sitemap/$page.xml': {
+      id: '/api/sitemap/$page.xml'
+      path: '/api/sitemap/$page.xml'
+      fullPath: '/api/sitemap/$page.xml'
+      preLoaderRoute: typeof ApiSitemapPageDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

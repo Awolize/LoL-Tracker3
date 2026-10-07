@@ -13,8 +13,8 @@
  */
 import { Queue } from "bullmq";
 import IORedis from "ioredis";
-import type { Regions } from "twisted/dist/constants";
 
+import type { Regions } from "../src/server/external/riot/twisted";
 import { stableSummonerJobOpts } from "../src/server/jobs/queue-stable-job-opts";
 
 const connection = new IORedis({

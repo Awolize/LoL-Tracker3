@@ -4,16 +4,18 @@ import { db } from "~/db";
 import { match, matchInfo, matchSummoners } from "~/db/schema";
 import type { Summoner } from "~/features/shared/types";
 
+export type MatchFilterOptions = {
+	mapIds?: number[];
+	queueIdsNotIn?: number[];
+	gameMode?: string;
+	gameType?: string;
+	gameStartTimestampGte?: Date;
+	take?: number;
+};
+
 export async function getMatches(
 	user: Summoner,
-	options: {
-		mapIds?: number[];
-		queueIdsNotIn?: number[];
-		gameMode?: string;
-		gameType?: string;
-		gameStartTimestampGte?: Date;
-		take?: number;
-	} = {},
+	options: MatchFilterOptions = {},
 	take = options.take || 9999999,
 ) {
 	const { mapIds, queueIdsNotIn, gameMode, gameType, gameStartTimestampGte } = options;
@@ -93,23 +95,27 @@ export async function getMatches(
 // ... your helper functions (getArenaMatches, getSRMatches) stay exactly the same
 
 // Arena Map (https://static.developer.riotgames.com/docs/lol/maps.json)
-export async function getArenaMatches(user: Summoner) {
-	return getMatches(user, {
-		mapIds: [30],
-		gameMode: "CHERRY",
-		gameType: "MATCHED_GAME",
-		gameStartTimestampGte: new Date("2024-01-01T00:00:00Z"),
-	});
-}
+export const ARENA_MATCH_FILTERS: MatchFilterOptions = {
+	mapIds: [30],
+	gameMode: "CHERRY",
+	gameType: "MATCHED_GAME",
+	gameStartTimestampGte: new Date("2024-01-01T00:00:00Z"),
+};
 
 // Summoner's Rift Map (https://static.developer.riotgames.com/docs/lol/maps.json)
 // Stable queueIds: 2,4,6,14,420,430,440,490,700
+export const SR_MATCH_FILTERS: MatchFilterOptions = {
+	mapIds: [1, 2, 11],
+	queueIdsNotIn: [800, 810, 820, 830, 840, 850, 860, 870, 880, 890], // Co-op vs AI
+	gameMode: "CLASSIC",
+	gameType: "MATCHED_GAME",
+	gameStartTimestampGte: new Date("2023-01-01T00:00:00Z"),
+};
+
+export async function getArenaMatches(user: Summoner) {
+	return getMatches(user, ARENA_MATCH_FILTERS);
+}
+
 export async function getSRMatches(user: Summoner) {
-	return getMatches(user, {
-		mapIds: [1, 2, 11],
-		queueIdsNotIn: [800, 810, 820, 830, 840, 850, 860, 870, 880, 890], // Co-op vs AI
-		gameMode: "CLASSIC",
-		gameType: "MATCHED_GAME",
-		gameStartTimestampGte: new Date("2023-01-01T00:00:00Z"),
-	});
+	return getMatches(user, SR_MATCH_FILTERS);
 }

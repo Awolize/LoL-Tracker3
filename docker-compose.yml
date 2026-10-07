@@ -33,8 +33,8 @@ services:
     depends_on:
       db:
         condition: service_healthy
-      minio:
-        condition: service_started
+      rustfs:
+        condition: service_healthy
       redis:
         condition: service_started
     networks:
@@ -66,26 +66,62 @@ services:
     networks:
       - lol-network
 
-  minio:
-    image: quay.io/minio/minio:RELEASE.2025-02-28T09-55-16Z
-    container_name: lol-minio2
-    pull_policy: never
+  # RustFS — S3-compatible object storage (Apache-2.0), the MinIO successor.
+  # Replaces minio/minio, whose Docker Hub repository was withdrawn in 2025-2026.
+  rustfs:
+    image: rustfs/rustfs:1.0.1
+    container_name: lol-rustfs2
+    pull_policy: always
+    # The image defaults to UID/GID 10001:10001; run as the host user so the
+    # bind mounts below are writable without needing root to chown them.
+    # Change both numbers if the deploy user is not UID/GID 1000.
+    user: "1000:1000"
     environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+      # The app's env var names stay MINIO_* (app/src/server/external/minio.ts),
+      # these are just the credentials RustFS authenticates with.
+      RUSTFS_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      RUSTFS_SECRET_KEY: ${MINIO_SECRET_KEY}
+      RUSTFS_ADDRESS: 0.0.0.0:9000
+      RUSTFS_CONSOLE_ADDRESS: 0.0.0.0:9001
+      RUSTFS_CONSOLE_ENABLE: "true"
+      RUSTFS_OBS_LOGGER_LEVEL: info
+      RUSTFS_OBS_LOG_DIRECTORY: /logs
     ports:
-      - "9100:9000"
-      - "9105:9005"
+      - "9100:9000" # S3 API
+      - "9105:9001" # Console -> http://localhost:9105/rustfs/console/
     volumes:
-      - ./minio/data:/data
-    command: server /data --console-address ":9005"
+      - ./rustfs/data:/data
+      - ./rustfs/logs:/logs
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:9000/health"]
       interval: 30s
       timeout: 10s
       retries: 3
-      start_period: 10s
+      start_period: 40s
+    networks:
+      - lol-network
+
+  # One-shot: the app reads/writes the "images" bucket but never creates it.
+  # Uses `rc`, the RustFS project's own mc-compatible S3 CLI (MIT/Apache-2.0),
+  # instead of the 134 MB amazon/aws-cli image. --ignore-existing makes it
+  # idempotent, so it is safe on every `up`.
+  rustfs-init:
+    image: rustfs/rc:v0.1.36
+    container_name: lol-rustfs-init
+    depends_on:
+      rustfs:
+        condition: service_healthy
+    environment:
+      RC_ENDPOINT: http://rustfs:9000
+      RC_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      RC_SECRET_KEY: ${MINIO_SECRET_KEY}
+    entrypoint: ["/bin/sh", "-ec"]
+    # `rc alias set` writes ~/.config/rc/config.toml inside the container (HOME is
+    # writable), then `rc bucket create` is a no-op if the bucket already exists.
+    command:
+      - rc alias set local "$$RC_ENDPOINT" "$$RC_ACCESS_KEY" "$$RC_SECRET_KEY" && rc bucket create local/images --ignore-existing
+    restart: "no"
     networks:
       - lol-network
 

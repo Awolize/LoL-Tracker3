@@ -15,6 +15,8 @@ import {
 	varchar,
 } from "drizzle-orm/pg-core";
 
+import type { MatchParticipantDTO, MatchTeamDTO } from "~/server/external/riot/twisted";
+
 export const language = pgEnum("Language", ["en_US"]);
 
 export const prismaMigrations = pgTable("_prisma_migrations", {
@@ -39,22 +41,34 @@ export const matchInfo = pgTable(
 	"MatchInfo",
 	{
 		gameId: text().primaryKey().notNull(),
+		/** Match-V5 `metadata.dataVersion` — the Data Dragon version the game was played on. */
+		dataVersion: text(),
+		/** Match-V5 `info.endOfGameResult` — e.g. "GameComplete", "Aborted", "Terminated". */
+		endOfGameResult: text(),
+		/** Game length in SECONDS (Match-V5 `info.gameDuration`), not milliseconds. */
 		gameDuration: integer().notNull(),
 		gameMode: text().notNull(),
 		gameName: text().notNull(),
 		gameType: text().notNull(),
 		gameVersion: text().notNull(),
 		mapId: integer().notNull(),
-		participants: jsonb().notNull(),
+		/**
+		 * Raw Match-V5 `info.participants` — the source of truth. Kept as-is so new
+		 * Riot fields are captured without a schema change; `MatchParticipant` holds a
+		 * typed projection of the fields we actually query.
+		 */
+		participants: jsonb().$type<MatchParticipantDTO[]>().notNull(),
 		platformId: text().notNull(),
 		queueId: integer().notNull(),
-		teams: jsonb().notNull(),
+		/** Raw Match-V5 `info.teams` (2 entries; not worth normalizing). */
+		teams: jsonb().$type<MatchTeamDTO[]>().notNull(),
 		tournamentCode: text().notNull(),
 		gameCreation: timestamp({ precision: 3, mode: "date" }).notNull(),
 		gameStartTimestamp: timestamp({ precision: 3, mode: "date" }).notNull(),
 		gameEndTimestamp: timestamp({ precision: 3, mode: "date" }).notNull(),
 	},
 	(table) => [
+		index("MatchInfo_gameStartTimestamp_idx").using("btree", table.gameStartTimestamp.desc()),
 		foreignKey({
 			columns: [table.gameId],
 			foreignColumns: [match.gameId],
@@ -68,7 +82,6 @@ export const matchInfo = pgTable(
 export const summoner = pgTable(
 	"Summoner",
 	{
-		summonerId: text(),
 		createdAt: timestamp({ precision: 3, mode: "date" })
 			.default(sql`CURRENT_TIMESTAMP`)
 			.notNull(),
@@ -78,7 +91,6 @@ export const summoner = pgTable(
 		puuid: text().primaryKey().notNull(),
 		summonerLevel: integer().notNull(),
 		revisionDate: timestamp({ precision: 3, mode: "date" }).notNull(),
-		accountId: text(),
 		gameName: text(),
 		tagLine: text(),
 	},
@@ -86,6 +98,12 @@ export const summoner = pgTable(
 		uniqueIndex("Summoner_puuid_key").using(
 			"btree",
 			table.puuid.asc().nullsLast().op("text_ops"),
+		),
+		index("Summoner_region_gameName_tagLine_idx").using(
+			"btree",
+			table.region.asc().nullsLast().op("text_ops"),
+			table.gameName.asc().nullsLast().op("text_ops"),
+			table.tagLine.asc().nullsLast().op("text_ops"),
 		),
 	],
 );
@@ -106,7 +124,7 @@ export const challenges = pgTable(
 			name: "Challenges_puuid_fkey",
 		})
 			.onUpdate("cascade")
-			.onDelete("restrict"),
+			.onDelete("cascade"),
 	],
 );
 
@@ -121,6 +139,14 @@ export const championMastery = pgTable(
 		lastPlayTime: timestamp({ precision: 3, mode: "date" }).notNull(),
 		championPointsUntilNextLevel: integer().notNull(),
 		championPointsSinceLastLevel: integer().notNull(),
+		/** Champion-Mastery-V4 `markRequiredForNextLevel` (season marks). */
+		markRequiredForNextLevel: integer(),
+		/** Champion-Mastery-V4 `championSeasonMilestone`. */
+		championSeasonMilestone: integer(),
+		/** Champion-Mastery-V4 `nextSeasonMilestone` (milestone requirements/rewards object). */
+		nextSeasonMilestone: jsonb(),
+		/** Champion-Mastery-V4 `milestoneGrades` (e.g. ["C","B","A"]). */
+		milestoneGrades: text().array(),
 		puuid: text().notNull(),
 	},
 	(table) => [
@@ -129,22 +155,30 @@ export const championMastery = pgTable(
 			table.championId.asc().nullsLast().op("int4_ops"),
 			table.puuid.asc().nullsLast().op("text_ops"),
 		),
+		index("ChampionMastery_puuid_idx").using(
+			"btree",
+			table.puuid.asc().nullsLast().op("text_ops"),
+		),
 		foreignKey({
 			columns: [table.puuid],
 			foreignColumns: [summoner.puuid],
 			name: "ChampionMastery_puuid_fkey",
 		})
 			.onUpdate("cascade")
-			.onDelete("restrict"),
+			.onDelete("cascade"),
 	],
 );
 
 export const challengesConfig = pgTable("ChallengesConfig", {
 	id: integer().primaryKey().notNull(),
 	state: text(),
+	/** Config-DTO `tracking` (e.g. "LIFETIME", "SEASON"). */
+	tracking: text(),
 	leaderboard: boolean().notNull(),
+	startTimestamp: timestamp({ precision: 3, mode: "date" }),
 	endTimestamp: timestamp({ precision: 3, mode: "date" }),
-	thresholds: jsonb().notNull(),
+	/** Config-DTO `thresholds` — `Map[String, double]`. */
+	thresholds: jsonb().$type<Record<string, number>>().notNull(),
 });
 
 export const challengeLocalization = pgTable(
@@ -176,6 +210,8 @@ export const challengesDetails = pgTable(
 	"ChallengesDetails",
 	{
 		puuid: text().primaryKey().notNull(),
+		createdAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
+		updatedAt: timestamp({ precision: 3, mode: "date" }).defaultNow().notNull(),
 	},
 	(table) => [
 		foreignKey({
@@ -184,7 +220,7 @@ export const challengesDetails = pgTable(
 			name: "ChallengesDetails_puuid_fkey",
 		})
 			.onUpdate("cascade")
-			.onDelete("restrict"),
+			.onDelete("cascade"),
 	],
 );
 
@@ -194,6 +230,8 @@ export const totalPoints = pgTable(
 		level: text().notNull(),
 		current: integer().notNull(),
 		max: integer().notNull(),
+		/** Player-DTO `totalPoints.percentile` (optional in the API). */
+		percentile: doublePrecision(),
 		challengesDetailsId: text().notNull(),
 	},
 	(table) => [
@@ -207,7 +245,7 @@ export const totalPoints = pgTable(
 			name: "TotalPoints_challengesDetailsId_fkey",
 		})
 			.onUpdate("cascade")
-			.onDelete("restrict"),
+			.onDelete("cascade"),
 	],
 );
 
@@ -217,6 +255,10 @@ export const preferences = pgTable(
 		bannerAccent: text().notNull(),
 		title: text().notNull(),
 		challengeIds: integer().array(),
+		/** PlayerClientPreferencesDto `crestBorder`. */
+		crestBorder: text(),
+		/** PlayerClientPreferencesDto `prestigeCrestBorderLevel`. */
+		prestigeCrestBorderLevel: integer(),
 		challengesDetailsId: text().notNull(),
 	},
 	(table) => [
@@ -230,7 +272,7 @@ export const preferences = pgTable(
 			name: "Preferences_challengesDetailsId_fkey",
 		})
 			.onUpdate("cascade")
-			.onDelete("restrict"),
+			.onDelete("cascade"),
 	],
 );
 
@@ -240,8 +282,13 @@ export const challenge = pgTable(
 		challengeId: integer().notNull(),
 		percentile: doublePrecision(),
 		level: text(),
-		value: integer(),
+		/** ChallengeInfoDto `value` is a `double` in the API (not an integer). */
+		value: doublePrecision(),
 		achievedTime: timestamp({ precision: 3, mode: "date" }),
+		/** ChallengeInfoDto `playersInLevel`. */
+		playersInLevel: integer(),
+		/** ChallengeInfoDto `position`. */
+		position: integer(),
 		challengesDetailsId: text().notNull(),
 	},
 	(table) => [
@@ -250,13 +297,18 @@ export const challenge = pgTable(
 			table.challengeId.asc().nullsLast().op("int4_ops"),
 			table.challengesDetailsId.asc().nullsLast().op("text_ops"),
 		),
+		index("Challenge_challengeId_value_idx").using(
+			"btree",
+			table.challengeId.asc().nullsLast().op("int4_ops"),
+			table.value.desc(),
+		),
 		foreignKey({
 			columns: [table.challengesDetailsId],
 			foreignColumns: [challengesDetails.puuid],
 			name: "Challenge_challengesDetailsId_fkey",
 		})
 			.onUpdate("cascade")
-			.onDelete("restrict"),
+			.onDelete("cascade"),
 	],
 );
 
@@ -282,7 +334,7 @@ export const categoryPoints = pgTable(
 			name: "CategoryPoints_challengesDetailsId_fkey",
 		})
 			.onUpdate("cascade")
-			.onDelete("restrict"),
+			.onDelete("cascade"),
 	],
 );
 
@@ -363,6 +415,82 @@ export const matchSummoners = pgTable(
 			columns: [table.a, table.b],
 			name: "_MatchSummoners_AB_pkey",
 		}),
+	],
+);
+
+/**
+ * Typed projection of `MatchInfo.participants` for the fields we actually query.
+ *
+ * `MatchInfo.participants` stays the source of truth: Riot can add participant
+ * fields without breaking the write path, and anything promoted later is a
+ * plain `ALTER TABLE` + backfill from the jsonb (no Riot re-fetch).
+ */
+export const matchParticipant = pgTable(
+	"MatchParticipant",
+	{
+		matchId: text().notNull(),
+		puuid: text().notNull(),
+		participantId: integer().notNull(),
+		teamId: integer().notNull(),
+		championId: integer().notNull(),
+		championName: text().notNull(),
+		win: boolean().notNull(),
+		teamPosition: text(),
+		individualPosition: text(),
+		/** Arena placement (1–8); 0 for non-Arena games. */
+		placement: integer(),
+		kills: integer().notNull(),
+		deaths: integer().notNull(),
+		assists: integer().notNull(),
+		goldEarned: integer().notNull(),
+		totalMinionsKilled: integer().notNull(),
+		neutralMinionsKilled: integer().notNull(),
+		visionScore: integer().notNull(),
+		champLevel: integer().notNull(),
+		timePlayed: integer().notNull(),
+		totalDamageDealtToChampions: integer().notNull(),
+		item0: integer(),
+		item1: integer(),
+		item2: integer(),
+		item3: integer(),
+		item4: integer(),
+		item5: integer(),
+		item6: integer(),
+		summoner1Id: integer(),
+		summoner2Id: integer(),
+	},
+	(table) => [
+		primaryKey({
+			columns: [table.matchId, table.participantId],
+			name: "MatchParticipant_pkey",
+		}),
+		uniqueIndex("MatchParticipant_matchId_puuid_key").using(
+			"btree",
+			table.matchId.asc().nullsLast().op("text_ops"),
+			table.puuid.asc().nullsLast().op("text_ops"),
+		),
+		index("MatchParticipant_puuid_championId_idx").using(
+			"btree",
+			table.puuid.asc().nullsLast().op("text_ops"),
+			table.championId.asc().nullsLast().op("int4_ops"),
+		),
+		index("MatchParticipant_puuid_win_idx")
+			.using("btree", table.puuid.asc().nullsLast().op("text_ops"))
+			.where(sql`${table.win}`),
+		foreignKey({
+			columns: [table.matchId],
+			foreignColumns: [match.gameId],
+			name: "MatchParticipant_matchId_fkey",
+		})
+			.onUpdate("cascade")
+			.onDelete("cascade"),
+		foreignKey({
+			columns: [table.puuid],
+			foreignColumns: [summoner.puuid],
+			name: "MatchParticipant_puuid_fkey",
+		})
+			.onUpdate("cascade")
+			.onDelete("cascade"),
 	],
 );
 

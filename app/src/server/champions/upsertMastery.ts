@@ -1,12 +1,21 @@
-import type { Regions } from "twisted/dist/constants";
-import type { AccountDto } from "twisted/dist/models-dto/account/account.dto";
-
 import { db } from "~/db";
 import { championMastery } from "~/db/schema";
 import { lolApi } from "~/server/external/riot/lol-api";
+import type { Regions } from "~/server/external/riot/twisted";
+import type { ChampionMasteryDTO } from "~/server/external/riot/twisted";
+import type { AccountDto } from "~/server/external/riot/twisted";
+
+/**
+ * Twisted's `ChampionMasteryDTO` predates the season-milestone fields that Riot
+ * actually returns (`milestoneGrades`), so widen the API response locally.
+ */
+type ChampionMasteryDtoWithMilestones = ChampionMasteryDTO & {
+	milestoneGrades?: string[];
+};
 
 export const upsertMastery = async (user: AccountDto, region: Regions) => {
-	const masteryList = (await lolApi.Champion.masteryByPUUID(user.puuid, region)).response;
+	const masteryList = (await lolApi.Champion.masteryByPUUID(user.puuid, region))
+		.response as ChampionMasteryDtoWithMilestones[];
 
 	const promises = masteryList.map((m) =>
 		db
@@ -20,6 +29,10 @@ export const upsertMastery = async (user: AccountDto, region: Regions) => {
 				tokensEarned: m.tokensEarned,
 				championPointsUntilNextLevel: m.championPointsUntilNextLevel,
 				championPointsSinceLastLevel: m.championPointsSinceLastLevel,
+				markRequiredForNextLevel: m.markRequiredForNextLevel ?? null,
+				championSeasonMilestone: m.championSeasonMilestone ?? null,
+				nextSeasonMilestone: (m.nextSeasonMilestone ?? null) as unknown,
+				milestoneGrades: m.milestoneGrades ?? null,
 				updatedAt: new Date(),
 			})
 			.onConflictDoUpdate({
@@ -31,6 +44,10 @@ export const upsertMastery = async (user: AccountDto, region: Regions) => {
 					tokensEarned: m.tokensEarned,
 					championPointsUntilNextLevel: m.championPointsUntilNextLevel,
 					championPointsSinceLastLevel: m.championPointsSinceLastLevel,
+					markRequiredForNextLevel: m.markRequiredForNextLevel ?? null,
+					championSeasonMilestone: m.championSeasonMilestone ?? null,
+					nextSeasonMilestone: (m.nextSeasonMilestone ?? null) as unknown,
+					milestoneGrades: m.milestoneGrades ?? null,
 					updatedAt: new Date(),
 				},
 			}),

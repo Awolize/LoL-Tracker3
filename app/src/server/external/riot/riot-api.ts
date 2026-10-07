@@ -1,5 +1,6 @@
 import { config } from "dotenv";
-import { RiotApi } from "twisted";
+
+import { RiotApi } from "~/server/external/riot/twisted";
 
 config();
 

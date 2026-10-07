@@ -1,5 +1,4 @@
 import type { InferSelectModel } from "drizzle-orm";
-import type { ChampionMasteryDTO } from "twisted/dist/models-dto";
 
 import type {
 	challenge,
@@ -12,6 +11,7 @@ import type {
 	matchInfo,
 	summoner,
 } from "~/db/schema";
+import type { ChampionMasteryDTO } from "~/server/external/riot/twisted";
 
 export type ChampionMasteryDTOWithoutExtras = Omit<
 	ChampionMasteryDTO,

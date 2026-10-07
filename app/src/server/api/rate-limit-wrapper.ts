@@ -1,4 +1,4 @@
-import type { RateLimitError } from "twisted/dist/errors";
+import type { RateLimitError } from "~/server/external/riot/twisted";
 
 // biome-ignore lint/suspicious/noExplicitAny: this could be a list of anything
 type RateLimitedCallback<T> = (...args: any[]) => Promise<T>;

@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { and, eq, type SQL } from "drizzle-orm";
 
 import { db } from "~/db";
 import {
@@ -8,11 +8,20 @@ import {
 	challengesChampionOcean,
 	challengesChampionOcean2024Split3,
 	challengesInvincible,
+	matchParticipant,
 } from "~/db/schema";
 import { regionToConstant } from "~/features/shared/champs";
 import type { Summoner } from "~/features/shared/types";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
-import { getArenaMatches, getMatches, getSRMatches } from "~/server/matches/get-matches";
+import {
+	ARENA_MATCH_FILTERS,
+	type MatchFilterOptions,
+	SR_MATCH_FILTERS,
+} from "~/server/matches/get-matches";
+import {
+	ensureUserParticipantsProjected,
+	getChampionIdsForUser,
+} from "~/server/matches/match-participants";
 
 export const runAllChallengeUpdatesWorker = async (data: { username: string; region: string }) => {
 	try {
@@ -29,13 +38,11 @@ export const runAllChallengeUpdatesWorker = async (data: { username: string; reg
 	}
 };
 
-// Worker-safe challenge updater factory
+// Worker-safe challenge updater factory.
+// Participant predicates now run in SQL against the MatchParticipant projection,
+// instead of loading every match (and its participant blob) into Node.
 const createChallengeUpdaterWorker =
-	(
-		tableName: string,
-		getMatchesFn: (user: Summoner) => Promise<any[]>,
-		filterFn?: (p: any) => boolean,
-	) =>
+	(tableName: string, matchFilters: MatchFilterOptions, participantCondition?: SQL) =>
 	async (data: { username: string; region: string }) => {
 		const username = data.username.replace("-", "#").toLowerCase();
 		const region = regionToConstant(data.region);
@@ -43,15 +50,14 @@ const createChallengeUpdaterWorker =
 
 		if (!user) return { success: false, message: "User not found" };
 
-		const matches = await getMatchesFn(user);
-		if (!matches) return { success: false, message: "No matches found" };
+		// No-op once this user's history has been projected.
+		await ensureUserParticipantsProjected(user.puuid);
 
-		const participations = matches.flatMap((match) => {
-			const participants = (match.matchInfos?.[0]?.participants as any[]) || [];
-			return participants.filter((p) => !filterFn || (filterFn(p) && p.puuid === user.puuid));
-		});
-
-		const uniqueChampIds = [...new Set(participations.map((p) => p.championId))];
+		const uniqueChampIds = await getChampionIdsForUser(
+			user.puuid,
+			matchFilters,
+			participantCondition,
+		);
 
 		await clearChallenge(user, tableName);
 
@@ -99,29 +105,26 @@ const clearChallenge = async (user: Summoner, challenge: string) => {
 // Worker-safe update functions
 const updateJackOfAllChampsWorker = createChallengeUpdaterWorker(
 	"challengeHeroes",
-	getSRMatches,
-	(p) => p.win,
+	SR_MATCH_FILTERS,
+	eq(matchParticipant.win, true),
 );
 const updateChampionOceanWorker = createChallengeUpdaterWorker(
 	"challengesChampionOceans",
-	getArenaMatches,
-	(p) => p.win,
+	ARENA_MATCH_FILTERS,
+	eq(matchParticipant.win, true),
 );
 const updateChampionOcean2024Split3Worker = createChallengeUpdaterWorker(
 	"challengesChampionOcean2024Split3s",
-	(user) =>
-		getMatches(user, {
-			gameStartTimestampGte: new Date("2024-09-18T00:00:00.000Z"),
-		}),
-	(p) => p.win,
+	{ gameStartTimestampGte: new Date("2024-09-18T00:00:00.000Z") },
+	eq(matchParticipant.win, true),
 );
 const updateAdaptToAllSituationsWorker = createChallengeUpdaterWorker(
 	"challengesAdaptToAllSituations",
-	getArenaMatches,
-	(p) => p.placement === 1,
+	ARENA_MATCH_FILTERS,
+	eq(matchParticipant.placement, 1),
 );
 const updateInvincibleWorker = createChallengeUpdaterWorker(
 	"challengesInvincibles",
-	getSRMatches,
-	(p) => p.win && p.deaths === 0,
+	SR_MATCH_FILTERS,
+	and(eq(matchParticipant.win, true), eq(matchParticipant.deaths, 0)),
 );
