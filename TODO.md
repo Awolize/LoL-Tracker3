@@ -22,9 +22,10 @@ containerised path has never been exercised, and it is the one that ships.
 
 ## Deferred / nice to have
 
-- [ ] Delete the dev-only image workaround in `app/vite.config.ts` once TanStack/Nitro fix
-      <https://github.com/TanStack/router/issues/7523> (splat routes + file extensions 404 under
-      `vite dev` when `Accept`/`Sec-Fetch-Dest` aren't `text/html`/`document`).
+- [x] ~~Delete the dev-only image workaround in `app/vite.config.ts` once TanStack/Nitro fix
+      <https://github.com/TanStack/router/issues/7523>~~ — **done**: `nitro 3.0.260903-beta` fixed
+      the dev static handler. Shim removed, verified in dev (`/api/images/*.webp` now returns
+      `200 image/webp` with browser `Accept` + `Sec-Fetch-Dest: image`).
 - [ ] Consider retiring `_MatchSummoners` — `MatchParticipant` (`unique (matchId, puuid)`) now
       subsumes the match↔summoner link, so the join table and its relations could go.
 - [ ] 11 junk `MatchInfo` rows in the production data (0 participants, `1970-01-01` timestamps)
