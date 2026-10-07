@@ -19,6 +19,7 @@ interface Store {
 	championsScale: number;
 	sortOrder: number;
 	showSelectedChampions: boolean;
+	hideClassicChampions: boolean;
 	roleMode: "default" | "user";
 	userRoles: Record<number, string>;
 }
@@ -35,6 +36,7 @@ interface StoreState extends Store {
 	setSortOrder: (newFilter: SortOrder2) => void;
 	toggleSelectedChampion: (championId: number) => void;
 	toggleShowSelectedChampions: () => void;
+	toggleHideClassicChampions: () => void;
 	setChampionsScale: (newScaleValue: number) => void;
 	toggleRoleMode: () => void;
 	setUserRole: (championId: number, role: string) => void;
@@ -54,6 +56,7 @@ const initialState = {
 	championsScale: 85,
 	sortOrder: SortOrder2.Points,
 	showSelectedChampions: false,
+	hideClassicChampions: false,
 	roleMode: "default" as const,
 	userRoles: {} as Record<number, string>,
 };
@@ -86,6 +89,11 @@ const useOptionsPersistentStore = (persistName: string) => {
 					set((state) => ({
 						...state,
 						showSelectedChampions: !state.showSelectedChampions,
+					})),
+				toggleHideClassicChampions: () =>
+					set((state) => ({
+						...state,
+						hideClassicChampions: !state.hideClassicChampions,
 					})),
 				setFilterPoints: (newFilter) =>
 					set((state) => ({ ...state, filterPoints: newFilter })),

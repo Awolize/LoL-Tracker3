@@ -37,6 +37,12 @@ export type RegionsAreValidIds = AssertTrue<
 	(typeof Regions)[keyof typeof Regions] extends `${RiotRegion}` ? true : false
 >;
 
+/** Data Dragon namespaces the Jade event champion variants with this key prefix. */
+export const JADE_CHAMPION_PREFIX = "Jade_";
+
+/** True for the Jade event entries, which sit alongside the classic roster. */
+export const isJadeChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
+
 export const filteredOut = (
 	champ: CompleteChampionInfo,
 	filterPoints: number,

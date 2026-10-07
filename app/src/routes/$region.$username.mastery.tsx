@@ -5,7 +5,7 @@ import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
 import ChampionList from "~/features/mastery/champions-list";
 import SortedChampionList from "~/features/mastery/role-sorted-champion-list";
-import { regionToDisplay } from "~/features/shared/champs";
+import { isJadeChampion, regionToDisplay } from "~/features/shared/champs";
 import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
 import Header from "~/features/summoner/components/summoner-header";
 import { getSummonerByNameRegion } from "~/server/summoner/mutations";
@@ -99,14 +99,21 @@ function Main({
 	version: string;
 }) {
 	const byRole = useOptionsPersistentContext((state) => state.byRole);
+	const hideClassicChampions = useOptionsPersistentContext((state) => state.hideClassicChampions);
+
+	// Data Dragon ships the Jade event variants as separate `Jade_*` entries alongside the
+	// classic roster, so filter once here and let the header counts follow the same list.
+	const champions = hideClassicChampions
+		? playerChampionInfo.filter((champ) => isJadeChampion(champ.key))
+		: playerChampionInfo;
 
 	return (
 		<main className="flex flex-col">
-			<Header champions={playerChampionInfo} />
+			<Header champions={champions} />
 			{byRole ? (
-				<SortedChampionList champions={playerChampionInfo} />
+				<SortedChampionList champions={champions} />
 			) : (
-				<ChampionList champions={playerChampionInfo} />
+				<ChampionList champions={champions} />
 			)}
 		</main>
 	);
