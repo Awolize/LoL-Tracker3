@@ -139,9 +139,9 @@ const useOptionsPersistentStore = (persistName: string) => {
 			{
 				name: persistName,
 				storage,
-				// The classic/Jade split arrived with `showClassicChampions`; bump the version so
-				// browsers holding already-persisted options land on the new default (Jade set).
-				version: 1,
+				// v1 introduced `showClassicChampions`; v2 re-asserts the hidden-by-default state
+				// for anyone who had already toggled it (including while testing this change).
+				version: 2,
 				migrate: (persisted) => ({
 					...(persisted as Store),
 					showClassicChampions: false,

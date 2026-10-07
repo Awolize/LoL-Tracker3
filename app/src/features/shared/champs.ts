@@ -47,6 +47,15 @@ export const isJadeChampion = (key: string): boolean => key.startsWith(JADE_CHAM
 export const baseChampionKey = (key: string): string =>
 	isJadeChampion(key) ? key.slice(JADE_CHAMPION_PREFIX.length) : key;
 
+/**
+ * Data Dragon ships the classic roster and the Jade event variants as two separate sets.
+ * `showClassic` picks one of them — the two are never listed together.
+ */
+export const championSetFilter = <T extends { key: string }>(
+	champions: T[],
+	showClassic: boolean,
+): T[] => champions.filter((champ) => isJadeChampion(champ.key) !== showClassic);
+
 export const filteredOut = (
 	champ: CompleteChampionInfo,
 	filterPoints: number,

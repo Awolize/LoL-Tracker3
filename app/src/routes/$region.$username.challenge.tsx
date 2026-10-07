@@ -8,7 +8,7 @@ import { SiteHeader } from "~/components/header/SiteHeader";
 import { DifferentSideBar } from "~/features/challenges/challenge-side-bar";
 import { ChampionListHeader } from "~/features/mastery/champion-list-header";
 import { RoleChampionList } from "~/features/mastery/role-champion-list";
-import { regionToDisplay } from "~/features/shared/champs";
+import { championSetFilter, regionToDisplay } from "~/features/shared/champs";
 import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
 import {
 	getAdaptToAllSituations,
@@ -20,7 +20,7 @@ import {
 } from "~/server/challenges/get-challenges";
 import { getSummonerByNameRegion } from "~/server/summoner/mutations";
 import { ChallengeProvider } from "~/stores/challenge-store";
-import { OptionsProvider } from "~/stores/options-persistent-store";
+import { OptionsProvider, useOptionsPersistentContext } from "~/stores/options-persistent-store";
 import { SelectedChallengeProvider } from "~/stores/selected-challenge-context";
 import { UserProvider } from "~/stores/user-store";
 import { metaDescription } from "~/utils/seo";
@@ -171,19 +171,13 @@ export function RouteComponent() {
 								user={user}
 							/>
 							<main className="flex flex-1 flex-col p-4">
-								<ChampionListHeader
+								<ChampionPanels
+									playerChampionInfo={playerChampionInfo}
 									challengeChampions={challengeChampions}
-									champions={playerChampionInfo}
 									version={version}
 									profileId={`${user.gameName}-${user.tagLine}`}
 									playerProgress={playerProgress}
 									challenges={challenges}
-								/>
-								<RoleChampionList
-									champions={playerChampionInfo}
-									challengeChampions={challengeChampions}
-									version={version}
-									profileId={`${user.gameName}-${user.tagLine}`}
 								/>
 							</main>
 						</div>
@@ -196,5 +190,47 @@ export function RouteComponent() {
 				</ChallengeProvider>
 			</OptionsProvider>
 		</UserProvider>
+	);
+}
+
+/**
+ * Lives inside the `OptionsProvider` so it can read the classic/Jade set preference, and
+ * applies it to the whole roster view — the header counters included.
+ */
+function ChampionPanels({
+	playerChampionInfo,
+	challengeChampions,
+	version,
+	profileId,
+	playerProgress,
+	challenges,
+}: {
+	playerChampionInfo: CompleteChampionInfo[];
+	challengeChampions: any[];
+	version: string;
+	profileId: string;
+	playerProgress: Record<number, any> | null;
+	challenges: any[];
+}) {
+	const showClassicChampions = useOptionsPersistentContext((state) => state.showClassicChampions);
+	const champions = championSetFilter(playerChampionInfo, showClassicChampions);
+
+	return (
+		<>
+			<ChampionListHeader
+				challengeChampions={challengeChampions}
+				champions={champions}
+				version={version}
+				profileId={profileId}
+				playerProgress={playerProgress}
+				challenges={challenges}
+			/>
+			<RoleChampionList
+				champions={champions}
+				challengeChampions={challengeChampions}
+				version={version}
+				profileId={profileId}
+			/>
+		</>
 	);
 }
