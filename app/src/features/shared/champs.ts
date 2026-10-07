@@ -43,6 +43,10 @@ export const JADE_CHAMPION_PREFIX = "Jade_";
 /** True for the Jade event entries, which sit alongside the classic roster. */
 export const isJadeChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
 
+/** The classic key behind a Jade event variant (`Jade_Annie` -> `Annie`). */
+export const baseChampionKey = (key: string): string =>
+	isJadeChampion(key) ? key.slice(JADE_CHAMPION_PREFIX.length) : key;
+
 export const filteredOut = (
 	champ: CompleteChampionInfo,
 	filterPoints: number,

@@ -56,7 +56,7 @@ const initialState = {
 	championsScale: 85,
 	sortOrder: SortOrder2.Points,
 	showSelectedChampions: false,
-	hideClassicChampions: false,
+	hideClassicChampions: true,
 	roleMode: "default" as const,
 	userRoles: {} as Record<number, string>,
 };
@@ -136,7 +136,17 @@ const useOptionsPersistentStore = (persistName: string) => {
 					})),
 				clearUserRoles: () => set((state) => ({ ...state, userRoles: {} })),
 			}),
-			{ name: persistName, storage },
+			{
+				name: persistName,
+				storage,
+				// The classic/Jade split arrived with `hideClassicChampions`; bump the version so
+				// browsers holding already-persisted options pick up the new "hidden" default.
+				version: 1,
+				migrate: (persisted) => ({
+					...(persisted as Store),
+					hideClassicChampions: true,
+				}),
+			},
 		),
 	);
 };

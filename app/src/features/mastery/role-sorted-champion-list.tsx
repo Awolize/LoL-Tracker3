@@ -53,8 +53,11 @@ const SortedChampionList = ({ champions }: { champions: CompleteChampionInfo[] }
 							filterLevelDirection,
 						) || selectedChampions.has(champ.id),
 				);
+				// Guard the empty role — hiding the classic roster can empty one out entirely.
 				const finishedChampsPercentage =
-					(finishedChamps.length / roleChampions.length) * 100;
+					roleChampions.length === 0
+						? 0
+						: (finishedChamps.length / roleChampions.length) * 100;
 
 				const handleDragOver = (e: React.DragEvent) => {
 					e.preventDefault();

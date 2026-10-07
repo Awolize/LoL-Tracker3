@@ -1,5 +1,6 @@
 import { db } from "~/db";
 import { championDetails } from "~/db/schema";
+import { baseChampionKey } from "~/features/shared/champs";
 import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
 import { masteryBySummoner } from "~/server/champions/mastery-by-summoner";
 import type { Regions } from "~/server/external/riot/twisted";
@@ -11,7 +12,10 @@ export async function getCompleteChampionData(region: Regions, user: Summoner) {
 	const champions = await db.select().from(championDetails);
 
 	const completeChampionsData = champions.map((champion) => {
-		const role = (rolesJson as Record<string, string>)[champion.key] || "Bottom";
+		// roles.json only carries the classic keys, so a Jade variant resolves the role of its
+		// classic counterpart instead of falling through to the default.
+		const role =
+			(rolesJson as Record<string, string>)[baseChampionKey(champion.key)] || "Bottom";
 		const personalChampData = championMasteries.find(
 			(champ) => champ.championId === champion.id,
 		) ?? {
