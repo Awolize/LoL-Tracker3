@@ -30,13 +30,13 @@ export const RegionListSelector = ({
 }) => {
 	return (
 		<Listbox as="div" className="relative" value={selectedRegion} onChange={setSelectedRegion}>
-			<ListboxButton className="flex items-end">
+			<ListboxButton className="focus-visible:ring-ring/40 flex items-end rounded-sm outline-none focus-visible:ring-2">
 				<span className="text-[hsl(280,100%,70%)]">{selectedRegion?.name}</span>
 				<p className="text-xs">v</p>
 			</ListboxButton>
 			<ListboxOptions
 				anchor="bottom start"
-				className="border-border/60 bg-popover text-popover-foreground z-50 w-[150px] rounded-md border p-1 shadow-lg [--anchor-gap:4px]"
+				className="bg-popover text-popover-foreground ring-foreground/10 z-50 w-[150px] rounded-md p-1 shadow-lg ring-1 [--anchor-gap:4px]"
 			>
 				{regions
 					.filter((region) => selectedRegion.id !== region.id)
@@ -45,7 +45,7 @@ export const RegionListSelector = ({
 							key={region.id}
 							value={region}
 							disabled={region.disabled}
-							className="data-[focus]:bg-accent data-[focus]:text-accent-foreground cursor-pointer rounded-sm px-2 py-1 text-sm data-[disabled]:opacity-50"
+							className="data-[focus]:bg-accent data-[focus]:text-accent-foreground cursor-pointer rounded-sm px-2 py-1 text-sm outline-none data-[disabled]:opacity-50"
 						>
 							{region.name}
 						</ListboxOption>
