@@ -12,8 +12,8 @@ export async function getCompleteChampionData(region: Regions, user: Summoner) {
 	const champions = await db.select().from(championDetails);
 
 	const completeChampionsData = champions.map((champion) => {
-		// roles.json only carries the classic keys, so a Jade variant resolves the role of its
-		// classic counterpart instead of falling through to the default.
+		// roles.json only carries the current keys, so a classic (Jade-prefixed) entry resolves
+		// the role of the same champion instead of falling through to the default.
 		const role =
 			(rolesJson as Record<string, string>)[baseChampionKey(champion.key)] || "Bottom";
 		const personalChampData = championMasteries.find(

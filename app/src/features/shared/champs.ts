@@ -37,24 +37,27 @@ export type RegionsAreValidIds = AssertTrue<
 	(typeof Regions)[keyof typeof Regions] extends `${RiotRegion}` ? true : false
 >;
 
-/** Data Dragon namespaces the Jade event champion variants with this key prefix. */
+/**
+ * The classic versions of the champions carry this key prefix; the plain keys are the
+ * current versions (`Jade_Annie` is the classic Annie, `Annie` the current one).
+ */
 export const JADE_CHAMPION_PREFIX = "Jade_";
 
-/** True for the Jade event entries, which sit alongside the classic roster. */
-export const isJadeChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
+/** True for the classic entries — the ones namespaced with the `Jade_` prefix. */
+export const isClassicChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
 
-/** The classic key behind a Jade event variant (`Jade_Annie` -> `Annie`). */
+/** The key without the classic prefix (`Jade_Annie` -> `Annie`). */
 export const baseChampionKey = (key: string): string =>
-	isJadeChampion(key) ? key.slice(JADE_CHAMPION_PREFIX.length) : key;
+	isClassicChampion(key) ? key.slice(JADE_CHAMPION_PREFIX.length) : key;
 
 /**
- * Data Dragon ships the classic roster and the Jade event variants as two separate sets.
- * `showClassic` picks one of them — the two are never listed together.
+ * The classic and current versions are two separate sets that are never listed together.
+ * `showClassic` selects which one — false, the default, is the current version.
  */
 export const championSetFilter = <T extends { key: string }>(
 	champions: T[],
 	showClassic: boolean,
-): T[] => champions.filter((champ) => isJadeChampion(champ.key) !== showClassic);
+): T[] => champions.filter((champ) => isClassicChampion(champ.key) === showClassic);
 
 export const filteredOut = (
 	champ: CompleteChampionInfo,

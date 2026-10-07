@@ -139,9 +139,9 @@ const useOptionsPersistentStore = (persistName: string) => {
 			{
 				name: persistName,
 				storage,
-				// v1 introduced `showClassicChampions`; v2 re-asserts the hidden-by-default state
-				// for anyone who had already toggled it (including while testing this change).
-				version: 2,
+				// v1 introduced `showClassicChampions`; v3 re-asserts its default (current version
+				// shown) for browsers holding a value from the earlier, inverted mapping.
+				version: 3,
 				migrate: (persisted) => ({
 					...(persisted as Store),
 					showClassicChampions: false,
