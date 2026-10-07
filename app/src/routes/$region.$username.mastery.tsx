@@ -99,9 +99,7 @@ function Main({
 	version: string;
 }) {
 	const byRole = useOptionsPersistentContext((state) => state.byRole);
-	const showClassicChampions = useOptionsPersistentContext(
-		(state) => state.showClassicChampions,
-	);
+	const showClassicChampions = useOptionsPersistentContext((state) => state.showClassicChampions);
 
 	// Data Dragon ships the classic roster and the Jade event variants as two separate sets.
 	// The header counters follow whichever set is selected, so filter once, here.

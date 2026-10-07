@@ -205,7 +205,7 @@ export default function Header({ champions }: { champions: CompleteChampionInfo[
 					onChange={toggleMasteryPoints}
 				/>
 				<TogglePill
-					label={"Show Levels"}
+					label={"Levels"}
 					checked={showChampionLevels}
 					onChange={toggleChampionLevels}
 				/>
@@ -215,7 +215,7 @@ export default function Header({ champions }: { champions: CompleteChampionInfo[
 					onChange={toggleMasteryBorders}
 				/>
 				<TogglePill
-					label={"Show Classic Champions"}
+					label={"Classic Champions"}
 					checked={showClassicChampions}
 					onChange={toggleShowClassicChampions}
 				/>
