@@ -140,6 +140,36 @@ Notes:
   `./minio/` volume (MinIO's proprietary on-disk layout) has been removed, and its
   `.gitignore` entry went with it.
 
+## Deploying
+
+**Migrations are not applied automatically.** The image ships `prod-migrate.mjs` and the
+`drizzle/` folder, but the container command only starts the server — so a deploy that adds
+migrations must apply them explicitly, otherwise the new code queries columns and tables
+that do not exist yet.
+
+```bash
+git pull
+docker compose build web
+
+# Apply migrations first, using the freshly built image. This is idempotent: drizzle records
+# what it has applied in drizzle.__drizzle_migrations.
+docker compose run --rm web node prod-migrate.mjs
+
+# Then bring everything up. --remove-orphans drops the old MinIO container when upgrading.
+docker compose up -d --remove-orphans
+```
+
+`docker compose run --rm web node prod-migrate.mjs` overrides the image's command, inherits
+the service's `DATABASE_URL` and network, and waits for `db` to be healthy. Running it
+*before* `up -d` means the old container keeps serving while the schema changes, so there is
+no window of errors.
+
+To check what is applied:
+
+```bash
+docker compose exec db psql -U postgres -d postgres -c 'SELECT count(*) FROM drizzle.__drizzle_migrations'
+```
+
 ## Troubleshooting
 
 **Build fails:**
