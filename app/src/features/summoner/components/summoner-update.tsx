@@ -148,7 +148,7 @@ export const FullSummonerUpdate = ({ user, awaitMatches = true }: FullSummonerUp
 							className="text-muted-foreground text-xs"
 						>
 							Last updated{" "}
-							<span className="dark:bg-primary-foreground rounded-sm bg-gray-200 px-1.5 py-0.5 font-mono text-gray-900 shadow-sm dark:text-white">
+							<span className="bg-muted text-foreground rounded-sm px-1.5 py-0.5 font-mono shadow-sm">
 								{formatTimeAgo(lastUpdateQuery.data)}
 							</span>
 						</motion.span>

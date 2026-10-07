@@ -1,5 +1,6 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 
+import { buttonVariants } from "~/components/ui/button";
 import { isShardRegionParam, regionToDisplay } from "~/features/shared/champs";
 
 export default function Profile() {
@@ -16,7 +17,7 @@ export default function Profile() {
 			<Link
 				to="/$region/$username"
 				params={{ region: regionSegment, username: usernameSegment }}
-				className="rounded p-1 hover:bg-gray-600"
+				className={buttonVariants({ variant: "outline", size: "sm" })}
 			>
 				{usernameSegment.replace("-", "#")} ({regionToDisplay(regionSegment)})
 			</Link>
