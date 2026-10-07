@@ -38,7 +38,7 @@ Required in `.env`:
 
 ```env
 RIOT_API_KEY=RGAPI-your-key-here
-DATABASE_URL=postgresql://postgres:password@db:5432/lol_tracker
+DATABASE_URL=postgresql://postgres:password@db:5432/postgres
 POSTGRES_PASSWORD=password
 # Object storage credentials. The names are still MINIO_* because
 # app/src/server/external/minio.ts reads them; RustFS uses the values.
@@ -52,7 +52,7 @@ Get API key: https://developer.riotgames.com/
 
 **Note**: For local dev, change `DATABASE_URL` to use `localhost` instead of `db`:
 ```env
-DATABASE_URL=postgresql://postgres:password@localhost:5432/lol_tracker
+DATABASE_URL=postgresql://postgres:password@localhost:5432/postgres
 ```
 
 ## Common Commands
@@ -86,7 +86,7 @@ rm -rf db/data/* rustfs/data/*
 docker-compose -f docker-compose.dev.yml up -d
 
 # 2. Update .env to use localhost instead of 'db'
-# DATABASE_URL=postgresql://postgres:password@localhost:5432/lol_tracker
+# DATABASE_URL=postgresql://postgres:password@localhost:5432/postgres
 # MINIO_ENDPOINT=localhost
 
 # 3. Run app locally
@@ -162,7 +162,7 @@ docker-compose build --no-cache app
 docker-compose ps db
 
 # Access database
-docker-compose exec db psql -U postgres -d lol_tracker
+docker-compose exec db psql -U postgres -d postgres
 ```
 
 ## Production Notes
