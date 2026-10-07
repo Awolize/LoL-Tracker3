@@ -41,40 +41,39 @@ git push
 
 ## Production Workflow
 
-### Automatic Migrations on Container Start
+### Migrations are NOT automatic
 
-The production Docker container automatically runs pending migrations on startup via `docker-entrypoint.sh`:
-
-1. Container starts
-2. Runs `pnpm drizzle-kit migrate`
-3. If migrations succeed → starts the application
-4. If migrations fail → container exits with error
-
-### Manual Migration (Alternative)
-
-If you prefer to run migrations manually:
+The container command only starts the server. `docker-entrypoint.sh` exists in this folder but
+is **not** copied into the image or referenced by `Dockerfile`, so nothing runs
+`drizzle-kit migrate` on boot. The image ships `prod-migrate.mjs` and `drizzle/`; you invoke
+them explicitly:
 
 ```bash
-# SSH into production container or connect to prod DB
-pnpm db:migrate
+docker compose run --rm web node prod-migrate.mjs
 ```
 
 ### Production Deployment Steps
 
-1. **Build and push Docker image**:
+See the "Deploying" section of the top-level `README.md`. In short:
 
-    ```bash
-    docker build -t your-app:latest .
-    docker push your-app:latest
-    ```
+```bash
+git pull
+docker compose build web
 
-2. **Deploy container** (migrations run automatically on startup)
+# Apply migrations BEFORE switching traffic, so the old container keeps serving
+# while the schema changes. Idempotent: drizzle records applied migrations in
+# drizzle.__drizzle_migrations.
+docker compose run --rm web node prod-migrate.mjs
 
-3. **Verify migrations**:
-    ```bash
-    docker logs your-container-name
-    # Look for: ✅ Migrations completed successfully
-    ```
+docker compose up -d --remove-orphans
+```
+
+**Verify what is applied**:
+
+```bash
+docker compose exec db psql -U postgres -d postgres \
+  -c 'SELECT count(*) FROM drizzle.__drizzle_migrations'
+```
 
 ## Available Scripts
 
@@ -181,12 +180,11 @@ Drizzle doesn't have built-in rollback. To revert:
 
 If migrations are blocking your deployment, you can temporarily disable them:
 
-### Option 1: Comment out migration step in docker-entrypoint.sh
+### Option 1: Skip the explicit migration step
 
-```bash
-# Comment out this line:
-# pnpm drizzle-kit migrate
-```
+There is no automatic migration to disable — just don't run
+`docker compose run --rm web node prod-migrate.mjs` and deploy the app against the existing
+schema.
 
 ### Option 2: Use db:push in production (not recommended)
 
