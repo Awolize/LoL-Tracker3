@@ -20,7 +20,7 @@ export const MainText = ({
 }) => {
 	return (
 		<h1
-			className={clsx(`text-center font-${bold} text-foreground tracking-tight`, {
+			className={clsx(`text-center font-${bold} tracking-tight`, {
 				"text-[2rem]": lg,
 				"text-[1.5rem]": !lg,
 			})}

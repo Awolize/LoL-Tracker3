@@ -15,7 +15,11 @@ type Suggestion = {
 	region: string;
 };
 
-export default function Search() {
+export default function Search({ onDark = false }: { onDark?: boolean } = {}) {
+	// `onDark` covers the landing page, whose artwork band stays dark in both themes.
+	const regionTone = onDark ? "text-white" : "text-foreground";
+	const hintTone = onDark ? "text-white/70" : "text-muted-foreground";
+
 	const navigate = useNavigate();
 	const [selectedRegion, setSelectedRegion] = useState(regions[0]);
 	const [username, setUsername] = useState("");
@@ -82,7 +86,9 @@ export default function Search() {
 		<div className="flex h-full w-full items-center justify-center md:py-2">
 			<div className="flex flex-col gap-1 md:flex-row md:gap-4">
 				<div className="flex items-center justify-center">
-					<div className="text-foreground shrink-0 text-2xl font-extrabold tracking-tight md:text-[2rem]">
+					<div
+						className={`${regionTone} shrink-0 text-2xl font-extrabold tracking-tight md:text-[2rem]`}
+					>
 						<RegionListSelector
 							selectedRegion={selectedRegion}
 							setSelectedRegion={setSelectedRegion}
@@ -139,7 +145,7 @@ export default function Search() {
 						</button>
 					</div>
 
-					<div className="text-muted-foreground text-xs">
+					<div className={`${hintTone} text-xs`}>
 						Remember to include the # and tagline like: Awot#dev
 					</div>
 				</form>
