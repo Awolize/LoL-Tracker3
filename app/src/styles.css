@@ -2,6 +2,14 @@
 @import "tailwindcss" source("./");
 @plugin "@tailwindcss/typography";
 
+/*
+ * Make `dark:` follow the app's own theme toggle (the `.dark` class the theme provider sets
+ * on <html>) instead of the OS `prefers-color-scheme`, which the toggle cannot control.
+ * Without this, a user who picks "light" on a dark OS keeps the dark-variant utilities,
+ * mixing dark-styled utilities with light theme tokens.
+ */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --animate-pulse2: pulse2 60s infinite;
 
