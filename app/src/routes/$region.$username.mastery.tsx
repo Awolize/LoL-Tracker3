@@ -99,13 +99,15 @@ function Main({
 	version: string;
 }) {
 	const byRole = useOptionsPersistentContext((state) => state.byRole);
-	const hideClassicChampions = useOptionsPersistentContext((state) => state.hideClassicChampions);
+	const showClassicChampions = useOptionsPersistentContext(
+		(state) => state.showClassicChampions,
+	);
 
-	// Data Dragon ships the Jade event variants as separate `Jade_*` entries alongside the
-	// classic roster, so filter once here and let the header counts follow the same list.
-	const champions = hideClassicChampions
-		? playerChampionInfo.filter((champ) => isJadeChampion(champ.key))
-		: playerChampionInfo;
+	// Data Dragon ships the classic roster and the Jade event variants as two separate sets.
+	// The header counters follow whichever set is selected, so filter once, here.
+	const champions = showClassicChampions
+		? playerChampionInfo.filter((champ) => !isJadeChampion(champ.key))
+		: playerChampionInfo.filter((champ) => isJadeChampion(champ.key));
 
 	return (
 		<main className="flex flex-col">

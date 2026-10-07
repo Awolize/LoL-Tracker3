@@ -48,8 +48,8 @@ export default function Header({ champions }: { champions: CompleteChampionInfo[
 		toggleMasteryBorders,
 		toggleSortedByRole,
 		toggleShowSelectedChampions,
-		hideClassicChampions,
-		toggleHideClassicChampions,
+		showClassicChampions,
+		toggleShowClassicChampions,
 	} = useOptionsPersistentContext((state) => state);
 
 	const user = useUserContext((s) => s.user);
@@ -215,9 +215,9 @@ export default function Header({ champions }: { champions: CompleteChampionInfo[
 					onChange={toggleMasteryBorders}
 				/>
 				<TogglePill
-					label={"Hide Classic Champions"}
-					checked={hideClassicChampions}
-					onChange={toggleHideClassicChampions}
+					label={"Show Classic Champions"}
+					checked={showClassicChampions}
+					onChange={toggleShowClassicChampions}
 				/>
 				<div className="h-8 w-px bg-gray-500" />
 				<div className="flex flex-col items-center gap-3">

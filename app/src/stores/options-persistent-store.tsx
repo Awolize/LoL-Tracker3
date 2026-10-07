@@ -19,7 +19,7 @@ interface Store {
 	championsScale: number;
 	sortOrder: number;
 	showSelectedChampions: boolean;
-	hideClassicChampions: boolean;
+	showClassicChampions: boolean;
 	roleMode: "default" | "user";
 	userRoles: Record<number, string>;
 }
@@ -36,7 +36,7 @@ interface StoreState extends Store {
 	setSortOrder: (newFilter: SortOrder2) => void;
 	toggleSelectedChampion: (championId: number) => void;
 	toggleShowSelectedChampions: () => void;
-	toggleHideClassicChampions: () => void;
+	toggleShowClassicChampions: () => void;
 	setChampionsScale: (newScaleValue: number) => void;
 	toggleRoleMode: () => void;
 	setUserRole: (championId: number, role: string) => void;
@@ -56,7 +56,7 @@ const initialState = {
 	championsScale: 85,
 	sortOrder: SortOrder2.Points,
 	showSelectedChampions: false,
-	hideClassicChampions: true,
+	showClassicChampions: false,
 	roleMode: "default" as const,
 	userRoles: {} as Record<number, string>,
 };
@@ -90,10 +90,10 @@ const useOptionsPersistentStore = (persistName: string) => {
 						...state,
 						showSelectedChampions: !state.showSelectedChampions,
 					})),
-				toggleHideClassicChampions: () =>
+				toggleShowClassicChampions: () =>
 					set((state) => ({
 						...state,
-						hideClassicChampions: !state.hideClassicChampions,
+						showClassicChampions: !state.showClassicChampions,
 					})),
 				setFilterPoints: (newFilter) =>
 					set((state) => ({ ...state, filterPoints: newFilter })),
@@ -139,12 +139,12 @@ const useOptionsPersistentStore = (persistName: string) => {
 			{
 				name: persistName,
 				storage,
-				// The classic/Jade split arrived with `hideClassicChampions`; bump the version so
-				// browsers holding already-persisted options pick up the new "hidden" default.
+				// The classic/Jade split arrived with `showClassicChampions`; bump the version so
+				// browsers holding already-persisted options land on the new default (Jade set).
 				version: 1,
 				migrate: (persisted) => ({
 					...(persisted as Store),
-					hideClassicChampions: true,
+					showClassicChampions: false,
 				}),
 			},
 		),
