@@ -36,7 +36,7 @@ export const RegionListSelector = ({
 			</ListboxButton>
 			<ListboxOptions
 				anchor="bottom start"
-				className="border-border bg-popover text-popover-foreground z-50 w-[150px] rounded-md border p-1 shadow-lg [--anchor-gap:4px]"
+				className="border-border/60 bg-popover text-popover-foreground z-50 w-[150px] rounded-md border p-1 shadow-lg [--anchor-gap:4px]"
 			>
 				{regions
 					.filter((region) => selectedRegion.id !== region.id)
