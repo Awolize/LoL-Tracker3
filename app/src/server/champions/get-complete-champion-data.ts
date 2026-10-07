@@ -11,7 +11,7 @@ export async function getCompleteChampionData(region: Regions, user: Summoner) {
 	const champions = await db.select().from(championDetails);
 
 	const completeChampionsData = champions.map((champion) => {
-		const role = rolesJson[champion.key] || "Bottom";
+		const role = (rolesJson as Record<string, string>)[champion.key] || "Bottom";
 		const personalChampData = championMasteries.find(
 			(champ) => champ.championId === champion.id,
 		) ?? {

@@ -40,7 +40,7 @@ type SummonerResult = {
 };
 
 export const getUserByNameAndRegionFn = createServerFn({ method: "GET" })
-	.inputValidator((input: { username: string; region: string; forceRefresh?: boolean }) => input)
+	.validator((input: { username: string; region: string; forceRefresh?: boolean }) => input)
 	.handler(async ({ data }): Promise<SummonerResult> => {
 		const { username, region, forceRefresh = false } = data;
 		const regionEnum = regionToConstant(region);
@@ -207,7 +207,7 @@ export const getUserByNameAndRegionFn = createServerFn({ method: "GET" })
 export const getLastMasteryUpdate = createServerFn({
 	method: "GET",
 })
-	.inputValidator((input: { puuid: string }) => input)
+	.validator((input: { puuid: string }) => input)
 	.handler(async ({ data }) => {
 		const { puuid } = data;
 
@@ -222,7 +222,7 @@ export const getLastMasteryUpdate = createServerFn({
 	});
 
 export const fullUpdateSummoner = createServerFn({ method: "POST" })
-	.inputValidator(
+	.validator(
 		(input: { gameName: string; tagLine: string; region: string; awaitMatches?: boolean }) =>
 			input,
 	)
@@ -322,11 +322,11 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 export const getUsernameSuggestions = createServerFn({
 	method: "POST",
 })
-	.inputValidator((data: { username: string; region: string }) => ({
+	.validator((data: { username: string; region: string }) => ({
 		username: data.username,
 		region: data.region,
 	}))
-	.handler(async ({ data: { username, region } }) => {
+	.handler(async ({ data: { username } }) => {
 		const query = username.trim().toLowerCase();
 		if (!query || query.length > 50) return [];
 
@@ -371,7 +371,7 @@ export const getUsernameSuggestions = createServerFn({
 export const getSummonerByNameRegion = createServerFn({
 	method: "GET",
 })
-	.inputValidator((input: { username: string; region: string }) => input)
+	.validator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
 
@@ -394,7 +394,7 @@ export const getSummonerByNameRegion = createServerFn({
 
 /** Profile hub: all challenges + Riot progress (same module as other profile serverFns). */
 export const getProfileHubChallengesFn = createServerFn({ method: "GET" })
-	.inputValidator((input: { puuid: string }) => input)
+	.validator((input: { puuid: string }) => input)
 	.handler(async ({ data }): Promise<ProfileHubChallengesPayload> => {
 		const [configs, progressMap, versionRow] = await Promise.all([
 			getChallengesConfig(),

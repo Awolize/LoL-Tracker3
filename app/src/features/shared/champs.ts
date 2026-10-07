@@ -1,6 +1,15 @@
 import type { CompleteChampionInfo } from "~/features/shared/types";
+import type { Regions as RiotRegion } from "~/server/external/riot/twisted";
 
-/** Riot API platform routing ids (same as `twisted` `Regions`) — defined here so client code never imports `twisted`. */
+/**
+ * Riot API platform routing ids, declared as *values only* so client code never has to
+ * import the Riot SDK.
+ *
+ * The SDK types regions as a nominal `enum`, so a string id is not assignable to it even
+ * when the value is identical. Server-side signatures therefore use the SDK's own
+ * `Regions`, and `regionToConstant` below is the single place that crosses that gap.
+ * `RegionsAreValidIds` fails the build if these ids ever drift from the enum.
+ */
 export const Regions = {
 	BRAZIL: "BR1",
 	EU_EAST: "EUN1",
@@ -20,7 +29,13 @@ export const Regions = {
 	PBE: "PBE1",
 } as const;
 
-export type Regions = (typeof Regions)[keyof typeof Regions];
+export type Regions = RiotRegion;
+
+type AssertTrue<T extends true> = T;
+/** Every id declared above must exist on the SDK enum (see the note on `Regions`). */
+export type RegionsAreValidIds = AssertTrue<
+	(typeof Regions)[keyof typeof Regions] extends `${RiotRegion}` ? true : false
+>;
 
 export const filteredOut = (
 	champ: CompleteChampionInfo,
@@ -93,19 +108,21 @@ const REGION_PARAM_TO_CONSTANT = {
 	RU: Regions.RUSSIA,
 	JP1: Regions.JAPAN,
 	PBE1: Regions.PBE,
-} as Record<string, Regions>;
+} as Record<string, string>;
 
 export const isShardRegionParam = (region: string): boolean =>
 	Boolean(REGION_PARAM_TO_CONSTANT[region.toUpperCase()]);
 
-export const regionToConstant = (region: string) => {
+export const regionToConstant = (region: string): Regions => {
 	const key = region.toUpperCase();
 	const mapped = REGION_PARAM_TO_CONSTANT[key];
 	if (!mapped) {
 		throw new Error(`Invalid region: ${region}`);
 	}
 
-	return mapped;
+	// These ids are the same strings the SDK enum declares (see `RegionsAreValidIds`); the
+	// SDK types them nominally, so this is the one place we assert across that gap.
+	return mapped as unknown as Regions;
 };
 
 export const regionToDisplay = (region: string): string => {

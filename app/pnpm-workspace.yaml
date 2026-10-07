@@ -5,32 +5,27 @@
 strictDepBuilds: true
 
 allowBuilds:
-  # Required: links the platform binary. Vite, Rolldown and tsx all rely on it.
-  esbuild: true
+    # Required: links the platform binary. Vite, Rolldown and tsx all rely on it.
+    esbuild: true
 
-  # Denied: this script does not link anything. It only decides whether to
-  # *rebuild* sharp from source against a globally-installed libvips
-  # (sharp/install/check.js). The @img/sharp-* platform packages carry the
-  # prebuilt binding, and sharp loads the bundled libvips at runtime, so the
-  # script is dead weight here (app/src/routes/api/images/$.ts).
-  #
-  # On any host where pkg-config sees libvips >= 8.17.3 (Arch's `libvips`,
-  # common dev setups) check.js exits 1, which makes pnpm run
-  # `node install/build.js` -> node-gyp -> "Please add node-addon-api to your
-  # dependencies", and `strictDepBuilds` then fails the whole install with
-  # ERR_PNPM_EXECUTOR_LIFECYCLE_SCRIPT_FAILED. Denying the script keeps
-  # installs deterministic on every machine. To intentionally build against a
-  # global libvips, set SHARP_FORCE_GLOBAL_LIBVIPS=1, add node-addon-api, and
-  # flip this to true.
-  sharp: false
+    # Inert as of sharp 0.35: it no longer ships an install/postinstall script
+    # (0.34's `install/check.js` is gone; only a manually-invoked `build` script
+    # remains), so `strictDepBuilds` has nothing left to review here. Kept as a
+    # deny so that a script reappearing stays blocked. The @img/sharp-* platform
+    # packages carry the prebuilt binding (libvips 8.18.x), and that is all this
+    # app needs — app/src/routes/api/images/$.ts only calls sharp().webp().
+    # (The old note about SHARP_FORCE_GLOBAL_LIBVIPS / a global libvips of
+    # >= 8.17.3 no longer applies: source builds are opt-in now, `npm explore
+    # sharp -- npm run build`, and the config threshold is >= 8.18.7.)
+    sharp: false
 
-  # Required: the Sentry Vite plugin in vite.config.ts uploads source maps with
-  # this CLI, so its binary has to be fetched at install time.
-  '@sentry/cli': true
+    # Required: the Sentry Vite plugin in vite.config.ts uploads source maps with
+    # this CLI, so its binary has to be fetched at install time.
+    "@sentry/cli": true
 
-  # Optional native accelerator for msgpackr (pulled in by BullMQ). msgpackr
-  # wraps the require in try/catch and falls back to pure JS, so its build
-  # script — and the native compilation that comes with it — stays denied.
-  msgpackr-extract: false
+    # Optional native accelerator for msgpackr (pulled in by BullMQ). msgpackr
+    # wraps the require in try/catch and falls back to pure JS, so its build
+    # script — and the native compilation that comes with it — stays denied.
+    msgpackr-extract: false
 
 # minimumReleaseAge: 4000

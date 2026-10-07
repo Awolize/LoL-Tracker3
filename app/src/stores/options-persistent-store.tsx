@@ -107,9 +107,11 @@ const useOptionsPersistentStore = (persistName: string) => {
 					set((state) => ({ ...state, sortOrder: newSortOrder })),
 				toggleSelectedChampion: (championId) =>
 					set((state) => {
-						state.selectedChampions.has(championId)
-							? state.selectedChampions.delete(championId)
-							: state.selectedChampions.add(championId);
+						if (state.selectedChampions.has(championId)) {
+							state.selectedChampions.delete(championId);
+						} else {
+							state.selectedChampions.add(championId);
+						}
 						return { ...state };
 					}),
 				setChampionsScale: (newScaleValue) =>

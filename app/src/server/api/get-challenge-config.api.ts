@@ -5,7 +5,7 @@ import { db } from "~/db";
 import { challengeLocalization, challengesConfig } from "~/db/schema";
 
 export const getChallengeConfig = createServerFn()
-	.inputValidator((input: { challengeId: number }) => input)
+	.validator((input: { challengeId: number }) => input)
 	.handler(async ({ data: { challengeId } }) => {
 		const config = await db
 			.select({

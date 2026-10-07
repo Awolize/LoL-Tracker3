@@ -16,14 +16,7 @@ const getProgressColor = (percentage: number): string => {
 	return "bg-gradient-to-r from-rose-500 to-pink-500";
 };
 
-export function RoleHeader({
-	role,
-	finishedSize,
-	size,
-	hasHidden,
-	percentage,
-	hiddenCount = 0,
-}: RoleHeaderProps) {
+export function RoleHeader({ role, finishedSize, size, hasHidden, percentage }: RoleHeaderProps) {
 	return (
 		<div className="mb-3 flex flex-col gap-2">
 			{/* Role title */}

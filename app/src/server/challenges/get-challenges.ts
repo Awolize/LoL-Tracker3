@@ -9,7 +9,7 @@ import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region
 import { getChallengesProgressMapForPuuid } from "~/server/challenges/challenges-progress-map";
 
 export const getJackOfAllChamps = createServerFn()
-	.inputValidator((input: { username: string; region: string }) => input)
+	.validator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
 		const username = rawUsername.replace("-", "#").toLowerCase();
@@ -29,7 +29,7 @@ export const getJackOfAllChamps = createServerFn()
 	});
 
 export const getChampionOcean = createServerFn()
-	.inputValidator((input: { username: string; region: string }) => input)
+	.validator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
 		const username = rawUsername.replace("-", "#").toLowerCase();
@@ -49,7 +49,7 @@ export const getChampionOcean = createServerFn()
 	});
 
 export const getChampionOcean2024Split3 = createServerFn()
-	.inputValidator((input: { username: string; region: string }) => input)
+	.validator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
 		const username = rawUsername.replace("-", "#").toLowerCase();
@@ -71,7 +71,7 @@ export const getChampionOcean2024Split3 = createServerFn()
 	});
 
 export const getAdaptToAllSituations = createServerFn()
-	.inputValidator((input: { username: string; region: string }) => input)
+	.validator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
 		const username = rawUsername.replace("-", "#").toLowerCase();
@@ -93,7 +93,7 @@ export const getAdaptToAllSituations = createServerFn()
 	});
 
 export const getInvincible = createServerFn()
-	.inputValidator((input: { username: string; region: string }) => input)
+	.validator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
 		const username = rawUsername.replace("-", "#").toLowerCase();
@@ -113,7 +113,7 @@ export const getInvincible = createServerFn()
 	});
 
 export const getPlayerChallengesProgress = createServerFn()
-	.inputValidator((input: { username: string; region: string }) => input)
+	.validator((input: { username: string; region: string }) => input)
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
 		const username = rawUsername.replace("-", "#").toLowerCase();

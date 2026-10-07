@@ -25,16 +25,19 @@ export const getRouter = () => {
 		Sentry.init({
 			dsn: import.meta.env.VITE_SENTRY_DSN,
 
-			// Adds request headers and IP for users, for more info visit:
-			// https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/configuration/options/#sendDefaultPii
-			sendDefaultPii: true,
-
 			integrations: [
 				Sentry.tanstackRouterBrowserTracingIntegration(router),
 				// Sentry.replayIntegration(),
 				// Sentry.feedbackIntegration({ colorScheme: "system" }),
 			],
-			enableLogs: true,
+			// Sentry 11 removed `sendDefaultPii` (now per-category `dataCollection`) and
+			// `enableLogs` (logs ship whenever their API is used). Keep cookies and
+			// request/response bodies out of Sentry, matching the v10 collection defaults.
+			dataCollection: {
+				cookies: false,
+				httpBodies: [],
+				databaseQueryData: false,
+			},
 			tracesSampleRate: 1.0,
 			replaysSessionSampleRate: 0.1,
 			replaysOnErrorSampleRate: 1.0,

@@ -8,9 +8,15 @@ Sentry.init({
 		Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
 	],
 
-	// Adds request headers and IP for users, for more info visit:
-	// https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/configuration/options/#sendDefaultPii
-	sendDefaultPii: true,
-	enableLogs: true,
+	// Sentry 11 replaced `sendDefaultPii` with per-category `dataCollection` and removed
+	// `enableLogs` (logs ship whenever their API is used). The v11 default matches the old
+	// `sendDefaultPii: true`, but it also collects categories v10 never did, so the
+	// sensitive ones are opted back out: SQL query text, request/response bodies, cookies.
+	// https://docs.sentry.io/platforms/javascript/guides/tanstackstart-react/migration/v10-to-v11/
+	dataCollection: {
+		cookies: false,
+		httpBodies: [],
+		databaseQueryData: false,
+	},
 	tracesSampleRate: 1.0,
 });

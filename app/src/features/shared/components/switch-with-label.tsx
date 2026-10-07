@@ -1,7 +1,15 @@
 import { Label } from "~/components/ui/label";
 import { Switch } from "~/components/ui/switch";
 
-export const SwitchWithLabel = ({ label, checked, onChange }) => {
+export const SwitchWithLabel = ({
+	label,
+	checked,
+	onChange,
+}: {
+	label: string;
+	checked: boolean;
+	onChange: (checked: boolean) => void;
+}) => {
 	return (
 		<div className="flex flex-col items-center gap-2">
 			<Label htmlFor={`switchWLabel${label}`}>{label}</Label>

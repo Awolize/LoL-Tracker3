@@ -6,7 +6,7 @@ import { challenge, challengesDetails, summoner } from "~/db/schema";
 import { regionToConstant } from "~/features/shared/champs";
 
 export const getChallengeUserRank = createServerFn()
-	.inputValidator((input: { challengeId: number; puuid: string }) => input)
+	.validator((input: { challengeId: number; puuid: string }) => input)
 	.handler(async ({ data: { challengeId, puuid } }) => {
 		// Get the user's challenge value
 		const userChallenge = await db
@@ -37,7 +37,7 @@ export const getChallengeUserRank = createServerFn()
 	});
 
 export const getChallengeLeaderboardWithHighlight = createServerFn()
-	.inputValidator((input: { challengeId: number; username?: string; region?: string }) => input)
+	.validator((input: { challengeId: number; username?: string; region?: string }) => input)
 	.handler(async ({ data: { challengeId, username, region } }) => {
 		// Always fetch top 100
 		const top100 = await db
@@ -123,7 +123,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 	});
 
 export const getChallengeLeaderboard = createServerFn()
-	.inputValidator((input: { challengeId: number; limit?: number; offset?: number }) => input)
+	.validator((input: { challengeId: number; limit?: number; offset?: number }) => input)
 	.handler(async ({ data: { challengeId, limit = 100, offset = 0 } }) => {
 		const leaderboard = await db
 			.select({

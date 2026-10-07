@@ -40,8 +40,8 @@ Required in `.env`:
 RIOT_API_KEY=RGAPI-your-key-here
 DATABASE_URL=postgresql://postgres:password@db:5432/postgres
 POSTGRES_PASSWORD=password
-# Object storage credentials. The names are still MINIO_* because
-# app/src/server/external/minio.ts reads them; RustFS uses the values.
+# Object storage credentials. MINIO_* are the legacy names the app still reads
+# (app/src/server/external/s3.ts prefers S3_* when set); RustFS uses the values.
 MINIO_ENDPOINT=rustfs
 MINIO_PORT=9000
 MINIO_ACCESS_KEY=minioadmin
@@ -123,8 +123,12 @@ MinIO's community edition was archived in 2026: the `minio/minio` Docker Hub rep
 was withdrawn (old tags no longer pull), the management UI features were moved to their
 commercial AIStor product, and no community binaries or images are published any more.
 `docker-compose.yml` therefore runs [RustFS](https://rustfs.com) 1.0.1 (Apache-2.0), a
-drop-in S3-compatible replacement; the app's `minio` SDK and `MINIO_*` env var names are
-unchanged and were verified against it (put/get/list all work).
+drop-in S3-compatible replacement. The app talks to it through the **AWS SDK v3**
+(`@aws-sdk/client-s3`) instead of the `minio` client, because RustFS ships no first-party
+JavaScript SDK and documents the AWS SDK as its interface
+(<https://docs.rustfs.com/developer/sdk/javascript>). Get/put/head/list were all verified
+against RustFS. `MINIO_*` env names are still read for compatibility; `S3_*` takes
+precedence if you set it.
 
 Notes:
 

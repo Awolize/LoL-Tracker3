@@ -40,7 +40,9 @@ async function main() {
 	console.log("Second add id:", j2.id);
 	console.log("Same id:", j1.id === j2.id);
 
-	const counts = await q.getJobCounts("wait", "active", "delayed", "paused");
+	// BullMQ 6 dropped 'paused' from JobState (and therefore JobType), so it is no longer
+	// a valid key here.
+	const counts = await q.getJobCounts("wait", "active", "delayed");
 	console.log("Queue counts:", counts);
 
 	const same = j1.id === j2.id;

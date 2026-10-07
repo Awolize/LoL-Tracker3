@@ -2,20 +2,12 @@ import * as Sentry from "@sentry/tanstackstart-react";
 import { createFileRoute } from "@tanstack/react-router";
 import sharp from "sharp";
 
-import { minio } from "~/server/external/minio";
+import { getObject, putObject } from "~/server/external/s3";
 
 const DEBUG = process.env.IMAGE_DEBUG === "true" || process.env.IMAGE_DEBUG === "1";
 const log = (...args: any[]) => {
 	if (DEBUG) console.log(...args);
 };
-
-const readStream = (s: NodeJS.ReadableStream) =>
-	new Promise<Buffer>((res, rej) => {
-		const bufs: Buffer[] = [];
-		s.on("data", (c) => bufs.push(c));
-		s.on("end", () => res(Buffer.concat(bufs)));
-		s.on("error", rej);
-	});
 
 const toWebp = (buf: Buffer) => sharp(buf).webp({ quality: 85 }).toBuffer();
 
@@ -32,30 +24,31 @@ export const Route = createFileRoute("/api/images/$")({
 	server: {
 		handlers: {
 			GET: async ({ request }) => {
-				const bucket = "images";
 				const url = new URL(request.url);
 				const path = url.pathname.replace("/api/images/", "");
 				const ext = path.split(".").pop()?.toLowerCase() || "png";
 
 				log("Incoming request:", path, "extension:", ext);
 
-				// 1. Try MinIO first
+				// 1. Try object storage first
 				try {
-					const stream = await minio.getObject(bucket, path);
-					const buf = await readStream(stream);
-					log("Cache hit:", path, buf.length);
-					return new Response(buf, {
-						headers: {
-							"Content-Type": mime(ext),
-							"Cache-Control": "public, max-age=31536000, immutable",
-						},
-					});
-				} catch (err: any) {
-					if (err.code !== "NotFound") {
-						Sentry.captureException(err);
-						log("MinIO error:", err);
+					const cached = await getObject(path);
+					if (cached) {
+						log("Cache hit:", path, cached.length);
+						// Copy into a plain Uint8Array: @types/node 26 types Buffer as
+						// Buffer<ArrayBufferLike>, which is no longer assignable to BodyInit.
+						return new Response(new Uint8Array(cached), {
+							headers: {
+								"Content-Type": mime(ext),
+								"Cache-Control": "public, max-age=31536000, immutable",
+							},
+						});
 					}
 					log("Cache miss, fetching from upstream:", path);
+				} catch (err) {
+					// A missing key returns null; anything thrown here is a real storage failure.
+					Sentry.captureException(err);
+					log("Object storage error:", path, err);
 				}
 
 				let original: Buffer;
@@ -151,14 +144,14 @@ export const Route = createFileRoute("/api/images/$")({
 					}
 				}
 
-				// 4. Store in MinIO (non-blocking)
+				// 4. Store in object storage (non-blocking)
 				// Note: We use the ORIGINAL 'path' here, so it's saved under the NEW ID
-				minio.putObject(bucket, path, out, out.length).catch((err) => {
+				putObject(path, out, mime(ext)).catch((err) => {
 					Sentry.captureException(err);
-					log("Failed to store in MinIO:", path, err);
+					log("Failed to store in object storage:", path, err);
 				});
 
-				return new Response(out, {
+				return new Response(new Uint8Array(out), {
 					headers: {
 						"Content-Type": mime(ext),
 						"Cache-Control": "public, max-age=31536000, immutable",

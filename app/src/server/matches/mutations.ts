@@ -8,7 +8,7 @@ import { getMatches } from "~/server/matches/get-matches";
 export const getMatchesFn = createServerFn({
 	method: "GET",
 })
-	.inputValidator((input: { username: string; region: string; take?: number }) => input)
+	.validator((input: { username: string; region: string; take?: number }) => input)
 	.handler(async ({ data }): Promise<{ user: Summoner; matches: any[] }> => {
 		const { username, region, take = 50 } = data;
 		const regionConst = regionToConstant(region.toUpperCase());

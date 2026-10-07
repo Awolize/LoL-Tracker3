@@ -5,7 +5,7 @@ import { updateChallengesConfigServer } from "~/server/challenges/update-challen
 import type { Regions } from "~/server/external/riot/twisted";
 
 export const updateChallengesConfig = createServerFn({ method: "POST" })
-	.inputValidator((input: { region: string }) => input)
+	.validator((input: { region: string }) => input)
 	.handler(async ({ data }) => {
 		return Sentry.startSpan({ name: "updateChallengesConfig" }, async () => {
 			const { region: rawRegion } = data;

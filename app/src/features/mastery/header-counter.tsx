@@ -1,4 +1,13 @@
-export const DifferentHeaderCounter = ({ finished, total, version }) => {
+export const DifferentHeaderCounter = ({
+	finished,
+	total,
+	version,
+}: {
+	finished: number;
+	total: number;
+	// One caller passes a real version string, another passes 0 as a placeholder.
+	version: string | number;
+}) => {
 	return (
 		<header className="relative mt-2 flex w-full justify-center">
 			<div className="w-52 min-w-fit">

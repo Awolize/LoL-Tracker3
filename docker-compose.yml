@@ -77,8 +77,8 @@ services:
     # Change both numbers if the deploy user is not UID/GID 1000.
     user: "1000:1000"
     environment:
-      # The app's env var names stay MINIO_* (app/src/server/external/minio.ts),
-      # these are just the credentials RustFS authenticates with.
+      # The app reads S3_* (preferred) or the legacy MINIO_* names —
+      # see app/src/server/external/s3.ts. These are the credentials RustFS authenticates with.
       RUSTFS_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       RUSTFS_SECRET_KEY: ${MINIO_SECRET_KEY}
       RUSTFS_ADDRESS: 0.0.0.0:9000
