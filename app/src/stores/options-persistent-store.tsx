@@ -61,9 +61,6 @@ const initialState = {
 	userRoles: {} as Record<number, string>,
 };
 
-// const useOptionsStore: (persistName: string) => UseBoundStore<StoreApi<StoreState>>
-// const useOptionsStore: (persistName: string) => UseBoundStore<Write<StoreApi<StoreState>, StorePersist<StoreState, Store>>>
-
 const useOptionsPersistentStore = (persistName: string) => {
 	return create<StoreState>()(
 		persist(

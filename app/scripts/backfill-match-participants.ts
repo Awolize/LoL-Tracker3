@@ -5,7 +5,7 @@
  * so this only ever derives rows; it never deletes or rewrites match data.
  *
  * Usage (from `app/`):
- *   pnpm tsx scripts/backfill-match-participants.ts
+ *   pnpm db:backfill-participants
  *
  * Env: reads the repo-root `.env` for DATABASE_URL. Optional:
  *   PARTICIPANT_BACKFILL_BATCH (default 200)

@@ -2,8 +2,9 @@
 
 ## Verify the Docker / compose path end-to-end
 
-Everything so far has been run **host-side** (`pnpm dev` against `lol-local-db18`). The
-containerised path has never been exercised, and it is the one that ships.
+Everything so far has been run **host-side** (`pnpm dev` against `lol-db2`). The containerised
+path is only partly exercised — the `down` → `up -d` persistence cycle is done below, but the
+build, health-gating and refresh checks are not — and it is the one that ships.
 
 - [ ] `docker compose up -d --build web` — builds the image (runs `pnpm install --frozen-lockfile`
       inside the container) and starts `web` + `db` + `redis` + `rustfs` + `rustfs-init`.
@@ -19,8 +20,10 @@ containerised path has never been exercised, and it is the one that ships.
       `MatchParticipant` rows are written (they are inserted in the same transaction).
 - [x] ~~`docker compose down` → `docker compose up -d` and confirm data persists in `./db/data`
       and `./rustfs/data`.~~ — **done**: survived the cycle unchanged. Same 37,866 `MatchInfo` /
-      37,866 `Match` / 397,391 `MatchParticipant` / 397,253 `_MatchSummoners` rows and the same 5
-      applied migrations before and after; the 439 objects in `./rustfs/data/images` were
+      37,866 `Match` / 397,391 `MatchParticipant` rows and the same 5 applied migrations before
+      and after (the 397,253 `_MatchSummoners` rows this check also recorded no longer exist —
+      migration 0005 dropped the table afterwards, so only the other counts are still
+      reproducible); the 439 objects in `./rustfs/data/images` were
       byte-for-byte the same set, and the PG cluster stayed at `./db/data/18/docker` with
       `rustfs-init` reporting `already exists and matches the request` rather than re-creating it.
       The `images` bucket is therefore not re-created on a restart — it is found because it is
@@ -69,11 +72,19 @@ containerised path has never been exercised, and it is the one that ships.
       `@pnpm/exe` platform packages out of `pnpm-lock.yaml` (they were added when the project
       pinned `packageManager: pnpm@12.9.1`).
 - [ ] 186 matches hold **fewer** `MatchParticipant` rows than their `MatchInfo.participants`
-      jsonb (6 of 10 is the common case, patches around 16.16). The participant upserts failed
-      silently for those participants, so the write path only projected the ones that succeeded.
-      The match view's player count now reads `jsonb_array_length(MatchInfo.participants)` rather
-      than counting the projection, so the UI is unaffected; a re-projection of those 186 matches
-      (`projectMatchesParticipants`) would tighten the integrity check.
+      jsonb. Verified decomposition (672 rows in total): **162** matches are short by 4 because
+      five AI participants share the literal `puuid = "BOT"`, so `unique (matchId, puuid)`
+      correctly keeps one row for them (810 bot entries across those 162 matches); the other
+      **24** are short by 1 because a real participant has no `Summoner` row and the projection's
+      FK blocks the insert. **A re-projection would fix nothing**: it is idempotent and the bots
+      already have their single row, while all 24 genuinely missing participants have no
+      `Summoner` row for `projectMatchesParticipants` to join on. The match view's player count
+      reads `jsonb_array_length(MatchInfo.participants)` rather than counting the projection, so
+      the UI is correct either way. Closing this needs the missing `Summoner` rows written from
+      the jsonb first.
+- Note: `MatchParticipant` **cannot** represent more than one bot in a match — they collide on
+  `puuid = "BOT"` under `unique (matchId, puuid)`. Anything that needs a complete participant
+  list has to read `MatchInfo.participants` (which is also why `playerCount` lives there).
 
 ## Notes on the lane calculation
 

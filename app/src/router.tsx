@@ -27,8 +27,8 @@ export const getRouter = () => {
 
 			integrations: [
 				Sentry.tanstackRouterBrowserTracingIntegration(router),
-				// Sentry.replayIntegration(),
-				// Sentry.feedbackIntegration({ colorScheme: "system" }),
+				// Session replay and feedback are intentionally off. Enabling replay also needs
+				// `replaysSessionSampleRate` / `replaysOnErrorSampleRate` restored below.
 			],
 			// Sentry 11 removed `sendDefaultPii` (now per-category `dataCollection`) and
 			// `enableLogs` (logs ship whenever their API is used). Keep cookies and
@@ -39,8 +39,6 @@ export const getRouter = () => {
 				databaseQueryData: false,
 			},
 			tracesSampleRate: 1.0,
-			replaysSessionSampleRate: 0.1,
-			replaysOnErrorSampleRate: 1.0,
 		});
 
 		Sentry.logger.info("User triggered test log", {

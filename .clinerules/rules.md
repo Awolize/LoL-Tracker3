@@ -26,16 +26,17 @@
 * Drizzle ORM + drizzle-kit for schema + migrations.
 * Zod for runtime validation.
 * Sentry for error tracking.
-* MinIO for object storage.
+* RustFS for object storage (S3-compatible; it replaced MinIO).
 * Sharp for image processing.
-* Use Biome for formatting/linting (`format`, `lint`, `check` scripts).
+* Use oxlint/oxfmt for formatting/linting (`format`, `lint`, `check` scripts). Biome was the
+  earlier toolchain and is no longer used.
 * Use `tsx` for TS execution in scripts.
-* Use `vite-tsconfig-paths` for path aliases.
+* Path aliases resolve through Vite's native `resolve.tsconfigPaths`; `vite-tsconfig-paths` is
+  no longer used.
     * ~/components
     * ~/db
     * ~/features
     * ~/hooks
-    * ~/integrations
     * ~/routes
     * ~/server
     * ~/stores

@@ -13,13 +13,13 @@ cp .env.example .env
 mkdir -p db/data db/share db/scripts rustfs/data rustfs/logs
 
 # 3. Start everything
-docker-compose up -d --build
+docker compose up -d --build
 
 # 4. Setup database
-docker-compose exec app sh -c "pnpm run db:push"
+docker compose exec web sh -c "pnpm run db:push"
 
 # 5. Open app
-# http://localhost:9003
+# http://localhost:9103
 ```
 
 ## Tech Stack
@@ -59,23 +59,23 @@ DATABASE_URL=postgresql://postgres:password@localhost:5432/postgres
 
 ```bash
 # View logs
-docker-compose logs -f app
+docker compose logs -f web
 
 # Restart after code changes
-docker-compose up -d --build app
+docker compose up -d --build web
 
 # Database migrations
-docker-compose exec app sh -c "pnpm run db:push"
+docker compose exec web sh -c "pnpm run db:push"
 
 # Database GUI
-docker-compose exec app sh -c "pnpm run db:studio"
+docker compose exec web sh -c "pnpm run db:studio"
 # Visit http://localhost:4983
 
 # Stop everything
-docker-compose down
+docker compose down
 
 # Clean everything (deletes data!)
-docker-compose down -v
+docker compose down -v
 rm -rf db/data/* rustfs/data/*
 ```
 
@@ -83,7 +83,7 @@ rm -rf db/data/* rustfs/data/*
 
 ```bash
 # 1. Start DB and object storage only
-docker-compose -f docker-compose.dev.yml up -d
+docker compose -f docker-compose.dev.yml up -d
 
 # 2. Update .env to use localhost instead of 'db'
 # DATABASE_URL=postgresql://postgres:password@localhost:5432/postgres
@@ -93,7 +93,7 @@ docker-compose -f docker-compose.dev.yml up -d
 cd app
 pnpm install
 pnpm run dev
-# Visit http://localhost:3000
+# Visit http://localhost:3001
 ```
 
 ## Project Structure
@@ -112,7 +112,7 @@ app/
 
 ## Ports
 
-- **9003** - Application
+- **9103** - Application
 - **5432** - PostgreSQL
 - **9100** - RustFS S3 API
 - **9105** - RustFS Console → http://localhost:9105/rustfs/console/ (login with `MINIO_ACCESS_KEY` / `MINIO_SECRET_KEY`)
@@ -133,7 +133,7 @@ precedence if you set it.
 Notes:
 
 - The app expects a bucket named **`images`** but never creates it. The `rustfs-init`
-  service creates it on every `docker-compose up` (idempotent). If you ever need to do it
+  service creates it on every `docker compose up` (idempotent). If you ever need to do it
   by hand, open the console and create `images`.
 - RustFS's container defaults to UID/GID `10001`; the compose files run it as `1000:1000`
   so the `./rustfs/data` and `./rustfs/logs` bind mounts stay writable. If your deploy user
@@ -178,12 +178,12 @@ docker compose exec db psql -U postgres -d postgres -c 'SELECT count(*) FROM dri
 
 **Build fails:**
 ```bash
-docker-compose build --no-cache app
+docker compose build --no-cache web
 ```
 
 **Port in use:**
 ```bash
-# Edit docker-compose.yml and change port 9003 to something else
+# Edit docker-compose.yml and change port 9103 to something else
 ```
 
 **API key expired:**
@@ -193,10 +193,10 @@ docker-compose build --no-cache app
 **Database issues:**
 ```bash
 # Check if running
-docker-compose ps db
+docker compose ps db
 
 # Access database
-docker-compose exec db psql -U postgres -d postgres
+docker compose exec db psql -U postgres -d postgres
 ```
 
 ## Production Notes

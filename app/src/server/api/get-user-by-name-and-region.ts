@@ -4,8 +4,10 @@ import { db } from "~/db";
 import { summoner } from "~/db/schema";
 import type { Summoner } from "~/features/shared/types";
 import type { Regions } from "~/server/external/riot/twisted";
-import { getSummonerByPuuidRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
-import { getSummonerByUsernameRateLimit } from "~/server/summoner/get-summoner-by-username-rate-limit";
+import {
+	getSummonerByPuuidRateLimit,
+	getSummonerByUsernameRateLimit,
+} from "~/server/summoner/get-summoner-by-username-rate-limit";
 
 export async function getUserByNameAndRegion(username: string, region: Regions) {
 	function isWithinThreshold(date: Date) {

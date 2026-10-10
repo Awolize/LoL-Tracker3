@@ -112,8 +112,6 @@ export async function getMatches(
 	}));
 }
 
-// ... your helper functions (getArenaMatches, getSRMatches) stay exactly the same
-
 // Arena Map (https://static.developer.riotgames.com/docs/lol/maps.json)
 export const ARENA_MATCH_FILTERS: MatchFilterOptions = {
 	mapIds: [30],

@@ -46,7 +46,6 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<script dangerouslySetInnerHTML={{ __html: themeScript }} />
 				<HeadContent />
 			</head>
-			{/* wrap-anywhere */}
 			<body className="font-sans antialiased selection:bg-[rgba(79,184,178,0.24)]">
 				<ThemeProvider>{children}</ThemeProvider>
 				<Scripts />
