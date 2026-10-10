@@ -20,7 +20,7 @@ export const getMatchesFn = createServerFn({
 		const completeMatches = rawMatches.map((match) => ({
 			gameId: match.gameId,
 			MatchInfo: (match.matchInfos as any)?.[0],
-			participants: (match.matchSummoners as any)?.map((ms: any) => ms.summoner) || [],
+			playerCount: match.playerCount,
 		}));
 
 		return { user, matches: completeMatches };

@@ -1,7 +1,7 @@
-import { and, desc, eq, gte, inArray, notInArray } from "drizzle-orm";
+import { and, desc, eq, exists, gte, inArray, notInArray, sql } from "drizzle-orm";
 
 import { db } from "~/db";
-import { match, matchInfo, matchSummoners } from "~/db/schema";
+import { match, matchInfo, matchParticipant } from "~/db/schema";
 import type { Summoner } from "~/features/shared/types";
 
 export type MatchFilterOptions = {
@@ -23,10 +23,6 @@ export async function getMatches(
 	// 1. Build the WHERE conditions dynamically
 	const filters = [];
 
-	// CORE FILTER: Join logic (User must be in the match)
-	// Based on your schema: matchSummoners.a = gameId, matchSummoners.b = puuid
-	filters.push(eq(matchSummoners.b, user.puuid));
-
 	// OPTIONAL FILTERS: Applied to matchInfo
 	if (mapIds?.length) {
 		filters.push(inArray(matchInfo.mapId, mapIds));
@@ -46,17 +42,39 @@ export async function getMatches(
 
 	// 2. STEP ONE: Get the Game IDs
 	// This executes the logic in SQL (joins, where, sort, limit)
+	//
+	// CORE FILTER: the user must be a participant of the match. `MatchParticipant` is the
+	// match <-> summoner link (unique (matchId, puuid)), so this replaces the old join to
+	// the dropped `_MatchSummoners` table — as `EXISTS`, so no join can duplicate a match.
+	//
+	// The player count comes from `MatchInfo.participants`, matching what the match view
+	// already renders from: the projection can be short a few rows (186 matches hold fewer
+	// participant rows than the jsonb, from participant upserts that failed silently).
 	const validMatches = await db
 		.select({
 			gameId: match.gameId,
 			gameStartTimestamp: matchInfo.gameStartTimestamp,
+			playerCount: sql<number>`jsonb_array_length(${matchInfo.participants})`.mapWith(Number),
 		})
 		.from(match)
 		// Join MatchInfo to filter by map/queue and sort by time
 		.innerJoin(matchInfo, eq(match.gameId, matchInfo.gameId))
-		// Join MatchSummoners to filter by specific user participation
-		.innerJoin(matchSummoners, eq(match.gameId, matchSummoners.a))
-		.where(and(...filters))
+		.where(
+			and(
+				...filters,
+				exists(
+					db
+						.select({ one: sql`1` })
+						.from(matchParticipant)
+						.where(
+							and(
+								eq(matchParticipant.matchId, match.gameId),
+								eq(matchParticipant.puuid, user.puuid),
+							),
+						),
+				),
+			),
+		)
 		.orderBy(desc(matchInfo.gameStartTimestamp))
 		.limit(take);
 
@@ -73,11 +91,6 @@ export async function getMatches(
 		where: inArray(match.gameId, gameIds),
 		with: {
 			matchInfos: true,
-			matchSummoners: {
-				with: {
-					summoner: true,
-				},
-			},
 		},
 	});
 
@@ -89,7 +102,14 @@ export async function getMatches(
 		return bTime - aTime;
 	});
 
-	return fullMatches;
+	// `playerCount` is a scalar SQL aggregate, so it rides alongside the hydrated rows
+	// rather than being a column on `match`.
+	const playerCountByGameId = new Map(validMatches.map((m) => [m.gameId, m.playerCount]));
+
+	return fullMatches.map((row) => ({
+		...row,
+		playerCount: playerCountByGameId.get(row.gameId) ?? 0,
+	}));
 }
 
 // ... your helper functions (getArenaMatches, getSRMatches) stay exactly the same

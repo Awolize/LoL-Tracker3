@@ -4,7 +4,6 @@ import { db } from "~/db";
 import {
 	matchInfo as matchInfoTable,
 	matchParticipant as matchParticipantTable,
-	matchSummoners as matchSummonersTable,
 	match as matchTable,
 	type summoner,
 	summoner as summonerTable,
@@ -155,16 +154,9 @@ export const updateGamesSingle = async (matchId: string, region: Regions) => {
 			})
 			.onConflictDoNothing();
 
-		// Connect participants
-		for (const s of validSummoners) {
-			await tx
-				.insert(matchSummonersTable)
-				.values({ a: matchId, b: s.puuid })
-				.onConflictDoNothing();
-		}
-
-		// Typed projection for SQL querying. Only for participants whose Summoner row
-		// exists (the FK requires it); `MatchInfo.participants` keeps the full payload.
+		// Typed projection for SQL querying, and the match <-> summoner link: only for
+		// participants whose Summoner row exists (the FK requires it);
+		// `MatchInfo.participants` keeps the full payload.
 		const knownPuuids = new Set(validSummoners.map((s) => s.puuid));
 		const participantRows = game.info.participants
 			.filter((p) => knownPuuids.has(p.puuid))

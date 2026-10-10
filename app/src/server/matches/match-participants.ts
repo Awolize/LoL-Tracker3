@@ -6,10 +6,10 @@
  * from the jsonb, so the projection can be dropped and re-derived at any time and
  * is never required for the raw data to be correct.
  */
-import { and, count, eq, gte, inArray, notInArray, type SQL, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, notInArray, type SQL, sql } from "drizzle-orm";
 
 import { db } from "~/db";
-import { matchInfo, matchParticipant, matchSummoners } from "~/db/schema";
+import { matchInfo, matchParticipant } from "~/db/schema";
 import type { MatchFilterOptions } from "~/server/matches/get-matches";
 
 const INSERT_COLUMNS = sql`(
@@ -60,7 +60,7 @@ export const projectUserMatchParticipants = async (puuid: string): Promise<void>
 		INSERT INTO "MatchParticipant" ${INSERT_COLUMNS}
 		${projectionSelect(
 			sql`"MatchInfo" mi
-				JOIN "_MatchSummoners" ms ON ms."A" = mi."gameId" AND ms."B" = ${puuid}
+				JOIN "MatchParticipant" ms ON ms."matchId" = mi."gameId" AND ms.puuid = ${puuid}
 				CROSS JOIN LATERAL jsonb_array_elements(mi."participants") AS p`,
 			sql`p->>'puuid' = ${puuid}`,
 		)}
@@ -90,20 +90,23 @@ export const projectMatchesParticipants = async (gameIds: string[]): Promise<voi
 };
 
 /**
- * Cheap guard: if the user has fewer projected participant rows than matches,
- * project the missing history from the jsonb before querying. Keeps the feature
- * correct even if the one-off backfill has not been run yet.
+ * Cheap guard: if the user appears in no projected participant row at all, project their
+ * history from the jsonb before querying. That is what repairs a user whose matches were
+ * written before the write path projected participants, or before the one-off backfill
+ * ran; for everyone else it is one indexed lookup.
+ *
+ * Presence, not a row count, is the right signal now that `MatchParticipant` is the write
+ * path as well as the projection: participants are inserted in the same transaction as
+ * their match, so a user either has rows or has no history to read.
  */
 export const ensureUserParticipantsProjected = async (puuid: string): Promise<void> => {
-	const [[matchCount], [projectedCount]] = await Promise.all([
-		db.select({ value: count() }).from(matchSummoners).where(eq(matchSummoners.b, puuid)),
-		db
-			.select({ value: count() })
-			.from(matchParticipant)
-			.where(eq(matchParticipant.puuid, puuid)),
-	]);
+	const [anyRow] = await db
+		.select({ matchId: matchParticipant.matchId })
+		.from(matchParticipant)
+		.where(eq(matchParticipant.puuid, puuid))
+		.limit(1);
 
-	if ((matchCount?.value ?? 0) > (projectedCount?.value ?? 0)) {
+	if (!anyRow) {
 		await projectUserMatchParticipants(puuid);
 	}
 };

@@ -205,7 +205,7 @@ const MatchItem = ({ match }: { match: CompleteMatch }) => {
 								Map: {match.MatchInfo?.mapId} • Duration: {gameDuration}
 							</div>
 							<div className="text-muted-foreground text-sm">
-								{match.participants?.length || 0} players
+								{match.playerCount || 0} players
 							</div>
 						</div>
 					</div>

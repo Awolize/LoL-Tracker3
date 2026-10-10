@@ -36,6 +36,13 @@
 			"when": 1791386299970,
 			"tag": "0004_match_participant_projection",
 			"breakpoints": true
+		},
+		{
+			"idx": 5,
+			"version": "7",
+			"when": 1791654855426,
+			"tag": "0005_retire_match_summoners",
+			"breakpoints": true
 		}
 	]
 }

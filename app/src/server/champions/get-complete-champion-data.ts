@@ -6,7 +6,6 @@ import { masteryBySummoner } from "~/server/champions/mastery-by-summoner";
 import type { Regions } from "~/server/external/riot/twisted";
 
 import { globalLaneCounts, summonerLaneCounts } from "./lane-data";
-import rolesJson from "./roles.json";
 
 export async function getCompleteChampionData(region: Regions, user: Summoner) {
 	const championMasteries = await masteryBySummoner(region, user);
@@ -25,19 +24,20 @@ export async function getCompleteChampionData(region: Regions, user: Summoner) {
 	// champion because only the classic entries share a name with another row.
 	const championIdByKey = new Map(champions.map((champion) => [champion.key, champion.id]));
 	const championIdByName = new Map(champions.map((champion) => [champion.name, champion.id]));
-	const staticRoles = rolesJson as Record<string, string>;
 
 	const completeChampionsData = champions.map((champion) => {
-		const baseKey = baseChampionKey(champion.key);
-		const baseId = championIdByKey.get(baseKey) ?? championIdByName.get(champion.name);
+		const baseId =
+			championIdByKey.get(baseChampionKey(champion.key)) ??
+			championIdByName.get(champion.name);
 
-		// Prefer the summoner's own games in the current patch window, fall back to how the
-		// champion is played across every recorded match, and reach for roles.json only
-		// for champions with no recorded games at all.
+		// Prefer the summoner's own games in the current patch window, then how the champion
+		// is played across every recorded match. Only a champion with no recorded games at
+		// all falls through to the default lane — every champion in ChampionDetails currently
+		// has games, so that branch is insurance, not a path taken in practice.
 		const role =
 			(baseId === undefined ? undefined : summonerLanes.get(baseId)) ??
 			(baseId === undefined ? undefined : globalLanes.get(baseId)) ??
-			(staticRoles[baseKey] || "Bottom");
+			"Bottom";
 
 		const personalChampData = championMasteries.find(
 			(champ) => champ.championId === champion.id,

@@ -17,8 +17,19 @@ containerised path has never been exercised, and it is the one that ships.
       empty cluster (check `SELECT count(*) FROM "MatchInfo"` reports the expected rows).
 - [ ] Press refresh on a profile, then confirm new matches land **and** the matching
       `MatchParticipant` rows are written (they are inserted in the same transaction).
-- [ ] `docker compose down` → `docker compose up -d` and confirm data persists in `./db/data`
-      and `./rustfs/data`.
+- [x] ~~`docker compose down` → `docker compose up -d` and confirm data persists in `./db/data`
+      and `./rustfs/data`.~~ — **done**: survived the cycle unchanged. Same 37,866 `MatchInfo` /
+      37,866 `Match` / 397,391 `MatchParticipant` / 397,253 `_MatchSummoners` rows and the same 5
+      applied migrations before and after; the 439 objects in `./rustfs/data/images` were
+      byte-for-byte the same set, and the PG cluster stayed at `./db/data/18/docker` with
+      `rustfs-init` reporting `already exists and matches the request` rather than re-creating it.
+      The `images` bucket is therefore not re-created on a restart — it is found because it is
+      still on the bind mount.
+      **Caveat found while doing this**: `docker compose down` also removes the external `webnet`
+      network, so the next `up` fails with `network webnet declared as external, but could not be
+      found` until it is recreated (`docker network create webnet`). That is a deploy-order
+      hazard, not a data one. Note also that this host has no Traefik container, so `webnet` was
+      not created by anything running here — nothing re-creates it automatically.
 
 ## Deferred / nice to have
 
@@ -29,22 +40,40 @@ containerised path has never been exercised, and it is the one that ships.
 - [x] ~~Derive the champion lanes from match data instead of `roles.json`.~~ — **done**:
       `app/src/server/champions/lane-data.ts` derives each champion's lane from
       `MatchParticipant.teamPosition`. Resolution is the summoner's own lane on the latest patch
-      (≥5 games) → the champion's global lane → `roles.json` → `"Bottom"`.
-- [ ] Decide the fate of `roles.json`: it is now the fallback for **no** champion (0 of 233 — every
-      champion in `ChampionDetails` has recorded games), so it only matters for a champion that has
-      never been played, where its entry is the only thing standing between that champion and the
-      `"Bottom"` default. Either keep it and refresh it when Riot adds a champion, or delete it and
-      accept the default.
-- [ ] Consider retiring `_MatchSummoners` — `MatchParticipant` (`unique (matchId, puuid)`) now
-      subsumes the match↔summoner link, so the join table and its relations could go. Verified
-      against the data: all 397,213 rows have a matching `(matchId, puuid)` participant row and
-      there are no orphans.
+      (≥5 games) → the champion's global lane → `"Bottom"`.
+- [x] ~~Decide the fate of `roles.json`~~ — **done (deleted)**: every one of the 233 champions in
+      `ChampionDetails` has recorded games, so no champion ever resolved through it. The file is
+      gone, the `staticRoles` lookup is gone, and a champion with no recorded games now falls
+      straight to `"Bottom"` instead of to a stale hand-maintained table.
+- [x] ~~Consider retiring `_MatchSummoners`~~ — **done**: `MatchParticipant` (`unique (matchId,
+      puuid)`) is now the only match↔summoner link. `getMatches` filters with an `EXISTS` over
+      `MatchParticipant`, `projectUserMatchParticipants` selects its matches through the
+      projection itself, the table and its relations are out of `schema.ts`/`relations.ts`, and
+      migration `0005_retire_match_summoners.sql` drops it (`DROP TABLE "_MatchSummoners"
+      CASCADE`).
+      Re-verified against the data before retiring, and the old note's numbers had drifted:
+      `_MatchSummoners` holds 397,253 rows and `MatchParticipant` 397,391. In the direction that
+      matters there were **no orphans** (every `_MatchSummoners` row has a participant row), but
+      the reverse was **not** empty — 138 participant rows across 135 matches / 82 puuids have no
+      join-table row, which is the write path being *more* complete than the table being dropped.
+      The core filter was proved equivalent on 5 heavy profiles (1,716–3,573 matches each):
+      identical game-id sets in the same order. The projection and the lazy-repair guard were
+      compared old-vs-new the same way (3,573 and 2,617 rows, 0 duplicates). The new
+      `ensureUserParticipantsProjected` is a presence check — a user either has participant rows
+      or has no history to read — instead of a row-count comparison against the retired table.
 - [ ] 11 junk `MatchInfo` rows in the production data (0 participants, `1970-01-01` timestamps)
       are why 11 matches have no `MatchParticipant` rows. Harmless, but a cleanup script would
-      tidy the projection integrity check.
+      tidy the projection integrity check. **Deliberately skipped for now** — nothing reads the
+      integrity check, and deleting them would need a decision on re-fetching.
 - [ ] `pnpm-workspace.yaml` could set `managePackageManagerVersions: false` to keep the `pnpm` /
       `@pnpm/exe` platform packages out of `pnpm-lock.yaml` (they were added when the project
       pinned `packageManager: pnpm@12.9.1`).
+- [ ] 186 matches hold **fewer** `MatchParticipant` rows than their `MatchInfo.participants`
+      jsonb (6 of 10 is the common case, patches around 16.16). The participant upserts failed
+      silently for those participants, so the write path only projected the ones that succeeded.
+      The match view's player count now reads `jsonb_array_length(MatchInfo.participants)` rather
+      than counting the projection, so the UI is unaffected; a re-projection of those 186 matches
+      (`projectMatchesParticipants`) would tighten the integrity check.
 
 ## Notes on the lane calculation
 

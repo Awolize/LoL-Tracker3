@@ -1,6 +1,5 @@
 /**
- * Derives a champion's lane from recorded matches instead of the hand-maintained
- * `roles.json`.
+ * Derives a champion's lane from recorded matches.
  *
  * `MatchParticipant` is the source: it is a projection of `MatchInfo.participants`,
  * so anything missing from it can be rebuilt from the jsonb.

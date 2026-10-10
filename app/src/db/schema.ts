@@ -389,41 +389,15 @@ export const championDetails = pgTable(
 	],
 );
 
-export const matchSummoners = pgTable(
-	"_MatchSummoners",
-	{
-		a: text("A").notNull(),
-		b: text("B").notNull(),
-	},
-	(table) => [
-		index().using("btree", table.b.asc().nullsLast().op("text_ops")),
-		foreignKey({
-			columns: [table.a],
-			foreignColumns: [match.gameId],
-			name: "_MatchSummoners_A_fkey",
-		})
-			.onUpdate("cascade")
-			.onDelete("cascade"),
-		foreignKey({
-			columns: [table.b],
-			foreignColumns: [summoner.puuid],
-			name: "_MatchSummoners_B_fkey",
-		})
-			.onUpdate("cascade")
-			.onDelete("cascade"),
-		primaryKey({
-			columns: [table.a, table.b],
-			name: "_MatchSummoners_AB_pkey",
-		}),
-	],
-);
-
 /**
  * Typed projection of `MatchInfo.participants` for the fields we actually query.
  *
  * `MatchInfo.participants` stays the source of truth: Riot can add participant
  * fields without breaking the write path, and anything promoted later is a
  * plain `ALTER TABLE` + backfill from the jsonb (no Riot re-fetch).
+ *
+ * This is also the match-to-summoner link: `unique (matchId, puuid)` subsumes
+ * what the dropped `_MatchSummoners` join table stored.
  */
 export const matchParticipant = pgTable(
 	"MatchParticipant",

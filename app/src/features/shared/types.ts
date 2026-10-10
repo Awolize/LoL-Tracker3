@@ -33,7 +33,8 @@ export type ChallengesConfig = InferSelectModel<typeof challengesConfig>;
 // Composite types
 export type CompleteMatch = Match & {
 	MatchInfo: MatchInfo;
-	participants: Summoner[];
+	/** Number of players in the match, counted from `MatchParticipant`. */
+	playerCount: number;
 };
 
 interface Roles {
