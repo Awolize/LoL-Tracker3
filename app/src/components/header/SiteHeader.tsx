@@ -7,7 +7,7 @@ import { ThemeSelector } from "~/components/theme-toggle";
 import { cn } from "~/components/utils";
 
 /** `hub` — frosted bar on profile home, challenges index, global leaderboards. `subpage` — solid bar under a summoner (mastery, matches, challenge tracker). */
-export type SiteHeaderVariant = "hub" | "subpage";
+type SiteHeaderVariant = "hub" | "subpage";
 
 const shellClassName =
 	"relative sticky top-0 z-30 grid w-full min-w-0 grid-cols-3 items-center border-b px-1 py-2 md:px-8";

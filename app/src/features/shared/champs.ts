@@ -41,10 +41,10 @@ export type RegionsAreValidIds = AssertTrue<
  * The classic versions of the champions carry this key prefix; the plain keys are the
  * current versions (`Jade_Annie` is the classic Annie, `Annie` the current one).
  */
-export const JADE_CHAMPION_PREFIX = "Jade_";
+const JADE_CHAMPION_PREFIX = "Jade_";
 
 /** True for the classic entries — the ones namespaced with the `Jade_` prefix. */
-export const isClassicChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
+const isClassicChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
 
 /** The key without the classic prefix (`Jade_Annie` -> `Annie`). */
 export const baseChampionKey = (key: string): string =>

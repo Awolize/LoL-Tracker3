@@ -55,7 +55,7 @@ const projectionSelect = (from: SQL, where?: SQL) => sql`
 `;
 
 /** Project one user's participant rows for every match they appear in. */
-export const projectUserMatchParticipants = async (puuid: string): Promise<void> => {
+const projectUserMatchParticipants = async (puuid: string): Promise<void> => {
 	await db.execute(sql`
 		INSERT INTO "MatchParticipant" ${INSERT_COLUMNS}
 		${projectionSelect(

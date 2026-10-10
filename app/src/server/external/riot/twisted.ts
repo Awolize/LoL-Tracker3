@@ -16,10 +16,6 @@ export const regionToRegionGroupForAccountAPI = Constants.regionToRegionGroupFor
 
 /** Platform routing id, e.g. `"EUW1"`. */
 export type Regions = Parameters<LolApi["Summoner"]["getByPUUID"]>[1];
-/** Match-V5 routing value, e.g. `"EUROPE"`. */
-export type RegionGroups = Parameters<LolApi["MatchV5"]["get"]>[1];
-/** Account-V1 routing value (`"AMERICAS" | "ASIA" | "EUROPE"`). */
-export type AccountAPIRegionGroups = Parameters<RiotApi["Account"]["getByPUUID"]>[1];
 
 // ---------------------------------------------------------------------------
 // DTO types — derived from the API surface because v1.81+ no longer exports
@@ -33,14 +29,14 @@ export type AccountDto = Awaited<ReturnType<RiotApi["Account"]["getByRiotId"]>>[
 export type ChallengeConfigDTO = Awaited<
 	ReturnType<LolApi["Challenges"]["Configs"]>
 >["response"][number];
-export type PlayerChallengesDTO = Awaited<
+type PlayerChallengesDTO = Awaited<
 	ReturnType<LolApi["Challenges"]["PlayerChallenges"]>
 >["response"];
 export type PlayerChallengeDTO = PlayerChallengesDTO["challenges"][number];
 export type PlayerPreferencesDTO = PlayerChallengesDTO["preferences"];
 
 /** Full Match-V5 match (metadata + info). */
-export type MatchV5MatchDTO = Awaited<ReturnType<LolApi["MatchV5"]["get"]>>["response"];
+type MatchV5MatchDTO = Awaited<ReturnType<LolApi["MatchV5"]["get"]>>["response"];
 /** Match-V5 `info.participants[n]`. */
 export type MatchParticipantDTO = MatchV5MatchDTO["info"]["participants"][number];
 /** Match-V5 `info.teams[n]`. */

@@ -25,11 +25,3 @@ export const TogglePill = ({ label, checked, onChange, icon }: TogglePillProps) 
 		</button>
 	);
 };
-
-interface TogglePillGroupProps {
-	children: React.ReactNode;
-}
-
-export const TogglePillGroup = ({ children }: TogglePillGroupProps) => {
-	return <div className="bg-muted/30 flex items-center gap-1.5 rounded-full p-1">{children}</div>;
-};

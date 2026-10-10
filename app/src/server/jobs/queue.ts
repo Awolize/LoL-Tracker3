@@ -238,5 +238,3 @@ if (!global.__riotWorker) {
 		},
 	);
 }
-
-export const worker = global.__riotWorker;

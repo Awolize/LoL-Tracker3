@@ -8,7 +8,7 @@ import { eq, type InferSelectModel } from "drizzle-orm";
 import { db } from "~/db";
 import { challenge, challengesDetails } from "~/db/schema";
 
-export type PlayerChallengeProgressEntry = {
+type PlayerChallengeProgressEntry = {
 	challengeId: number;
 	percentile: number | null;
 	level: string | null;

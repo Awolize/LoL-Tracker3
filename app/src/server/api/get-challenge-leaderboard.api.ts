@@ -5,7 +5,7 @@ import { db } from "~/db";
 import { challenge, challengesDetails, summoner } from "~/db/schema";
 import { regionToConstant } from "~/features/shared/champs";
 
-export const getChallengeUserRank = createServerFn()
+const getChallengeUserRank = createServerFn()
 	.validator((input: { challengeId: number; puuid: string }) => input)
 	.handler(async ({ data: { challengeId, puuid } }) => {
 		// Get the user's challenge value
@@ -120,31 +120,4 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 		const finalLeaderboard = [...top100.slice(0, 75), ...userArea];
 
 		return { leaderboard: finalLeaderboard, hasSections: true };
-	});
-
-export const getChallengeLeaderboard = createServerFn()
-	.validator((input: { challengeId: number; limit?: number; offset?: number }) => input)
-	.handler(async ({ data: { challengeId, limit = 100, offset = 0 } }) => {
-		const leaderboard = await db
-			.select({
-				challenge: challenge,
-				summoner: {
-					gameName: summoner.gameName,
-					tagLine: summoner.tagLine,
-					region: summoner.region,
-					profileIconId: summoner.profileIconId,
-				},
-			})
-			.from(challenge)
-			.innerJoin(
-				challengesDetails,
-				eq(challenge.challengesDetailsId, challengesDetails.puuid),
-			)
-			.innerJoin(summoner, eq(challengesDetails.puuid, summoner.puuid))
-			.where(eq(challenge.challengeId, challengeId))
-			.orderBy(desc(challenge.value))
-			.offset(offset)
-			.limit(limit);
-
-		return leaderboard;
 	});

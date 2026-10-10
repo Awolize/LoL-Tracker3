@@ -20,7 +20,7 @@ const useSSL = (process.env.S3_USE_SSL ?? process.env.MINIO_USE_SSL) === "true";
 const endpoint = /^https?:\/\//.test(host) ? host : `http${useSSL ? "s" : ""}://${host}:${port}`;
 
 /** The app reads/writes this bucket but never creates it; `rustfs-init` does. */
-export const bucket = "images";
+const bucket = "images";
 
 const globalForS3 = globalThis as unknown as { s3: S3Client | undefined };
 

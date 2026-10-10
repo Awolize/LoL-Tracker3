@@ -95,9 +95,7 @@ export function buildChallengeLadderSegments(
 export type TierPillState = "cleared" | "current" | "next" | "upcoming";
 
 /** Positive thresholds only, sorted low tier → high tier (Iron → Challenger). */
-export function getOrderedChallengeThresholds(
-	thresholds: Record<string, number>,
-): ThresholdLadderEntry[] {
+function getOrderedChallengeThresholds(thresholds: Record<string, number>): ThresholdLadderEntry[] {
 	const list: ThresholdLadderEntry[] = [];
 	for (const [k, v] of Object.entries(thresholds)) {
 		if (v > 0) list.push({ tier: k.toUpperCase(), points: v });
@@ -201,7 +199,7 @@ function tierIndex(level: string | null): number | null {
 }
 
 /** Best tier that exists for this challenge (thresholds from Riot config). */
-export function getHighestTierForChallenge(thresholds: Record<string, number>): string | null {
+function getHighestTierForChallenge(thresholds: Record<string, number>): string | null {
 	const upper: Record<string, number> = {};
 	for (const [k, v] of Object.entries(thresholds)) {
 		upper[k.toUpperCase()] = v;
