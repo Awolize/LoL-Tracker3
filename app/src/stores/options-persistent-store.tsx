@@ -1,10 +1,10 @@
 import type React from "react";
 import { createContext, useContext, useRef } from "react";
-import superjson from "superjson";
 import { create, useStore } from "zustand";
-import { type PersistStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 
 import { SortOrder2 } from "~/features/summoner/components/summoner-header";
+import { superjsonStorage } from "~/stores/superjson-storage";
 
 interface Store {
 	showMasteryPoints: boolean;
@@ -135,7 +135,7 @@ const useOptionsPersistentStore = (persistName: string) => {
 			}),
 			{
 				name: persistName,
-				storage,
+				storage: superjsonStorage<Store>(),
 				// v1 introduced `showClassicChampions`; v3 re-asserts its default (current version
 				// shown) for browsers holding a value from the earlier, inverted mapping.
 				version: 3,
@@ -146,18 +146,6 @@ const useOptionsPersistentStore = (persistName: string) => {
 			},
 		),
 	);
-};
-
-const storage: PersistStorage<Store> = {
-	getItem: (name) => {
-		const str = localStorage.getItem(name);
-		if (!str) return null;
-		return superjson.parse(str);
-	},
-	setItem: (name, value) => {
-		localStorage.setItem(name, superjson.stringify(value));
-	},
-	removeItem: (name) => localStorage.removeItem(name),
 };
 
 type OptionsStore = ReturnType<typeof useOptionsPersistentStore>;

@@ -1,8 +1,9 @@
 import type React from "react";
 import { createContext, useContext, useRef } from "react";
-import superjson from "superjson";
 import { create, useStore } from "zustand";
-import { type PersistStorage, persist } from "zustand/middleware";
+import { persist } from "zustand/middleware";
+
+import { superjsonStorage } from "~/stores/superjson-storage";
 
 interface Store {
 	manuallyMarked: Record<string, Record<number, Set<number>>>; // Record<profileId, Record<challengeId, Set<championId>>>
@@ -61,21 +62,9 @@ const useChallengeStore = (persistName: string) => {
 					});
 				},
 			}),
-			{ name: `${persistName}-challenges`, storage },
+			{ name: `${persistName}-challenges`, storage: superjsonStorage<StoreState>() },
 		),
 	);
-};
-
-const storage: PersistStorage<Store> = {
-	getItem: (name) => {
-		const str = localStorage.getItem(name);
-		if (!str) return null;
-		return superjson.parse(str);
-	},
-	setItem: (name, value) => {
-		localStorage.setItem(name, superjson.stringify(value));
-	},
-	removeItem: (name) => localStorage.removeItem(name),
 };
 
 type ChallengeStore = ReturnType<typeof useChallengeStore>;
