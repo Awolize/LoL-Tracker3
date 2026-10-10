@@ -2,6 +2,7 @@ import { db } from "~/db";
 import { championDetails } from "~/db/schema";
 import { baseChampionKey } from "~/features/shared/champs";
 import type { CompleteChampionInfo, Summoner } from "~/features/shared/types";
+import { getDataDragonVersion } from "~/server/api/get-datadragon-version";
 import { masteryBySummoner } from "~/server/champions/mastery-by-summoner";
 import type { Regions } from "~/server/external/riot/twisted";
 
@@ -58,7 +59,11 @@ export async function getCompleteChampionData(region: Regions, user: Summoner) {
 		} as CompleteChampionInfo;
 	});
 
-	const version = champions.at(0)?.version ?? "";
+	// The page-level version must come from the shared resolver, never from `champions[0]`:
+	// `ChampionDetails` holds the current and classic sets at once (16.20.1 and 16.15.1), and
+	// this select has no `ORDER BY`, so row 0 is arbitrary — it would pick the classic version
+	// and build every page-level champion icon URL against the wrong patch.
+	const version = await getDataDragonVersion();
 
 	return { completeChampionsData, version };
 }

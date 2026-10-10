@@ -7,6 +7,7 @@ import { championMastery, summoner } from "~/db/schema";
 import type { ProfileHubChallengesPayload } from "~/features/challenges/types/profile-challenge-row";
 import { regionToConstant } from "~/features/shared/champs";
 import { getChallengesConfig } from "~/server/api/get-challenges-config";
+import { getDataDragonVersion } from "~/server/api/get-datadragon-version";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { buildProfileChallengeRows } from "~/server/challenges/build-profile-challenge-rows";
 import { getChallengesProgressMapForPuuid } from "~/server/challenges/challenges-progress-map";
@@ -52,10 +53,10 @@ export const getUserByNameAndRegionFn = createServerFn({ method: "GET" })
 		// Helper to get version/profileIconUrl (called in multiple paths)
 		const getProfileIconUrl = async (profileIconId: number | null) => {
 			if (!profileIconId) return null;
-			const versionRow = await db.query.championDetails.findFirst({
-				columns: { version: true },
-			});
-			const version = versionRow?.version ?? "latest";
+			// Through the shared resolver, not a bare `findFirst`: `ChampionDetails` holds more
+			// than one version at a time, so an unordered read can serve the older one and
+			// build icon URLs that 404 against the current patch.
+			const version = await getDataDragonVersion();
 			return `/api/images/cdn/${version}/img/profileicon/${profileIconId}.webp`;
 		};
 
@@ -388,7 +389,7 @@ export const getSummonerByNameRegion = createServerFn({
 			user,
 			playerChampionInfo: completeChampionsData.completeChampionsData,
 			challenges,
-			version: completeChampionsData.completeChampionsData[0]?.version || "latest",
+			version: completeChampionsData.version,
 		};
 	});
 
@@ -396,15 +397,15 @@ export const getSummonerByNameRegion = createServerFn({
 export const getProfileHubChallengesFn = createServerFn({ method: "GET" })
 	.validator((input: { puuid: string }) => input)
 	.handler(async ({ data }): Promise<ProfileHubChallengesPayload> => {
-		const [configs, progressMap, versionRow] = await Promise.all([
+		const [configs, progressMap, version] = await Promise.all([
 			getChallengesConfig(),
 			getChallengesProgressMapForPuuid(data.puuid),
-			db.query.championDetails.findFirst({ columns: { version: true } }),
+			getDataDragonVersion(),
 		]);
 
 		return {
 			rows: buildProfileChallengeRows(configs, progressMap),
 			challengesSynced: progressMap !== null,
-			dataDragonVersion: versionRow?.version ?? "latest",
+			dataDragonVersion: version,
 		};
 	});
