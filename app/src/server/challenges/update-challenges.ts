@@ -11,6 +11,7 @@ import {
 	matchParticipant,
 } from "~/db/schema";
 import { regionToConstant } from "~/features/shared/champs";
+import { parseRiotId } from "~/features/shared/riot-id";
 import type { Summoner } from "~/features/shared/types";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import {
@@ -18,10 +19,7 @@ import {
 	type MatchFilterOptions,
 	SR_MATCH_FILTERS,
 } from "~/server/matches/get-matches";
-import {
-	ensureUserParticipantsProjected,
-	getChampionIdsForUser,
-} from "~/server/matches/match-participants";
+import { getChampionIdsForUser } from "~/server/matches/match-participants";
 
 export const runAllChallengeUpdatesWorker = async (data: { username: string; region: string }) => {
 	try {
@@ -38,20 +36,29 @@ export const runAllChallengeUpdatesWorker = async (data: { username: string; reg
 	}
 };
 
+/**
+ * The five champion-list tables, keyed by the relation name Drizzle exposes. Both the insert
+ * side and `clearChallenge` need this map; it used to be written out twice.
+ */
+const challengeTableMap = {
+	challengeHeroes,
+	challengesChampionOceans: challengesChampionOcean,
+	challengesChampionOcean2024Split3s: challengesChampionOcean2024Split3,
+	challengesAdaptToAllSituations,
+	challengesInvincibles: challengesInvincible,
+} as const;
+
 // Worker-safe challenge updater factory.
 // Participant predicates now run in SQL against the MatchParticipant projection,
 // instead of loading every match (and its participant blob) into Node.
 const createChallengeUpdaterWorker =
 	(tableName: string, matchFilters: MatchFilterOptions, participantCondition?: SQL) =>
 	async (data: { username: string; region: string }) => {
-		const username = data.username.replace("-", "#").toLowerCase();
+		const username = parseRiotId(data.username);
 		const region = regionToConstant(data.region);
 		const user = await getUserByNameAndRegion(username, region);
 
 		if (!user) return { success: false, message: "User not found" };
-
-		// No-op once this user's history has been projected.
-		await ensureUserParticipantsProjected(user.puuid);
 
 		const uniqueChampIds = await getChampionIdsForUser(
 			user.puuid,
@@ -64,16 +71,8 @@ const createChallengeUpdaterWorker =
 		await db.insert(challenges).values({ puuid: user.puuid }).onConflictDoNothing();
 
 		if (uniqueChampIds.length > 0) {
-			const tableMapInsert = {
-				challengeHeroes,
-				challengesChampionOceans: challengesChampionOcean,
-				challengesChampionOcean2024Split3s: challengesChampionOcean2024Split3,
-				challengesAdaptToAllSituations,
-				challengesInvincibles: challengesInvincible,
-			} as const;
-
 			await db
-				.insert(tableMapInsert[tableName as keyof typeof tableMapInsert])
+				.insert(challengeTableMap[tableName as keyof typeof challengeTableMap])
 				.values(uniqueChampIds.map((id) => ({ a: user.puuid, b: id })))
 				.onConflictDoNothing();
 		}
@@ -90,15 +89,7 @@ const createChallengeUpdaterWorker =
 
 // Clear old challenge entries
 const clearChallenge = async (user: Summoner, challenge: string) => {
-	const tableMap = {
-		challengeHeroes,
-		challengesChampionOceans: challengesChampionOcean,
-		challengesChampionOcean2024Split3s: challengesChampionOcean2024Split3,
-		challengesAdaptToAllSituations,
-		challengesInvincibles: challengesInvincible,
-	} as const;
-
-	const table = tableMap[challenge as keyof typeof tableMap];
+	const table = challengeTableMap[challenge as keyof typeof challengeTableMap];
 	if (table) await db.delete(table).where(eq(table.a, user.puuid));
 };
 

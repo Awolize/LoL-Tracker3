@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import { regionToConstant } from "~/features/shared/champs";
+import { parseRiotId } from "~/features/shared/riot-id";
 import type { Summoner } from "~/features/shared/types";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { getMatches } from "~/server/matches/get-matches";
@@ -13,7 +14,7 @@ export const getMatchesFn = createServerFn({
 		const { username, region, take = 50 } = data;
 		const regionConst = regionToConstant(region.toUpperCase());
 
-		const user = await getUserByNameAndRegion(username, regionConst);
+		const user = await getUserByNameAndRegion(parseRiotId(username), regionConst);
 		const rawMatches = await getMatches(user, {}, take);
 
 		// Transform to expected format

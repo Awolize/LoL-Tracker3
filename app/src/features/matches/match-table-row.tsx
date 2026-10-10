@@ -3,6 +3,7 @@ import type React from "react";
 
 import { cn } from "~/components/utils";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
+import { formatRiotId } from "~/features/shared/riot-id";
 import type { MatchParticipantDTO } from "~/server/external/riot/twisted";
 import { useUserContext } from "~/stores/user-store";
 
@@ -58,7 +59,10 @@ const MatchTable: React.FC<MatchTableProps> = ({ players, teamId, version }) => 
 								to="/$region/$username"
 								params={{
 									region: params.region,
-									username: `${player.riotIdGameName}-${player.riotIdTagline}`,
+									username: formatRiotId(
+										player.riotIdGameName,
+										player.riotIdTagline,
+									),
 								}}
 								className={cn(
 									"text-sm font-medium transition-colors truncate block",

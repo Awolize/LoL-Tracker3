@@ -2,6 +2,7 @@ import { Link, useRouterState } from "@tanstack/react-router";
 
 import { headerLinkClassName } from "~/components/header/header-link";
 import { isShardRegionParam, regionToDisplay } from "~/features/shared/champs";
+import { parseRiotId } from "~/features/shared/riot-id";
 
 export default function Profile() {
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
@@ -19,7 +20,7 @@ export default function Profile() {
 				params={{ region: regionSegment, username: usernameSegment }}
 				className={headerLinkClassName}
 			>
-				{usernameSegment.replace("-", "#")} ({regionToDisplay(regionSegment)})
+				{parseRiotId(usernameSegment)} ({regionToDisplay(regionSegment)})
 			</Link>
 		</div>
 	);

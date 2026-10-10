@@ -6,6 +6,7 @@ import { useCallback, useEffect, useMemo, useRef } from "react";
 
 import { regionToDisplay } from "~/features/shared/champs";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
+import { parseRiotId } from "~/features/shared/riot-id";
 import type { ChallengeConfig, LeaderboardEntry } from "~/features/shared/types";
 import { getDataDragonVersion } from "~/server/api/mutations";
 
@@ -301,7 +302,7 @@ export default function ChallengeLeaderboard({
 		[activeThresholds],
 	);
 
-	const normalizedUsername = highlightedUser?.username.replace("-", "#") ?? null;
+	const normalizedUsername = highlightedUser ? parseRiotId(highlightedUser.username) : null;
 	const normalizedRegion = highlightedUser
 		? regionToDisplay(highlightedUser.region).toUpperCase()
 		: null;

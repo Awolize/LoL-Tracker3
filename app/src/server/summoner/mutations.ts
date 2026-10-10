@@ -6,6 +6,7 @@ import { db } from "~/db";
 import { championMastery, summoner } from "~/db/schema";
 import type { ProfileHubChallengesPayload } from "~/features/challenges/types/profile-challenge-row";
 import { regionToConstant } from "~/features/shared/champs";
+import { parseRiotId } from "~/features/shared/riot-id";
 import { getChallengesConfig } from "~/server/api/get-challenges-config";
 import { getDataDragonVersion } from "~/server/api/get-datadragon-version";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
@@ -376,7 +377,7 @@ export const getSummonerByNameRegion = createServerFn({
 	.handler(async ({ data }) => {
 		const { username: rawUsername, region: rawRegion } = data;
 
-		const username = rawUsername.replace("-", "#").toLowerCase();
+		const username = parseRiotId(rawUsername);
 		const region = regionToConstant(rawRegion.toUpperCase());
 
 		const user = await getUserByNameAndRegion(username, region);

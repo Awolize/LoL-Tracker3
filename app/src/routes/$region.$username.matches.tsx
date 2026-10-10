@@ -5,6 +5,7 @@ import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
 import { MatchHistory } from "~/features/matches/match-history";
 import { regionToDisplay } from "~/features/shared/champs";
+import { parseRiotId } from "~/features/shared/riot-id";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
 import { getMatchesFn } from "~/server/matches/mutations";
 import { OptionsProvider } from "~/stores/options-persistent-store";
@@ -13,7 +14,7 @@ import { metaDescription } from "~/utils/seo";
 
 export const Route = createFileRoute("/$region/$username/matches")({
 	loader: async ({ params: { username, region } }) => {
-		const usernameParsed = username.replace("-", "#");
+		const usernameParsed = parseRiotId(username);
 
 		const result = await getMatchesFn({
 			data: { username: usernameParsed, region, take: 50 },

@@ -4,6 +4,7 @@ import { and, desc, eq, gt, sql } from "drizzle-orm";
 import { db } from "~/db";
 import { challenge, challengesDetails, summoner } from "~/db/schema";
 import { regionToConstant } from "~/features/shared/champs";
+import { parseRiotId } from "~/features/shared/riot-id";
 
 const getChallengeUserRank = createServerFn()
 	.validator((input: { challengeId: number; puuid: string }) => input)
@@ -66,7 +67,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 		}
 
 		// Check if user is in top 100
-		const normalizedUsername = username.replace("-", "#").toLowerCase();
+		const normalizedUsername = parseRiotId(username).toLowerCase();
 		const regionEnum = regionToConstant(region.toUpperCase());
 
 		const userInTop100 = top100.find(

@@ -7,6 +7,7 @@ import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
 import ChallengeLeaderboard from "~/features/challenges/challenge-leaderboard";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
+import { parseRiotId } from "~/features/shared/riot-id";
 import { getChallengeConfig } from "~/server/api/get-challenge-config.api";
 import { getChallengeLeaderboardWithHighlight } from "~/server/api/get-challenge-leaderboard.api";
 import { getDataDragonVersion } from "~/server/api/mutations";
@@ -91,7 +92,7 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 
 		// Include highlighted user in SEO if present
 		if (search.username) {
-			const cleanUsername = search.username.replace("-", "#");
+			const cleanUsername = parseRiotId(search.username);
 			title = `${cleanUsername} - ${challengeName} | LoL Mastery Tracker`;
 			description = `View ${cleanUsername}'s ranking in the ${challengeName} challenge on Awot's Challenge Tracker. ${challengeDescription}`;
 		}
@@ -145,7 +146,7 @@ export default function RouteComponent() {
 							}}
 							className="rounded p-1 hover:bg-gray-600"
 						>
-							{search.username.replace("-", "#")} ({search.region.toUpperCase()})
+							{parseRiotId(search.username)} ({search.region.toUpperCase()})
 						</Link>
 					) : undefined
 				}

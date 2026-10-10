@@ -54,19 +54,14 @@ const projectionSelect = (from: SQL, where?: SQL) => sql`
 	${where ? sql`WHERE ${where}` : sql``}
 `;
 
-/** Project one user's participant rows for every match they appear in. */
-const projectUserMatchParticipants = async (puuid: string): Promise<void> => {
-	await db.execute(sql`
-		INSERT INTO "MatchParticipant" ${INSERT_COLUMNS}
-		${projectionSelect(
-			sql`"MatchInfo" mi
-				JOIN "MatchParticipant" ms ON ms."matchId" = mi."gameId" AND ms.puuid = ${puuid}
-				CROSS JOIN LATERAL jsonb_array_elements(mi."participants") AS p`,
-			sql`p->>'puuid' = ${puuid}`,
-		)}
-		ON CONFLICT DO NOTHING
-	`);
-};
+// There is deliberately no "repair this one user" function here. The only record of which
+// matches a user played is `MatchParticipant` itself, so such a repair has to join the very
+// projection it is trying to fill — it can only ever re-insert rows that already exist. A
+// previous `projectUserMatchParticipants` did exactly that behind an "if the user has no
+// projected rows" guard, which is precisely the case where its own join returns nothing, so it
+// never inserted a row. A user with no projected rows therefore has no readable history until a
+// rebuild by match id (see `projectMatchesParticipants` above, driven by
+// `scripts/backfill-match-participants.ts`).
 
 /**
  * Project every participant of the given matches. Used by the backfill script
@@ -87,28 +82,6 @@ export const projectMatchesParticipants = async (gameIds: string[]): Promise<voi
 		)}
 		ON CONFLICT DO NOTHING
 	`);
-};
-
-/**
- * Cheap guard: if the user appears in no projected participant row at all, project their
- * history from the jsonb before querying. That is what repairs a user whose matches were
- * written before the write path projected participants, or before the one-off backfill
- * ran; for everyone else it is one indexed lookup.
- *
- * Presence, not a row count, is the right signal now that `MatchParticipant` is the write
- * path as well as the projection: participants are inserted in the same transaction as
- * their match, so a user either has rows or has no history to read.
- */
-export const ensureUserParticipantsProjected = async (puuid: string): Promise<void> => {
-	const [anyRow] = await db
-		.select({ matchId: matchParticipant.matchId })
-		.from(matchParticipant)
-		.where(eq(matchParticipant.puuid, puuid))
-		.limit(1);
-
-	if (!anyRow) {
-		await projectUserMatchParticipants(puuid);
-	}
 };
 
 /** Distinct champions the user played in matches/participations matching the filters. */
