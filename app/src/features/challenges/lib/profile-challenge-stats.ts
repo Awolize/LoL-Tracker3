@@ -212,8 +212,40 @@ function getHighestTierForChallenge(thresholds: Record<string, number>): string 
 }
 
 /**
- * True when synced numeric score meets the ladder's top threshold.
- * Riot sometimes leaves `progress.level` behind the score, so this backs maxed detection.
+ * Riot awards no further Challenge Score for taking a challenge past Master, so Master — or
+ * whatever lower tier is a challenge's own top — is what "finished" means here. Grandmaster and
+ * Challenger thresholds still exist in the config and are still drawn on a challenge's tier ladder;
+ * they are simply not required for it to count as complete.
+ */
+const SCORING_CEILING = "MASTER";
+
+/**
+ * The highest tier that still scores: the challenge's own top tier, capped at Master.
+ *
+ * Iterating rather than clamping a separately-computed top tier keeps the answer correct when the
+ * ceiling tier itself is absent from a config — it then falls to the highest tier that *is* defined
+ * below the ceiling, instead of reporting a tier that has no threshold.
+ */
+function getScoringCapTier(thresholds: Record<string, number>): string | null {
+	const upper: Record<string, number> = {};
+	for (const [k, v] of Object.entries(thresholds)) {
+		upper[k.toUpperCase()] = v;
+	}
+
+	const ceilingIndex = tierIndex(SCORING_CEILING) ?? TIER_ORDER.length - 1;
+
+	for (const [index, tier] of TIER_ORDER.entries()) {
+		if (index < ceilingIndex) continue; // above the ceiling: scores nothing
+		const value = upper[tier];
+		if (value !== undefined && value > 0) return tier;
+	}
+
+	return null;
+}
+
+/**
+ * True when synced numeric score meets the scoring ceiling's threshold.
+ * Riot sometimes leaves `progress.level` behind the score, so this backs the level check.
  */
 function isNumericProgressAtOrAboveCap(
 	row: ProfileChallengeRow,
@@ -222,10 +254,13 @@ function isNumericProgressAtOrAboveCap(
 	if (!challengesSynced) return false;
 	const value = row.progress?.value;
 	if (value == null || !Number.isFinite(value)) return false;
-	const entries = getOrderedChallengeThresholds(row.thresholds);
-	if (entries.length === 0) return false;
-	const capPoints = entries[entries.length - 1]!.points;
-	return value >= capPoints;
+	const capTier = getScoringCapTier(row.thresholds);
+	if (!capTier) return false;
+	const capEntry = getOrderedChallengeThresholds(row.thresholds).find(
+		(entry) => entry.tier === capTier,
+	);
+	if (!capEntry) return false;
+	return value >= capEntry.points;
 }
 
 export function isChallengeAtHighestTier(
@@ -233,14 +268,14 @@ export function isChallengeAtHighestTier(
 	challengesSynced: boolean,
 ): boolean {
 	if (!challengesSynced) return false;
-	const cap = getHighestTierForChallenge(row.thresholds);
+	const cap = getScoringCapTier(row.thresholds);
 	if (!cap) return false;
 	const level = row.progress?.level?.toUpperCase() ?? null;
 	if (level != null && level === cap) return true;
 	return isNumericProgressAtOrAboveCap(row, challengesSynced);
 }
 
-/** Has a tier ladder and is not yet at the top tier (includes no progress yet). */
+/** Has a tier ladder and has not yet reached its scoring ceiling (includes no progress yet). */
 export function isLeftToMaxChallenge(row: ProfileChallengeRow, challengesSynced: boolean): boolean {
 	if (!challengesSynced) return false;
 	if (getHighestTierForChallenge(row.thresholds) === null) return false;
@@ -275,12 +310,12 @@ export function computeProfileChallengeStats(
 }
 
 /**
- * Ascending sort key: lower = closer to finishing the tier ladder (1 = one tier below cap).
- * Buckets: gaps 1…n, then unknown progress, maxed, no ladder.
+ * Ascending sort key: lower = closer to reaching the scoring ceiling (1 = one tier below it).
+ * Buckets: gaps 1…n, then unknown progress, finished, no ladder.
  */
 function nearCompletionSortKey(row: ProfileChallengeRow, challengesSynced: boolean): number {
 	if (!challengesSynced) return 0;
-	const cap = getHighestTierForChallenge(row.thresholds);
+	const cap = getScoringCapTier(row.thresholds);
 	if (!cap) return 10_000;
 	if (isChallengeAtHighestTier(row, challengesSynced)) return 9000;
 	const capIdx = tierIndex(cap);

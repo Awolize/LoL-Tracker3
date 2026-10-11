@@ -298,7 +298,7 @@ export function ProfileChallengesSection({
 										"whitespace-nowrap",
 									)}
 									onClick={() => setTierFilter("maxed")}
-									title="Show maxed challenges only"
+									title="Show finished challenges only — Master is the highest tier that scores, so Master and above count as finished"
 									aria-pressed={tierFilter === "maxed"}
 								>
 									<span className="tabular-nums">{stats.maxed}</span> maxed
@@ -310,7 +310,7 @@ export function ProfileChallengesSection({
 										"whitespace-nowrap",
 									)}
 									onClick={() => setTierFilter("leftToMax")}
-									title="Show challenges still below top tier"
+									title="Show challenges still short of Master, the highest tier that scores"
 									aria-pressed={tierFilter === "leftToMax"}
 								>
 									<span className="tabular-nums">{stats.remainingToMax}</span>{" "}
