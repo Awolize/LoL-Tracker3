@@ -65,6 +65,12 @@ type RecordsRow = {
  *
  * `->>` returns NULL for a field a match predates, and NULL casts to NULL, so every `sum`/`max`
  * skips it rather than failing — which matters because the stored history spans many patches.
+ *
+ * The join to `MatchParticipant` is load-bearing, not decoration. Filtering on `p->>'puuid'` alone
+ * gives the planner no indexable predicate, so it sequentially scans *every* match in the database
+ * and expands each one's jsonb, then discards ~90% of it: measured at 5,725ms for one account with
+ * 2,621 matches, against 722ms once the projection's `(puuid, championId)` index drives the scan and
+ * the jsonb is expanded only for that summoner's matches.
  */
 export const getPersonalRecords = async (puuid: string): Promise<PersonalRecords> => {
 	const result = await db.execute(sql`
@@ -112,8 +118,11 @@ export const getPersonalRecords = async (puuid: string): Promise<PersonalRecords
 			coalesce(sum((p->>'baronKills')::int), 0)::int AS barons,
 			coalesce(sum((p->>'turretKills')::int), 0)::int AS turrets,
 			coalesce(sum((p->>'inhibitorKills')::int), 0)::int AS inhibitors
-		FROM "MatchInfo" mi, jsonb_array_elements(mi.participants) p
-		WHERE p->>'puuid' = ${puuid}
+		FROM "MatchInfo" mi
+		JOIN "MatchParticipant" mp ON mp."matchId" = mi."gameId"
+		CROSS JOIN LATERAL jsonb_array_elements(mi.participants) p
+		WHERE mp.puuid = ${puuid}
+			AND p->>'puuid' = ${puuid}
 	`);
 
 	const row = result.rows[0] as RecordsRow | undefined;
