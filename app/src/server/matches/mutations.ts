@@ -111,5 +111,14 @@ export const getMatchesFn = createServerFn({
 
 /** Recent games, oldest first, for the profile form chart. */
 export const getRecentFormFn = createServerFn({ method: "GET" })
-	.validator((input: { puuid: string; take?: number }) => input)
-	.handler(({ data }): Promise<FormEntry[]> => getRecentForm(data.puuid, data.take));
+	.validator((input: { puuid: string; take?: number; queueId?: number }) => input)
+	.handler(({ data }): Promise<FormEntry[]> =>
+		getRecentForm(data.puuid, data.take, data.queueId),
+	);
+
+/** The queues this user has matches in, for the form panel's dropdown. */
+export const getUserQueuesFn = createServerFn({ method: "GET" })
+	.validator((input: { puuid: string }) => input)
+	.handler(async ({ data }): Promise<number[]> =>
+		sortQueueIds(await getUserQueueIds(data.puuid)),
+	);

@@ -1,11 +1,22 @@
+import { useState } from "react";
+
 import { Card, CardContent, CardHeader } from "~/components/ui/card";
 import { cn } from "~/components/utils";
+import { Dropdown, type Choice } from "~/features/shared/components/dropdown";
+import { queueLabel } from "~/features/shared/queues";
 import type { FormEntry } from "~/server/matches/match-participants";
+import { getRecentFormFn } from "~/server/matches/mutations";
+
+/** How much history the chart plots. Shared with the hub loader so the two cannot drift. */
+export const RECENT_FORM_GAMES = 100;
 
 /** Games in the rolling window behind each point on the line. */
 const WINDOW = 10;
-/** Most recent results shown as pills. */
-const PILL_COUNT = 20;
+/**
+ * Most recent results shown as pills. Half the fetched history, so the strip stays a readable
+ * one-or-two-line block while the curve behind it shows a longer arc.
+ */
+const PILL_COUNT = 50;
 
 const WIDTH = 600;
 const HEIGHT = 140;
@@ -54,56 +65,119 @@ const toArea = (values: number[]): string => {
  * patch (16.20 has 8 matches, 16.19 has 179), so a date-bucketed chart would be mostly gaps, while
  * a per-game window reads well whatever history a profile has.
  */
-export function RecentFormPanel({ entries }: { entries: FormEntry[] }) {
-	if (entries.length < 2) return null;
+interface Props {
+	entries: FormEntry[];
+	puuid: string;
+	/** Every queue the summoner has played, for the selector. */
+	queueIds: number[];
+}
 
-	const winRates = rollingWinRate(entries);
+export function RecentFormPanel({ entries, puuid, queueIds }: Props) {
+	// The queue choice is local rather than a URL param: this is a widget on the profile rather than
+	// a view of its own, so switching it refetches client-side instead of re-running the hub loader.
+	const [queueId, setQueueId] = useState<number | undefined>(undefined);
+	const [current, setCurrent] = useState<FormEntry[]>(entries);
+	const [loading, setLoading] = useState(false);
+
+	const selectQueue = async (value: number) => {
+		const next = value === 0 ? undefined : value;
+		setQueueId(next);
+		setLoading(true);
+		try {
+			setCurrent(
+				await getRecentFormFn({ data: { puuid, take: RECENT_FORM_GAMES, queueId: next } }),
+			);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	const queueChoices: Choice[] = [
+		{ text: "All queues", value: 0 },
+		...queueIds.map((id) => ({ text: queueLabel(id), value: id })),
+	];
+	const queueChoice =
+		queueChoices.find((choice) => choice.value === (queueId ?? 0)) ?? queueChoices[0]!;
+
+	// Stay mounted when a queue has too little history, so the selector cannot strand the visitor
+	// on a chart that is not there.
+	if (current.length < 2) {
+		return (
+			<Card className="gap-4 py-4">
+				<CardHeader className="px-4 pb-0">
+					<h3 className="text-lg font-semibold">Recent form</h3>
+					<p className="text-muted-foreground text-sm">
+						Not enough stored games in this queue to plot a trend.
+					</p>
+				</CardHeader>
+				<CardContent className="px-4">
+					<Dropdown
+						choices={queueChoices}
+						choice={queueChoice}
+						callback={selectQueue}
+						menuLabel="Queue"
+					/>
+				</CardContent>
+			</Card>
+		);
+	}
+
+	const winRates = rollingWinRate(current);
 	const linePath = toPath(winRates);
 	const areaPath = toArea(winRates);
 
-	const wins = entries.filter((entry) => entry.win).length;
-	const overallRate = Math.round((wins / entries.length) * 100);
+	const wins = current.filter((entry) => entry.win).length;
+	const overallRate = Math.round((wins / current.length) * 100);
 	const currentRate = Math.round(winRates[winRates.length - 1] ?? 0);
 	const trendUp = currentRate >= overallRate;
 
-	const recent = [...entries].reverse().slice(0, PILL_COUNT);
+	const recent = [...current].reverse().slice(0, PILL_COUNT);
 
 	return (
 		<Card className="gap-4 py-4">
 			<CardHeader className="px-4 pb-0">
-				<div className="flex flex-wrap items-baseline justify-between gap-2">
+				<div className="flex flex-wrap items-start justify-between gap-3">
 					<div>
 						<h3 className="text-lg font-semibold">Recent form</h3>
 						<p className="text-muted-foreground text-sm">
 							Win rate over each rolling {WINDOW}-game window, across the last{" "}
-							{entries.length} games
+							{current.length} games
+							{queueId === undefined ? "" : ` in ${queueLabel(queueId)}`}
 						</p>
 					</div>
-					<div className="flex items-baseline gap-2">
-						<span
-							className={cn(
-								"text-2xl font-bold",
-								trendUp
-									? "text-emerald-600 dark:text-emerald-400"
-									: "text-red-600 dark:text-red-400",
-							)}
-						>
-							{currentRate}%
-						</span>
-						<span className="text-muted-foreground text-sm">
-							now · {overallRate}% overall
-						</span>
+					<div className="flex flex-wrap items-center gap-3">
+						<div className="flex items-baseline gap-2">
+							<span
+								className={cn(
+									"text-2xl font-bold",
+									trendUp
+										? "text-emerald-600 dark:text-emerald-400"
+										: "text-red-600 dark:text-red-400",
+								)}
+							>
+								{currentRate}%
+							</span>
+							<span className="text-muted-foreground text-sm">
+								now · {overallRate}% overall
+							</span>
+						</div>
+						<Dropdown
+							choices={queueChoices}
+							choice={queueChoice}
+							callback={selectQueue}
+							menuLabel="Queue"
+						/>
 					</div>
 				</div>
 			</CardHeader>
 
-			<CardContent className="px-4">
+			<CardContent className={cn("px-4 transition-opacity", loading && "opacity-50")}>
 				<svg
 					viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
 					preserveAspectRatio="none"
 					className="h-36 w-full"
 					role="img"
-					aria-label={`Rolling ${WINDOW}-game win rate over the last ${entries.length} games, currently ${currentRate}%`}
+					aria-label={`Rolling ${WINDOW}-game win rate over the last ${current.length} games, currently ${currentRate}%`}
 				>
 					<defs>
 						<linearGradient id="form-fill" x1="0" y1="0" x2="0" y2="1">

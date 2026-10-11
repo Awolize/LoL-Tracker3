@@ -172,9 +172,18 @@ export type FormEntry = {
  *
  * Everything here is already in the `MatchParticipant` projection, so this needs no jsonb scan.
  * Returned oldest-first so a chart can plot it left to right without re-sorting, while the query
- * still takes the *newest* `take` rows.
+ * still takes the *newest* `take` rows. `queueId` narrows the window to one queue, which the form
+ * panel's dropdown uses — the window is always the newest `take` games *of that queue*, not a
+ * filtered subset of the newest `take` overall.
  */
-export const getRecentForm = async (puuid: string, take = 50): Promise<FormEntry[]> => {
+export const getRecentForm = async (
+	puuid: string,
+	take = 50,
+	queueId?: number,
+): Promise<FormEntry[]> => {
+	const conditions = [eq(matchParticipant.puuid, puuid)];
+	if (queueId !== undefined) conditions.push(eq(matchInfo.queueId, queueId));
+
 	const rows = await db
 		.select({
 			gameId: matchParticipant.matchId,
@@ -191,7 +200,7 @@ export const getRecentForm = async (puuid: string, take = 50): Promise<FormEntry
 		})
 		.from(matchParticipant)
 		.innerJoin(matchInfo, eq(matchParticipant.matchId, matchInfo.gameId))
-		.where(eq(matchParticipant.puuid, puuid))
+		.where(and(...conditions))
 		// Same total order as the match list, so "recent" means the same thing in both places.
 		.orderBy(desc(matchInfo.gameStartTimestamp), desc(matchParticipant.matchId))
 		.limit(take);
