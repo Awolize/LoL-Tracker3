@@ -47,7 +47,7 @@ export function SiteHeader({ center, variant = "hub" }: SiteHeaderProps) {
 					<div className="min-w-0 flex-1">
 						<Search align="end" />
 					</div>
-					<div className="absolute top-1 right-0 md:-right-6">
+					<div className="absolute top-1/2 right-0 -translate-y-1/2 md:-right-6">
 						<ThemeSelector />
 					</div>
 				</div>
