@@ -37,10 +37,10 @@ export function SiteHeader({ center, variant = "hub" }: SiteHeaderProps) {
 				) : null}
 				{/*
 				 * Shares the row with the wordmark and the search when there is room, and drops to a full
-				 * row of its own below `lg` when there is not — the nav is the widest thing here, so it is
+				 * row of its own below 1400px when there is not — the nav is the widest thing here, so it is
 				 * what gives way. `order-last` keeps it below the search on that second line.
 				 */}
-				<div className="order-last w-full min-w-0 lg:order-none lg:w-auto lg:flex-1">
+				<div className="order-last w-full min-w-0 min-[1400px]:order-none min-[1400px]:w-auto min-[1400px]:flex-1">
 					<HeaderNav />
 				</div>
 				<div className="relative ml-auto flex min-w-0 items-center pe-11 sm:pe-12">
