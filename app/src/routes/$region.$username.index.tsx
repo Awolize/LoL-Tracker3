@@ -1,5 +1,5 @@
 import * as Sentry from "@sentry/tanstackstart-react";
-import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 import { motion } from "motion/react";
 
 import FooterLinks from "~/components/footer/FooterLinks";
@@ -11,9 +11,6 @@ import { regionToConstant, regionToDisplay } from "~/features/shared/champs";
 import { PersonalRecordsPanel } from "~/features/summoner/components/personal-records";
 import { RecentFormPanel, RECENT_FORM_GAMES } from "~/features/summoner/components/recent-form";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
-import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
-import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
-import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
 import type { FormEntry } from "~/server/matches/match-participants";
 import { getRecentFormFn, getUserQueuesFn } from "~/server/matches/mutations";
 import {
@@ -23,26 +20,6 @@ import {
 } from "~/server/summoner/mutations";
 import type { PersonalRecords } from "~/server/summoner/personal-records";
 import { seo } from "~/utils/seo";
-
-/** Path strings avoid importing sibling route modules into this chunk. */
-const NAV_ITEMS = [
-	{
-		route: MasteryRoute,
-		title: "Mastery Points Tracker",
-		description: "Tailored for Catch 'em all, works with Master yourself and Master your enemy",
-	},
-	{
-		route: ChallengeRoute,
-		title: "Challenge Tracker",
-		description:
-			"Tracking helper for specific challenges, like All Random All Champions, Jack of All Champs, and Protean Override.",
-	},
-	{
-		route: MatchesRoute,
-		title: "Match History",
-		description: "View your recent games",
-	},
-];
 
 const containerVariants = {
 	hidden: { opacity: 0 },
@@ -250,30 +227,6 @@ function Client() {
 
 					<FullSummonerUpdate user={{ ...summonerData, region }} awaitMatches={false} />
 				</motion.div>
-
-				<nav className="flex flex-col gap-4">
-					{NAV_ITEMS.map(({ route, title, description }) => (
-						<motion.div
-							key={route.to}
-							variants={itemVariants}
-							whileHover={{ scale: 1.02 }}
-							whileTap={{ scale: 0.98 }}
-							className="relative"
-						>
-							<Link
-								to={route.to}
-								params={{ region: rawRegion, username: rawUsername }}
-								preload="intent"
-								className="group border-border bg-card hover:border-primary hover:bg-accent/50 block h-full rounded-lg border p-6 transition-colors hover:shadow-lg"
-							>
-								<h2 className="group-hover:text-primary text-xl font-semibold transition-colors">
-									{title}
-								</h2>
-								<p className="text-muted-foreground mt-2 text-sm">{description}</p>
-							</Link>
-						</motion.div>
-					))}
-				</nav>
 
 				{recentForm.length > 1 ? (
 					<motion.div variants={itemVariants}>
