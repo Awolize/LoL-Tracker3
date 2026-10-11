@@ -19,6 +19,7 @@ import {
 	stableRegionShardJobOpts,
 	stableSummonerJobOpts,
 } from "~/server/jobs/queue-stable-job-opts";
+import { getPersonalRecords, type PersonalRecords } from "~/server/summoner/personal-records";
 
 type SummonerResult = {
 	summonerData: {
@@ -294,3 +295,8 @@ export const getProfileHubChallengesFn = createServerFn({ method: "GET" })
 			dataDragonVersion: version,
 		};
 	});
+
+/** Career records for the profile hub (multikills, bests, lifetime objectives). */
+export const getPersonalRecordsFn = createServerFn({ method: "GET" })
+	.validator((input: { puuid: string }) => input)
+	.handler(({ data }): Promise<PersonalRecords> => getPersonalRecords(data.puuid));

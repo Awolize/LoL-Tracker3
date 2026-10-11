@@ -8,11 +8,17 @@ import { SiteHeader } from "~/components/header/SiteHeader";
 import { ProfileChallengesSection } from "~/features/challenges/profile-challenges-section";
 import type { ProfileHubChallengesPayload } from "~/features/challenges/types/profile-challenge-row";
 import { regionToConstant, regionToDisplay } from "~/features/shared/champs";
+import { PersonalRecordsPanel } from "~/features/summoner/components/personal-records";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
 import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
 import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
 import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
-import { getProfileHubChallengesFn, getUserByNameAndRegionFn } from "~/server/summoner/mutations";
+import {
+	getProfileHubChallengesFn,
+	getPersonalRecordsFn,
+	getUserByNameAndRegionFn,
+} from "~/server/summoner/mutations";
+import type { PersonalRecords } from "~/server/summoner/personal-records";
 import { seo } from "~/utils/seo";
 
 /** Path strings avoid importing sibling route modules into this chunk. */
@@ -81,13 +87,24 @@ export const Route = createFileRoute("/$region/$username/")({
 		}
 
 		let profileChallenges: ProfileHubChallengesPayload | null = null;
+		let personalRecords: PersonalRecords | null = null;
 		if (result.summonerData) {
-			profileChallenges = await getProfileHubChallengesFn({
-				data: { puuid: result.summonerData.puuid },
-			});
+			// Independent of each other, so they share one round trip.
+			[profileChallenges, personalRecords] = await Promise.all([
+				getProfileHubChallengesFn({ data: { puuid: result.summonerData.puuid } }),
+				getPersonalRecordsFn({ data: { puuid: result.summonerData.puuid } }),
+			]);
 		}
 
-		return { username, region, rawUsername, rawRegion, profileChallenges, ...result };
+		return {
+			username,
+			region,
+			rawUsername,
+			rawRegion,
+			profileChallenges,
+			personalRecords,
+			...result,
+		};
 	},
 	component: RouteComponent,
 	head: ({ loaderData }) => {
@@ -161,6 +178,7 @@ function Client() {
 		profileIconUrl,
 		error,
 		profileChallenges,
+		personalRecords,
 	} = Route.useLoaderData();
 
 	if (error === "rate_limit")
@@ -243,6 +261,12 @@ function Client() {
 						</motion.div>
 					))}
 				</nav>
+
+				{personalRecords ? (
+					<motion.div variants={itemVariants}>
+						<PersonalRecordsPanel records={personalRecords} />
+					</motion.div>
+				) : null}
 
 				{profileChallenges ? (
 					<motion.div variants={itemVariants}>
