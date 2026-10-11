@@ -1,6 +1,7 @@
-import { sql } from "drizzle-orm";
+import { eq, sql } from "drizzle-orm";
 
 import { db } from "~/db";
+import { matchInfo, matchParticipant } from "~/db/schema";
 
 export type PersonalRecords = {
 	games: number;
@@ -54,78 +55,76 @@ type RecordsRow = {
 };
 
 /**
- * Career records for one summoner, as a single aggregate pass over their participant entries.
+ * Career records for one summoner, as a single aggregate pass over their projected rows.
  *
- * Almost every field here is jsonb-only — `doubleKills`…`pentaKills`, `largestKillingSpree`,
- * `largestMultiKill` and the per-game objective counts are not in the `MatchParticipant`
- * projection at all — so this expands `MatchInfo.participants` and filters to the summoner, the
- * same approach `match-participants.ts` uses for its projection. `jsonb_array_elements` in `FROM`
- * is not something the Drizzle query builder can express, which is the documented reason to reach
- * for raw `sql`.
+ * Everything here is read from the `MatchParticipant` projection (`gameDuration` from the joined
+ * `MatchInfo`), so the query never expands `MatchInfo.participants`. It used to: the multikill
+ * counters, the per-game objective counts and the remake flag were jsonb-only, so it crossed
+ * `jsonb_array_elements(participants)` and filtered back down to the summoner — reading all ten
+ * players' full payloads to keep 15 numbers for one of them.
  *
- * `->>` returns NULL for a field a match predates, and NULL casts to NULL, so every `sum`/`max`
- * skips it rather than failing — which matters because the stored history spans many patches.
+ * Measured for one account with 2,621 matches: the jsonb version took 722ms cold and still
+ * 452–471ms with the pages cached, against 15ms now, and total buffers drop from ~32k to ~6.6k. The
+ * gain is the narrow read, so it survives a warm cache rather than depending on one.
  *
- * The join to `MatchParticipant` is load-bearing, not decoration. Filtering on `p->>'puuid'` alone
- * gives the planner no indexable predicate, so it sequentially scans *every* match in the database
- * and expands each one's jsonb, then discards ~90% of it: measured at 5,725ms for one account with
- * 2,621 matches, against 722ms once the projection's `(puuid, championId)` index drives the scan and
- * the jsonb is expanded only for that summoner's matches.
+ * `sum`/`max` skip NULL, and a column is NULL for a match that predates the field (Riot only
+ * started sending some of these counters mid-2022), so the totals span mixed patches without
+ * failing — the same reason the jsonb `->>` extraction was NULL-tolerant.
+ *
+ * The join to `MatchInfo` is still load-bearing: `gameDuration` lives there, not on the
+ * projection. It no longer expands any jsonb.
+ *
+ * Raw `sql` is used only for the aggregate expressions the builder cannot express: `FILTER
+ * (WHERE ...)`, the `array_agg(... ORDER BY ...)` champion tie-breaks, the kills+assists/deaths
+ * ratio, and the objective `sum`s that need a `coalesce` to report zero rather than NULL.
  */
 export const getPersonalRecords = async (puuid: string): Promise<PersonalRecords> => {
-	const result = await db.execute(sql`
-		SELECT
-			count(*)::int AS games,
-			count(*) FILTER (WHERE (p->>'win')::boolean)::int AS wins,
-			coalesce(sum((p->>'doubleKills')::int), 0)::int AS doubles,
-			coalesce(sum((p->>'tripleKills')::int), 0)::int AS triples,
-			coalesce(sum((p->>'quadraKills')::int), 0)::int AS quadras,
-			coalesce(sum((p->>'pentaKills')::int), 0)::int AS pentas,
-			coalesce(sum((p->>'unrealKills')::int), 0)::int AS unreal_kills,
-			coalesce(max((p->>'largestKillingSpree')::int), 0)::int AS best_spree,
-			coalesce(max((p->>'largestMultiKill')::int), 0)::int AS best_multikill,
-			max((p->>'totalDamageDealtToChampions')::int) AS best_damage,
-			(array_agg(
-				p->>'championName'
-				ORDER BY (p->>'totalDamageDealtToChampions')::int DESC NULLS LAST
-			))[1] AS best_damage_champion,
-			max((p->>'kills')::int) AS best_kills,
-			(array_agg(
-				p->>'championName'
-				ORDER BY (p->>'kills')::int DESC NULLS LAST
-			))[1] AS best_kills_champion,
-			-- Perfect games would divide by zero, so they are excluded rather than clamped; they
-			-- are reported separately as "perfect games".
-			(max(
-				((p->>'kills')::int + (p->>'assists')::int)::float
-				/ GREATEST((p->>'deaths')::int, 1)
-			) FILTER (WHERE (p->>'deaths')::int > 0)) AS best_kda,
-			(array_agg(
-				p->>'championName'
-				ORDER BY ((p->>'kills')::int + (p->>'assists')::int)::float
-					/ GREATEST((p->>'deaths')::int, 1) DESC NULLS LAST
-			) FILTER (WHERE (p->>'deaths')::int > 0))[1] AS best_kda_champion,
-			max((p->>'visionScore')::int) AS best_vision,
-			count(*) FILTER (WHERE (p->>'deaths')::int = 0)::int AS perfect_games,
-			-- Remakes ("early surrender") are excluded: a 71-second game is not a fastest-win record,
-			-- it is a lobby that never happened.
-			min(mi."gameDuration") FILTER (
-				WHERE (p->>'win')::boolean
-					AND NOT coalesce((p->>'gameEndedInEarlySurrender')::boolean, false)
-			) AS fastest_win_seconds,
-			max(mi."gameDuration") AS longest_game_seconds,
-			coalesce(sum((p->>'dragonKills')::int), 0)::int AS dragons,
-			coalesce(sum((p->>'baronKills')::int), 0)::int AS barons,
-			coalesce(sum((p->>'turretKills')::int), 0)::int AS turrets,
-			coalesce(sum((p->>'inhibitorKills')::int), 0)::int AS inhibitors
-		FROM "MatchInfo" mi
-		JOIN "MatchParticipant" mp ON mp."matchId" = mi."gameId"
-		CROSS JOIN LATERAL jsonb_array_elements(mi.participants) p
-		WHERE mp.puuid = ${puuid}
-			AND p->>'puuid' = ${puuid}
-	`);
+	const rows = await db
+		.select({
+			games: sql<number>`count(*)::int`,
+			wins: sql<number>`count(*) FILTER (WHERE ${matchParticipant.win})::int`,
+			doubles: sql<number>`coalesce(sum(${matchParticipant.doubleKills}), 0)::int`,
+			triples: sql<number>`coalesce(sum(${matchParticipant.tripleKills}), 0)::int`,
+			quadras: sql<number>`coalesce(sum(${matchParticipant.quadraKills}), 0)::int`,
+			pentas: sql<number>`coalesce(sum(${matchParticipant.pentaKills}), 0)::int`,
+			unreal_kills: sql<number>`coalesce(sum(${matchParticipant.unrealKills}), 0)::int`,
+			best_spree: sql<number>`coalesce(max(${matchParticipant.largestKillingSpree}), 0)::int`,
+			best_multikill: sql<number>`coalesce(max(${matchParticipant.largestMultiKill}), 0)::int`,
+			best_damage: sql<number | null>`max(${matchParticipant.totalDamageDealtToChampions})`,
+			best_damage_champion: sql<
+				string | null
+			>`(array_agg(${matchParticipant.championName} ORDER BY ${matchParticipant.totalDamageDealtToChampions} DESC NULLS LAST))[1]`,
+			best_kills: sql<number | null>`max(${matchParticipant.kills})`,
+			best_kills_champion: sql<
+				string | null
+			>`(array_agg(${matchParticipant.championName} ORDER BY ${matchParticipant.kills} DESC NULLS LAST))[1]`,
+			// Perfect games would divide by zero, so they are excluded rather than clamped; they
+			// are reported separately as "perfect games".
+			best_kda: sql<
+				number | null
+			>`(max((${matchParticipant.kills} + ${matchParticipant.assists})::float / GREATEST(${matchParticipant.deaths}, 1)) FILTER (WHERE ${matchParticipant.deaths} > 0))`,
+			best_kda_champion: sql<
+				string | null
+			>`(array_agg(${matchParticipant.championName} ORDER BY (${matchParticipant.kills} + ${matchParticipant.assists})::float / GREATEST(${matchParticipant.deaths}, 1) DESC NULLS LAST) FILTER (WHERE ${matchParticipant.deaths} > 0))[1]`,
+			best_vision: sql<number | null>`max(${matchParticipant.visionScore})`,
+			perfect_games: sql<number>`count(*) FILTER (WHERE ${matchParticipant.deaths} = 0)::int`,
+			// Remakes ("early surrender") are excluded: a 71-second game is not a fastest-win
+			// record, it is a lobby that never happened. The flag cannot be replaced by a duration
+			// threshold — this account's real record is a 226-second win, inside the remake window.
+			fastest_win_seconds: sql<
+				number | null
+			>`min(${matchInfo.gameDuration}) FILTER (WHERE ${matchParticipant.win} AND NOT coalesce(${matchParticipant.gameEndedInEarlySurrender}, false))`,
+			longest_game_seconds: sql<number | null>`max(${matchInfo.gameDuration})`,
+			dragons: sql<number>`coalesce(sum(${matchParticipant.dragonKills}), 0)::int`,
+			barons: sql<number>`coalesce(sum(${matchParticipant.baronKills}), 0)::int`,
+			turrets: sql<number>`coalesce(sum(${matchParticipant.turretKills}), 0)::int`,
+			inhibitors: sql<number>`coalesce(sum(${matchParticipant.inhibitorKills}), 0)::int`,
+		})
+		.from(matchParticipant)
+		.innerJoin(matchInfo, eq(matchParticipant.matchId, matchInfo.gameId))
+		.where(eq(matchParticipant.puuid, puuid));
 
-	const row = result.rows[0] as RecordsRow | undefined;
+	const row = rows[0] as RecordsRow | undefined;
 
 	// A summoner with no stored matches still gets a usable, all-zero panel.
 	const fallback: RecordsRow = {

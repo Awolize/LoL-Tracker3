@@ -4,6 +4,12 @@
  * Idempotent and resumable — safe to re-run. `MatchInfo` stays the source of truth,
  * so this only ever derives rows; it never deletes or rewrites match data.
  *
+ * Each batch *rebuilds* its matches' projection rows (delete + insert in one transaction), so a
+ * re-run also fills in columns that were promoted into the projection after the rows were first
+ * written — the multikill/objective columns and `gameEndedInEarlySurrender`, for instance. An
+ * "insert only if absent" rebuild would skip every one of the ~400k rows that already exist and
+ * leave the new columns NULL.
+ *
  * Usage (from `app/`):
  *   pnpm db:backfill-participants
  *

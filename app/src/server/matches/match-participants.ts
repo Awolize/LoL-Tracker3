@@ -12,11 +12,15 @@ import { db } from "~/db";
 import { matchInfo, matchParticipant } from "~/db/schema";
 import type { MatchFilterOptions } from "~/server/matches/get-matches";
 
+// Must list the columns in the order `projectionSelect` returns them: the insert is positional.
 const INSERT_COLUMNS = sql`(
 	"matchId", "puuid", "participantId", "teamId", "championId", "championName", "win",
-	"teamPosition", "individualPosition", "placement", "kills", "deaths", "assists",
-	"goldEarned", "totalMinionsKilled", "neutralMinionsKilled", "visionScore", "champLevel",
-	"timePlayed", "totalDamageDealtToChampions",
+	"gameEndedInEarlySurrender", "teamPosition", "individualPosition", "placement", "kills",
+	"deaths", "assists", "goldEarned", "totalMinionsKilled", "neutralMinionsKilled", "visionScore",
+	"champLevel", "timePlayed", "totalDamageDealtToChampions",
+	"doubleKills", "tripleKills", "quadraKills", "pentaKills", "unrealKills",
+	"largestKillingSpree", "largestMultiKill",
+	"dragonKills", "baronKills", "turretKills", "inhibitorKills",
 	"item0", "item1", "item2", "item3", "item4", "item5", "item6",
 	"summoner1Id", "summoner2Id"
 )`;
@@ -34,6 +38,7 @@ const projectionSelect = (from: SQL, where?: SQL) => sql`
 		(p->>'championId')::int,
 		p->>'championName',
 		(p->>'win')::boolean,
+		(p->>'gameEndedInEarlySurrender')::boolean,
 		nullif(p->>'teamPosition', ''),
 		nullif(p->>'individualPosition', ''),
 		(p->>'placement')::int,
@@ -47,6 +52,11 @@ const projectionSelect = (from: SQL, where?: SQL) => sql`
 		(p->>'champLevel')::int,
 		(p->>'timePlayed')::int,
 		(p->>'totalDamageDealtToChampions')::int,
+		(p->>'doubleKills')::int, (p->>'tripleKills')::int, (p->>'quadraKills')::int,
+		(p->>'pentaKills')::int, (p->>'unrealKills')::int,
+		(p->>'largestKillingSpree')::int, (p->>'largestMultiKill')::int,
+		(p->>'dragonKills')::int, (p->>'baronKills')::int,
+		(p->>'turretKills')::int, (p->>'inhibitorKills')::int,
 		(p->>'item0')::int, (p->>'item1')::int, (p->>'item2')::int, (p->>'item3')::int,
 		(p->>'item4')::int, (p->>'item5')::int, (p->>'item6')::int,
 		(p->>'summoner1Id')::int, (p->>'summoner2Id')::int
@@ -64,24 +74,40 @@ const projectionSelect = (from: SQL, where?: SQL) => sql`
 // `scripts/backfill-match-participants.ts`).
 
 /**
- * Project every participant of the given matches. Used by the backfill script
- * (and safe to call repeatedly — it is idempotent).
+ * Rebuild the projection rows for the given matches from `MatchInfo.participants`. Used by the
+ * backfill script.
+ *
+ * The batch's rows are replaced inside one transaction rather than only inserted when absent: a
+ * plain `ON CONFLICT DO NOTHING` would leave a column promoted into the projection *after* a row
+ * was first written unpopulated forever — which is exactly the state the multikill/objective
+ * columns and `gameEndedInEarlySurrender` start in on the ~400k rows that already exist.
+ *
+ * `DO NOTHING` is still needed on the insert itself: a match can hold two bots, which share the
+ * `puuid` "BOT" but not their `participantId`, while `MatchParticipant_matchId_puuid_key` allows
+ * the projection to keep only one of them. That is also why the rebuild cannot simply upsert on
+ * the primary key — the losing bot row would collide with the unique index.
  */
 export const projectMatchesParticipants = async (gameIds: string[]): Promise<void> => {
 	if (gameIds.length === 0) return;
-	await db.execute(sql`
-		INSERT INTO "MatchParticipant" ${INSERT_COLUMNS}
-		${projectionSelect(
-			sql`"MatchInfo" mi
-				CROSS JOIN LATERAL jsonb_array_elements(mi."participants") AS p
-				JOIN "Summoner" s ON s."puuid" = p->>'puuid'`,
-			sql`mi."gameId" IN (${sql.join(
-				gameIds.map((id) => sql`${id}`),
-				sql`, `,
-			)})`,
-		)}
-		ON CONFLICT DO NOTHING
-	`);
+
+	const ids = sql.join(
+		gameIds.map((id) => sql`${id}`),
+		sql`, `,
+	);
+
+	await db.transaction(async (tx) => {
+		await tx.execute(sql`DELETE FROM "MatchParticipant" WHERE "matchId" IN (${ids})`);
+		await tx.execute(sql`
+			INSERT INTO "MatchParticipant" ${INSERT_COLUMNS}
+			${projectionSelect(
+				sql`"MatchInfo" mi
+					CROSS JOIN LATERAL jsonb_array_elements(mi."participants") AS p
+					JOIN "Summoner" s ON s."puuid" = p->>'puuid'`,
+				sql`mi."gameId" IN (${ids})`,
+			)}
+			ON CONFLICT DO NOTHING
+		`);
+	});
 };
 
 /** Distinct champions the user played in matches/participations matching the filters. */

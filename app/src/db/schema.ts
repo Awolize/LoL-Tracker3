@@ -409,6 +409,12 @@ export const matchParticipant = pgTable(
 		championId: integer().notNull(),
 		championName: text().notNull(),
 		win: boolean().notNull(),
+		/**
+		 * Match-V5 `gameEndedInEarlySurrender`: the lobby was remade. Nullable because matches that
+		 * predate the field carry no value — treat NULL as false. Personal records needs it to keep
+		 * sub-3-minute remakes out of the "fastest win" record without touching the jsonb.
+		 */
+		gameEndedInEarlySurrender: boolean(),
 		teamPosition: text(),
 		individualPosition: text(),
 		/** Arena placement (1–8); 0 for non-Arena games. */
@@ -423,6 +429,20 @@ export const matchParticipant = pgTable(
 		champLevel: integer().notNull(),
 		timePlayed: integer().notNull(),
 		totalDamageDealtToChampions: integer().notNull(),
+		/** Multikill counts for the game; nullable because older matches predate the fields. */
+		doubleKills: integer(),
+		tripleKills: integer(),
+		quadraKills: integer(),
+		pentaKills: integer(),
+		unrealKills: integer(),
+		/** Longest killing spree in the game, and the highest multikill tier reached (1–5). */
+		largestKillingSpree: integer(),
+		largestMultiKill: integer(),
+		/** Objectives this participant personally took: epic monsters and structures. */
+		dragonKills: integer(),
+		baronKills: integer(),
+		turretKills: integer(),
+		inhibitorKills: integer(),
 		item0: integer(),
 		item1: integer(),
 		item2: integer(),

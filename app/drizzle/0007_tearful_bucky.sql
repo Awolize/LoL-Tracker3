@@ -1,0 +1,1 @@
+ALTER TABLE "MatchParticipant" ADD COLUMN "gameEndedInEarlySurrender" boolean;
