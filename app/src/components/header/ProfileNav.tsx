@@ -1,17 +1,22 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 
+import { headerLinkClassName } from "~/components/header/header-link";
 import { cn } from "~/components/utils";
 import { isShardRegionParam } from "~/features/shared/champs";
 
 /**
- * The profile's sections, as header tabs.
+ * The profile's sections, as tabs in the site header.
  *
  * These used to be cards on the hub only, which left the sub-pages as dead ends: from the mastery
- * page there was no way to reach match history except the back button or the site logo. Living in
- * the header means every profile page can reach every other one.
+ * page there was no way to reach match history except the back button or the site logo.
  *
- * The route paths carry the params as `$region`/`$username` and are only used for `to`; the actual
- * link params come from the current URL, so a tab keeps you on the summoner you are already viewing.
+ * They deliberately share the header's existing link look (`headerLinkClassName` — the small
+ * bordered pill used by the wordmark's Challenges link and the summoner link) and add no divider of
+ * their own. An earlier version drew a `border-t` across this row, which turned the single header
+ * into two stacked bars that read as two separate headers.
+ *
+ * The route paths carry the params as `$region`/`$username` and are only used for `to`; the link
+ * params come from the current URL, so a tab keeps you on the summoner you are already viewing.
  */
 const TABS = [
 	{
@@ -48,7 +53,7 @@ export function ProfileNav() {
 	return (
 		<nav
 			aria-label="Profile sections"
-			className="flex min-w-0 gap-1 overflow-x-auto border-t px-1 py-1 md:px-8"
+			className="flex min-w-0 items-center gap-1 overflow-x-auto px-1 pb-2 md:px-8"
 		>
 			{TABS.map((tab) => {
 				const href = `/${regionSegment}/${usernameSegment}/${tab.segment}`;
@@ -61,13 +66,12 @@ export function ProfileNav() {
 						to={tab.to}
 						params={{ region: regionSegment, username: usernameSegment }}
 						title={tab.hint}
-						aria-current={active ? "page" : undefined}
 						preload="intent"
 						className={cn(
-							"rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors",
-							active
-								? "bg-primary/10 text-primary"
-								: "text-muted-foreground hover:text-foreground hover:bg-muted/50",
+							headerLinkClassName,
+							// `shrink-0` so the pills keep their shape while the row scrolls on a phone.
+							"shrink-0",
+							active && "border-primary/40 bg-primary/10 text-primary",
 						)}
 					>
 						{tab.label}
