@@ -9,7 +9,7 @@ _Uncommitted review artifact. Generated from a comparison of `app/src/db/schema.
 - Riot **official API reference** (`developer.riotgames.com/apis`) for Summoner-V4,
   Account-V1, Match-V5, Champion-Mastery-V4, Challenges-V1.
 - **Twisted 1.73.0 DTOs** in `app/node_modules/twisted/dist/models-dto`
-  (these are the types the app compiles against — several are now stale).
+  (these are the types the app compiles against - several are now stale).
 - One **live Champion-Mastery-V4 response** (171 entries) captured during the audit to
   settle fields the docs and Twisted disagree on.
 
@@ -18,7 +18,7 @@ _Uncommitted review artifact. Generated from a comparison of `app/src/db/schema.
 The schema was largely faithful to the legacy Match-V5 / Summoner-V4 shapes, but had drifted
 from the current API in three ways: **removed fields still modelled** (`Summoner.summonerId`,
 `accountId`), **new fields never stored** (season milestones, `endOfGameResult`, `dataVersion`,
-challenge `playersInLevel`/`position`, crest preferences), and **two live bugs** — one in
+challenge `playersInLevel`/`position`, crest preferences), and **two live bugs** - one in
 `gameDuration`/`gameEndTimestamp`, one in the challenge-config `parentId` write. All are
 addressed in migration `0003_align_schema_with_riot_api.sql` plus code changes.
 
@@ -32,12 +32,12 @@ Legend: ✅ matches API · ⚠️ gap/drift · ❌ bug
 
 | API field                          | DB before                            | Action                                           |
 | ---------------------------------- | ------------------------------------ | ------------------------------------------------ |
-| `puuid`                            | ✅                                   | —                                                |
-| `profileIconId`                    | ✅                                   | —                                                |
-| `summonerLevel`                    | ✅                                   | —                                                |
-| `revisionDate`                     | ✅                                   | —                                                |
-| `gameName`, `tagLine` (Account-V1) | ✅                                   | —                                                |
-| ~~`id`~~ / ~~`accountId`~~         | ⚠️ `summonerId`, `accountId` columns | **Removed** — Riot no longer returns them at all |
+| `puuid`                            | ✅                                   | -                                                |
+| `profileIconId`                    | ✅                                   | -                                                |
+| `summonerLevel`                    | ✅                                   | -                                                |
+| `revisionDate`                     | ✅                                   | -                                                |
+| `gameName`, `tagLine` (Account-V1) | ✅                                   | -                                                |
+| ~~`id`~~ / ~~`accountId`~~         | ⚠️ `summonerId`, `accountId` columns | **Removed** - Riot no longer returns them at all |
 
 - Confirmed against the official reference: Summoner-V4 returns **only**
   `profileIconId`, `revisionDate`, `puuid`, `summonerLevel`. Twisted's `SummonerV4DTO`
@@ -55,22 +55,22 @@ Legend: ✅ matches API · ⚠️ gap/drift · ❌ bug
 | `info.endOfGameResult`                                                                                                    | ⚠️ missing          | **Added**         |
 | `info.gameDuration`                                                                                                       | ❌ see below        | Fixed semantics   |
 | `info.gameEndTimestamp`                                                                                                   | ❌ computed wrongly | Fixed             |
-| `gameId/mode/name/type/version`, `mapId`, `platformId`, `queueId`, `tournamentCode`, `gameCreation`, `gameStartTimestamp` | ✅                  | —                 |
+| `gameId/mode/name/type/version`, `mapId`, `platformId`, `queueId`, `tournamentCode`, `gameCreation`, `gameStartTimestamp` | ✅                  | -                 |
 | `info.participants`, `info.teams`                                                                                         | ✅ as `jsonb`       | design note below |
 
 - ❌ **`gameDuration` is in SECONDS** (post-11.20; the Riot doc text is explicit). The old
-  code did `new Date(gameStartTimestamp + gameDuration)` — i.e. treated seconds as
+  code did `new Date(gameStartTimestamp + gameDuration)` - i.e. treated seconds as
   milliseconds, producing a `gameEndTimestamp` about _1–2 seconds_ after the game started.
   The UI separately formatted the same value as `MM:SS`, so the two halves of the app
   disagreed about the unit.
 - ✅ Fixed by storing `info.gameEndTimestamp` directly, with a seconds-aware fallback for
   pre-11.20 matches (all ingestion is post-2022, so the field is always present in practice).
 - Design note: `participants`/`teams` are stored as opaque `jsonb`, so **new Riot participant
-  fields flow through automatically** — that is why the huge `MatchPlayerData` type never
+  fields flow through automatically** - that is why the huge `MatchPlayerData` type never
   broke. The trade-off is that per-participant queries need jsonb operators and the blob is
   large. Left as-is deliberately.
 - `MatchInfo.gameId` holds `metadata.matchId` (the string `EUW1_…`), not the numeric
-  `info.gameId` — correct, since the numeric id exceeds JS `Number.MAX_SAFE_INTEGER`.
+  `info.gameId` - correct, since the numeric id exceeds JS `Number.MAX_SAFE_INTEGER`.
 - Added index `MatchInfo_gameStartTimestamp_idx` (match history sorts on it).
 
 ### `ChampionMastery` ← Champion-Mastery-V4
@@ -81,15 +81,15 @@ markRequiredForNextLevel, championSeasonMilestone, nextSeasonMilestone, mileston
 
 | API field                      | DB before  | Action                     |
 | ------------------------------ | ---------- | -------------------------- |
-| legacy 8 fields                | ✅         | —                          |
+| legacy 8 fields                | ✅         | -                          |
 | `markRequiredForNextLevel`     | ⚠️ missing | **Added**                  |
 | `championSeasonMilestone`      | ⚠️ missing | **Added**                  |
 | `nextSeasonMilestone` (object) | ⚠️ missing | **Added** (`jsonb`)        |
 | `milestoneGrades` (`string[]`) | ⚠️ missing | **Added**                  |
-| `chestGranted`                 | —          | **Deliberately NOT added** |
+| `chestGranted`                 | -          | **Deliberately NOT added** |
 
 - ⚠️ The official reference still lists `chestGranted`, but the **live response omits it**
-  (none of 171 entries had it — Riot retired champion chests). Adding a column would model a
+  (none of 171 entries had it - Riot retired champion chests). Adding a column would model a
   field that no longer exists, so it was left out.
 - Twisted's `ChampionMasteryDTO` lacks `milestoneGrades`; the code widens the response type
   locally (`ChampionMasteryDtoWithMilestones`).
@@ -103,11 +103,11 @@ thresholds`.
 
 | API field                                                  | DB before                                                               | Action                         |
 | ---------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------ |
-| `id`, `state`, `leaderboard`, `endTimestamp`, `thresholds` | ✅                                                                      | —                              |
+| `id`, `state`, `leaderboard`, `endTimestamp`, `thresholds` | ✅                                                                      | -                              |
 | `tracking`                                                 | ⚠️ missing                                                              | **Added**                      |
 | `startTimestamp`                                           | ⚠️ missing                                                              | **Added**                      |
 | `thresholds` type                                          | ⚠️ `jsonb` → `unknown`                                                  | Typed `Record<string, number>` |
-| `localizedNames`                                           | ✅ (`en_US` only)                                                       | —                              |
+| `localizedNames`                                           | ✅ (`en_US` only)                                                       | -                              |
 | ~~`parentId`~~                                             | ❌ schema column **dropped in migration 0002**, but code still wrote it | **Removed the dead write**     |
 
 - ❌ `update-challenges-config.ts` built `rowData` with `parentId: (config as any).parentId`.
@@ -138,7 +138,7 @@ prestigeCrestBorderLevel`.
 | `Preferences.challengeIds`              | ⚠️ doc says `List[string]`, column is `integer[]` | Coerced with `Number()`           |
 
 - ⚠️ `upsertPlayerChallenges` inserted `createdAt`/`updatedAt` into a table whose schema had
-  only `puuid`. Drizzle drops unknown insert keys, so `updatedAt` was never persisted — the
+  only `puuid`. Drizzle drops unknown insert keys, so `updatedAt` was never persisted - the
   "last synced" information was silently thrown away. Columns now exist and `updatedAt` is
   refreshed via `onConflictDoUpdate`.
 - ⚠️ Riot documents the total-points percentile as `precentile` (an upstream typo); Twisted
@@ -149,7 +149,7 @@ prestigeCrestBorderLevel`.
 ### `ChampionDetails` ← Data Dragon
 
 - ✅ The flattened stat columns match Data Dragon's `stats` object exactly.
-- `id = Number(champion.key)` and `key = champion.id` — intentional inversion, consistent.
+- `id = Number(champion.key)` and `key = champion.id` - intentional inversion, consistent.
 - Design note: `skins`, `spells`, `passive`, `lore`, `recommended`, tips are intentionally not
   stored; the app doesn't render them.
 
@@ -168,7 +168,7 @@ graph now cascades from `Summoner`; verified functionally (below).
 ### 2. Match ingestion is now atomic
 
 Previously `Match` was inserted first and `MatchInfo` second, outside a transaction. If the
-second insert failed, the bare `Match` row survived — and `fetchMatchIds` skips any `matchId`
+second insert failed, the bare `Match` row survived - and `fetchMatchIds` skips any `matchId`
 already present in `Match`, so that game would be **permanently lost**. Now both writes plus
 the participant links happen in one transaction with `onConflictDoNothing()`. Each participant
 upsert runs in a **nested transaction (SAVEPOINT)** so a single bad participant can't abort the
@@ -186,41 +186,41 @@ Match-ingested players could therefore be invisible to the name-cached lookup. N
 
 `MatchInfo.participants` / `teams` stay the raw source of truth and are unchanged. Added on top:
 
-- **`MatchParticipant`** — a typed projection of the ~30 participant fields the app actually
+- **`MatchParticipant`** - a typed projection of the ~30 participant fields the app actually
   queries (identity, filter/stats scalars, items, summoner spells), with
   `PK (matchId, participantId)`, `unique (matchId, puuid)`, `(puuid, championId)` and a partial
   `(puuid) WHERE win` index; FKs to `Match` and `Summoner`, both cascade.
-- **Write path** — [`updateGamesSingle`](app/src/server/matches/updateGames.ts) inserts the rows
+- **Write path** - [`updateGamesSingle`](app/src/server/matches/updateGames.ts) inserts the rows
   in the same transaction as the match.
-- **Backfill** — [`scripts/backfill-match-participants.ts`](app/scripts/backfill-match-participants.ts)
+- **Backfill** - [`scripts/backfill-match-participants.ts`](app/scripts/backfill-match-participants.ts)
   (`pnpm db:backfill-participants`), idempotent and batched, rebuilt purely from the jsonb.
   Promoting a newly-wanted field later is an `ALTER TABLE` + backfill, never a Riot re-fetch.
-- **`ensureUserParticipantsProjected`** — a cheap count guard that projects a user's history on
+- **`ensureUserParticipantsProjected`** - a cheap count guard that projects a user's history on
   first use, so deploying before the backfill cannot silently recompute challenges as empty.
 - **Challenge workers** now run their participant predicates in SQL instead of loading every
   match (and its participant blob) into Node.
 
-`0004_match_participant_projection.sql` is **DDL only** — no data statement — so container
+`0004_match_participant_projection.sql` is **DDL only** - no data statement - so container
 startup is not blocked by a large backfill. Run `pnpm db:backfill-participants` once, or let the
 lazy per-user guard fill it in.
 
 ## Open items / decisions for you
 
-1. **`DROP COLUMN summonerId, accountId`** — **confirmed, keep it.** The live Summoner-V4
+1. **`DROP COLUMN summonerId, accountId`** - **confirmed, keep it.** The live Summoner-V4
    response returns only `profileIconId`, `revisionDate`, `puuid`, `summonerLevel`; the columns
    can never be populated again and the encrypted ids are no longer usable for lookups.
-2. **`_prisma_migrations`** — leftover table from the pre-Drizzle setup, still modelled and
+2. **`_prisma_migrations`** - leftover table from the pre-Drizzle setup, still modelled and
    unused. Could be dropped in a later migration.
-3. **No ranked/league table** — the app never calls League-V4, so nothing is missing, but
+3. **No ranked/league table** - the app never calls League-V4, so nothing is missing, but
    that's the obvious next feature if you want rank on profiles.
 4. ~~**`participants`/`teams` are untyped `jsonb`.**~~ **Done.** Typed with `MatchParticipantDTO[]`
    / `MatchTeamDTO[]` derived from the `MatchV5.get` signature (v1.83 no longer exports
    `MatchV5DTOs` by name). The `as unknown as Array<any>` casts are gone and the hand-written
    `match-player-data.ts` mirror was deleted.
-5. **`challengeIds` / `percentile` spelling** — **confirmed from a live `PlayerChallenges`** call.
+5. **`challengeIds` / `percentile` spelling** - **confirmed from a live `PlayerChallenges`** call.
    `totalPoints` is `{level, current, max, percentile}`, so `percentile` is right (Riot's
    `precentile` is a typo), and `preferences.challengeIds` is a **numeric** array
-   (`201002, -1, -1` — note the `-1` "unset" sentinel), so `integer[]` is correct. The live entry
+   (`201002, -1, -1` - note the `-1` "unset" sentinel), so `integer[]` is correct. The live entry
    did **not** carry `playersInLevel` / `position` despite the reference listing them; those two
    columns stay nullable and unpopulated unless Riot sends them.
 6. **Pre-existing type errors** (33 messages across 12 files, mostly the `Regions` type mismatch
@@ -234,7 +234,7 @@ lazy per-user guard fill it in.
 - `drizzle-kit generate` produced `0003_align_schema_with_riot_api.sql` (reviewed by hand).
 - Rehearsed on a **real production copy**: restored the prod dump into `postgres:18-alpine`
   (`pg_restore`, 37,843 matches), confirmed it was at migration `0002`, then ran
-  `src/db/migrate.ts` to apply `0003` + `0004` — **success**.
+  `src/db/migrate.ts` to apply `0003` + `0004` - **success**.
 - Ran `db:backfill-participants` against that copy: 397,161 `MatchParticipant` rows in ~60s.
 - Verified the new SQL challenge path against the old jsonb path on real users: identical sets
   (zero symmetric difference), and a live refresh ingested 19 missing matches with all 10
@@ -257,7 +257,7 @@ there was **no fork wired into this repo**. Latest is **1.83.0**.
 **What 1.83 changes**
 
 - Ships as a **single bundle** (`dist/index.js` + `dist/index.d.ts`). The `twisted/dist/*` deep
-  paths no longer exist — the app had 27 of those imports.
+  paths no longer exist - the app had 27 of those imports.
 - Drops `axios`, `lodash`, `dotenv`, `uuid`, `http-status-codes` for native `fetch`; Node ≥ 18.
 - Root exports are now only: `RiotApi`, `LolApi`, `TftApi`, `Constants`, `Dto`, `RateLimitError`,
   `GenericError`, `ServiceUnavailable`, `ApiKeyNotFound`, `IErrors`.
@@ -269,17 +269,17 @@ there was **no fork wired into this repo**. Latest is **1.83.0**.
 
 - New `app/src/server/external/riot/twisted.ts` is the single module that imports `twisted`. It
   re-exports the runtime values and **derives the DTO types from the client's own method
-  signatures** — e.g.
+  signatures** - e.g.
   `AccountDto = Awaited<ReturnType<RiotApi["Account"]["getByRiotId"]>>["response"]`.
 - All 23 Twisted imports across 21 files now point at that shim.
 - This incidentally picks up the **1.75.1 bugfix** where an internal 429/503 retry dropped the
   request's query params (relevant to `MatchV5.list({ count, start, startTime })`).
 
-**Not fixed by the upgrade** — still absent from 1.83.0's models, so the local type widenings
+**Not fixed by the upgrade** - still absent from 1.83.0's models, so the local type widenings
 stay: `milestoneGrades`, `playersInLevel`, `crestBorder`, `prestigeCrestBorderLevel`; and
 `SummonerV4DTO` still declares the removed `id` / `accountId`.
 
-**Verified** — `tsc` error set identical (33 pre-existing, none new); `vite build` succeeds and
+**Verified** - `tsc` error set identical (33 pre-existing, none new); `vite build` succeeds and
 bundles `twisted.mjs` (37.6 kB, no axios); a live `Challenges.Configs("EUW1")` call returns 405
 configs; Node ESM↔CJS named-import interop checked.
 
@@ -308,7 +308,7 @@ Twisted 1.83 migration:
 ```
 app/package.json
 app/pnpm-lock.yaml
-app/src/server/external/riot/twisted.ts            (new — the shim)
+app/src/server/external/riot/twisted.ts            (new - the shim)
 app/scripts/verify-stable-queue-job-ids.ts
 app/src/features/shared/types.ts
 app/src/server/api/{get-user-by-name-and-region,lol-api-summoner-by-puuid,rate-limit-wrapper}.ts
@@ -326,6 +326,6 @@ left alone.
 
 > **Note on `node_modules`:** this sandbox's pnpm store is read-only, so the lockfile was
 > updated via `--lockfile-only` and `twisted@1.83.0` was placed into `node_modules` by hand for
-> verification. Run `pnpm install` normally on your machine — the lockfile already validates
+> verification. Run `pnpm install` normally on your machine - the lockfile already validates
 > (`pnpm install --frozen-lockfile` passes) and will materialise the tree and prune the now
 > unused `uuid` / `http-status-codes` lock entries.

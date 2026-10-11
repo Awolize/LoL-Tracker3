@@ -22,7 +22,7 @@ export function getSiteHostname(): string {
 }
 
 /**
- * Canonical summoner HTML URLs — same path rules as `api/sitemap/$page.xml`
+ * Canonical summoner HTML URLs - same path rules as `api/sitemap/$page.xml`
  * (`/{displayRegion}/{encodedGame}-{encodedTag}` and sub-routes).
  */
 export function summonerSeoUrls(regionShard: string, gameName: string, tagLine: string): string[] {

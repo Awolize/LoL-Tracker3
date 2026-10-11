@@ -13,7 +13,7 @@ allowBuilds:
     # remains), so `strictDepBuilds` has nothing left to review here. Kept as a
     # deny so that a script reappearing stays blocked. The @img/sharp-* platform
     # packages carry the prebuilt binding (libvips 8.18.x), and that is all this
-    # app needs — app/src/routes/api/images/$.ts only calls sharp().webp().
+    # app needs - app/src/routes/api/images/$.ts only calls sharp().webp().
     # (The old note about SHARP_FORCE_GLOBAL_LIBVIPS / a global libvips of
     # >= 8.17.3 no longer applies: source builds are opt-in now, `npm explore
     # sharp -- npm run build`, and the config threshold is >= 8.18.7.)
@@ -25,7 +25,7 @@ allowBuilds:
 
     # Optional native accelerator for msgpackr (pulled in by BullMQ). msgpackr
     # wraps the require in try/catch and falls back to pure JS, so its build
-    # script — and the native compilation that comes with it — stays denied.
+    # script - and the native compilation that comes with it - stays denied.
     msgpackr-extract: false
 
 # minimumReleaseAge: 4000

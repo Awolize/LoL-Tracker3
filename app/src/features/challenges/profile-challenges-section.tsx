@@ -43,7 +43,7 @@ function tierTextColor(level: string | null): string | undefined {
 
 /**
  * Only `current` uses the primary border; cleared / next / upcoming all use the same neutral pill.
- * (Next = next threshold to hit; upcoming = later tiers — different logic, same look.)
+ * (Next = next threshold to hit; upcoming = later tiers - different logic, same look.)
  */
 function tierPillClass(state: TierPillState) {
 	return cn(
@@ -101,7 +101,7 @@ function ChallengeTierThresholdPill({
 }
 
 function formatCompactChallengePoints(n: number): string {
-	if (!Number.isFinite(n)) return "—";
+	if (!Number.isFinite(n)) return "-";
 	if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
 	if (n >= 100_000) return `${Math.round(n / 1000)}k`;
 	if (n >= 10_000) return `${(n / 1000).toFixed(1)}k`;
@@ -159,7 +159,7 @@ function formatProgressCell(
 	strip: ProfileChallengeThresholdStripModel,
 ) {
 	if (!challengesSynced || row.progress === null) {
-		return <span className="text-muted-foreground tabular-nums">—</span>;
+		return <span className="text-muted-foreground tabular-nums">-</span>;
 	}
 	const { level, value, percentile } = row.progress;
 	const topLabel = percentile != null ? formatChallengeTopPercentLabel(percentile) : null;
@@ -167,7 +167,7 @@ function formatProgressCell(
 		strip.entries.length > 0 && strip.currentValue != null && challengesSynced;
 
 	if (level == null && value == null && percentile == null) {
-		return <span className="text-muted-foreground tabular-nums">—</span>;
+		return <span className="text-muted-foreground tabular-nums">-</span>;
 	}
 
 	if (stripShowsScore) {
@@ -182,7 +182,7 @@ function formatProgressCell(
 	}
 
 	if (level == null && value == null && !topLabel) {
-		return <span className="text-muted-foreground tabular-nums">—</span>;
+		return <span className="text-muted-foreground tabular-nums">-</span>;
 	}
 
 	return (
@@ -298,7 +298,7 @@ export function ProfileChallengesSection({
 										"whitespace-nowrap",
 									)}
 									onClick={() => setTierFilter("maxed")}
-									title="Show finished challenges only — Master is the highest tier that scores, so Master and above count as finished"
+									title="Show finished challenges only - Master is the highest tier that scores, so Master and above count as finished"
 									aria-pressed={tierFilter === "maxed"}
 								>
 									<span className="tabular-nums">{stats.maxed}</span> maxed

@@ -10,13 +10,13 @@ export type SummonerQueueJobData = {
 };
 
 function summonerKey(data: SummonerQueueJobData): string {
-	// BullMQ forbids ":" in custom `jobId` — use "__" as the segment delimiter.
+	// BullMQ forbids ":" in custom `jobId` - use "__" as the segment delimiter.
 	return `${String(data.region)}__${encodeURIComponent(data.gameName)}__${encodeURIComponent(data.tagLine)}`;
 }
 
 /**
  * Deterministic BullMQ `jobId` per (job `name`, summoner [, extra segment]).
- * If a job with that id already exists, BullMQ does not create a second one — it returns the
+ * If a job with that id already exists, BullMQ does not create a second one - it returns the
  * existing id and emits a `duplicated` event. Job `name` stays the worker switch key; `jobId` is only identity.
  */
 export function stableSummonerJobOpts(
@@ -31,7 +31,7 @@ export function stableSummonerJobOpts(
 	return { ...opts, jobId };
 }
 
-/** `updateChampionDetails` is global — one pending refresh at a time across all users. */
+/** `updateChampionDetails` is global - one pending refresh at a time across all users. */
 export function stableGlobalJobOpts(jobName: string, opts: JobsOptions): JobsOptions {
 	return { ...opts, jobId: jobName };
 }

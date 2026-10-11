@@ -10,7 +10,7 @@ const compact = (value: number): string => {
 
 /** Seconds -> "28:14". */
 const duration = (seconds: number | null): string => {
-	if (seconds === null || seconds <= 0) return "—";
+	if (seconds === null || seconds <= 0) return "-";
 	const minutes = Math.floor(seconds / 60);
 	return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
 };
@@ -92,7 +92,7 @@ export function PersonalRecordsPanel({ records }: { records: PersonalRecords }) 
 		tiles.push({ label: "Inhibitors", value: String(records.objectives.inhibitors) });
 
 	const winRate =
-		records.games > 0 ? `${Math.round((records.wins / records.games) * 100)}%` : "—";
+		records.games > 0 ? `${Math.round((records.wins / records.games) * 100)}%` : "-";
 
 	return (
 		<Card className="gap-4 py-4">

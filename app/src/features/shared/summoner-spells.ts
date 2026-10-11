@@ -49,7 +49,7 @@ const SPELLS: Record<number, { name: string; image: string }> = {
 };
 
 /**
- * A spell's display name and image file. Unknown ids still get a usable label — Riot adds spells
+ * A spell's display name and image file. Unknown ids still get a usable label - Riot adds spells
  * between patches, and a new one should not blank the row. Id 0 is not a spell at all: it is the
  * empty slot Match-V5 reports.
  */

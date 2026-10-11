@@ -4,7 +4,7 @@ import { config } from "dotenv";
 config();
 
 /**
- * S3-compatible object storage — RustFS in `docker-compose.yml`.
+ * S3-compatible object storage - RustFS in `docker-compose.yml`.
  *
  * Uses the AWS SDK v3 rather than the `minio` client: RustFS ships no first-party JS SDK
  * and documents the AWS SDK as its JavaScript/TypeScript interface. This app only ever
@@ -60,7 +60,7 @@ export async function getObject(key: string): Promise<Buffer | null> {
 	}
 }
 
-/** Stores an object. `ContentType` has to be explicit — the SDK does not infer it. */
+/** Stores an object. `ContentType` has to be explicit - the SDK does not infer it. */
 export async function putObject(key: string, body: Buffer, contentType: string): Promise<void> {
 	await s3.send(
 		new PutObjectCommand({ Bucket: bucket, Key: key, Body: body, ContentType: contentType }),

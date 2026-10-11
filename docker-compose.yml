@@ -66,7 +66,7 @@ services:
     networks:
       - lol-network
 
-  # RustFS — S3-compatible object storage (Apache-2.0), the MinIO successor.
+  # RustFS - S3-compatible object storage (Apache-2.0), the MinIO successor.
   # Replaces minio/minio, whose Docker Hub repository was withdrawn in 2025-2026.
   rustfs:
     image: rustfs/rustfs:1.0.1
@@ -77,7 +77,7 @@ services:
     # Change both numbers if the deploy user is not UID/GID 1000.
     user: "1000:1000"
     environment:
-      # The app reads S3_* (preferred) or the legacy MINIO_* names —
+      # The app reads S3_* (preferred) or the legacy MINIO_* names -
       # see app/src/server/external/s3.ts. These are the credentials RustFS authenticates with.
       RUSTFS_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       RUSTFS_SECRET_KEY: ${MINIO_SECRET_KEY}

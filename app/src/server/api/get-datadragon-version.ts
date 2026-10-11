@@ -4,7 +4,7 @@ import { db } from "~/db";
 import { championDetails } from "~/db/schema";
 import { lolApi } from "~/server/external/riot/lol-api";
 
-/** How long the resolved version is reused — it only changes when a patch ships. */
+/** How long the resolved version is reused - it only changes when a patch ships. */
 const CACHE_MS = 15 * 60 * 1000;
 
 /**

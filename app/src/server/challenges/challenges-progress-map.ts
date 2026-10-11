@@ -1,7 +1,7 @@
 /**
  * Per-player challenge progress from `ChallengesDetails` only.
  * Kept separate from `get-challenges.ts` so importers do not load every `createServerFn` in that file
- * (avoids pulling the whole module — and `pg` — into unrelated client/route chunks).
+ * (avoids pulling the whole module - and `pg` - into unrelated client/route chunks).
  */
 import { eq, type InferSelectModel } from "drizzle-orm";
 

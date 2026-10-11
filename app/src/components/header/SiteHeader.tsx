@@ -6,7 +6,7 @@ import Search from "~/components/header/Search";
 import { ThemeSelector } from "~/components/theme-toggle";
 import { cn } from "~/components/utils";
 
-/** `hub` — frosted bar on profile home, challenges index, global leaderboards. `subpage` — solid bar under a summoner (mastery, matches, challenge tracker). */
+/** `hub` - frosted bar on profile home, challenges index, global leaderboards. `subpage` - solid bar under a summoner (mastery, matches, challenge tracker). */
 type SiteHeaderVariant = "hub" | "subpage";
 
 const shellClassName = "relative sticky top-0 z-30 w-full min-w-0 border-b";
@@ -37,7 +37,7 @@ export function SiteHeader({ center, variant = "hub" }: SiteHeaderProps) {
 				) : null}
 				{/*
 				 * Shares the row with the wordmark and the search when there is room, and drops to a full
-				 * row of its own below 1400px when there is not — the nav is the widest thing here, so it is
+				 * row of its own below 1400px when there is not - the nav is the widest thing here, so it is
 				 * what gives way. `order-last` keeps it below the search on that second line.
 				 */}
 				<div className="order-last w-full min-w-0 min-[1400px]:order-none min-[1400px]:w-auto min-[1400px]:flex-none">

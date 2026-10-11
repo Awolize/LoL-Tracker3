@@ -70,7 +70,7 @@ export function MatchHistorySection({
 			if (!result.ok) {
 				throw new Error(
 					result.error === "rate_limit"
-						? "Riot is rate limiting right now — try again in a moment."
+						? "Riot is rate limiting right now - try again in a moment."
 						: "Could not load more matches",
 				);
 			}

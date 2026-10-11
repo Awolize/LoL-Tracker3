@@ -51,6 +51,7 @@ MINIO_SECRET_KEY=minioadmin
 Get API key: https://developer.riotgames.com/
 
 **Note**: For local dev, change `DATABASE_URL` to use `localhost` instead of `db`:
+
 ```env
 DATABASE_URL=postgresql://postgres:password@localhost:5432/postgres
 ```
@@ -147,7 +148,7 @@ Notes:
 ## Deploying
 
 **Migrations are not applied automatically.** The image ships `prod-migrate.mjs` and the
-`drizzle/` folder, but the container command only starts the server — so a deploy that adds
+`drizzle/` folder, but the container command only starts the server - so a deploy that adds
 migrations must apply them explicitly, otherwise the new code queries columns and tables
 that do not exist yet.
 
@@ -165,12 +166,12 @@ docker compose up -d --remove-orphans
 
 `docker compose run --rm web node prod-migrate.mjs` overrides the image's command, inherits
 the service's `DATABASE_URL` and network, and waits for `db` to be healthy. Running it
-*before* `up -d` means the old container keeps serving while the schema changes, so there is
+_before_ `up -d` means the old container keeps serving while the schema changes, so there is
 no window of errors.
 
 ### Backfills run separately, and are not optional
 
-A migration that only *adds* columns leaves every existing row NULL, while the new code reads those
+A migration that only _adds_ columns leaves every existing row NULL, while the new code reads those
 columns as though they were populated. Applying the migration alone therefore turns a crash into
 silently wrong data. Anything that promotes a jsonb field onto a table needs a backfill as well.
 
@@ -184,7 +185,7 @@ DATABASE_URL='<production connection string>' PARTICIPANT_BACKFILL_BATCH=1000 \
   ./node_modules/.bin/tsx scripts/backfill-match-participants.ts
 ```
 
-It is safe to re-run and rebuilds the projection match by match inside transactions — roughly four
+It is safe to re-run and rebuilds the projection match by match inside transactions - roughly four
 minutes for 38k matches / 400k participant rows. Until it finishes, expect the records panel to
 report zeroes and, because the remake flag is still NULL, a remake as the fastest win.
 
@@ -197,20 +198,24 @@ docker compose exec db psql -U postgres -d postgres -c 'SELECT count(*) FROM dri
 ## Troubleshooting
 
 **Build fails:**
+
 ```bash
 docker compose build --no-cache web
 ```
 
 **Port in use:**
+
 ```bash
 # Edit docker-compose.yml and change port 9103 to something else
 ```
 
 **API key expired:**
+
 - Dev keys expire every 24 hours
 - Get new one at https://developer.riotgames.com/
 
 **Database issues:**
+
 ```bash
 # Check if running
 docker compose ps db

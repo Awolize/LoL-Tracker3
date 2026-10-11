@@ -9,7 +9,7 @@ import { isShardRegionParam } from "~/features/shared/champs";
  * when the URL names one.
  *
  * It lives in its own row on every page so the two kinds of link can sit together without being
- * confused for each other — "All challenges" is the global directory and needs no summoner, while
+ * confused for each other - "All challenges" is the global directory and needs no summoner, while
  * Overview/Mastery/Challenges/Match History are all scoped to the summoner in the URL. The
  * directory link is therefore always rendered; the rest appear only when there is a summoner to
  * scope them to.
@@ -36,16 +36,16 @@ const PROFILE_TABS = [
 		exact: false,
 		to: "/$region/$username/mastery",
 		label: "Mastery",
-		// The hub's card copy, kept as a tooltip rather than dropped — it explains what the page is
+		// The hub's card copy, kept as a tooltip rather than dropped - it explains what the page is
 		// for in a way the label cannot.
-		hint: "Mastery Points Tracker — tailored for Catch 'em all, works with Master yourself and Master your enemy",
+		hint: "Mastery Points Tracker - tailored for Catch 'em all, works with Master yourself and Master your enemy",
 	},
 	{
 		segment: "challenge",
 		exact: false,
 		to: "/$region/$username/challenge",
 		label: "Challenges",
-		hint: "Challenge Tracker — a helper for specific challenges, like All Random All Champions, Jack of All Champs, and Protean Override.",
+		hint: "Challenge Tracker - a helper for specific challenges, like All Random All Champions, Jack of All Champs, and Protean Override.",
 	},
 	{
 		segment: "matches",

@@ -4,7 +4,7 @@ import type {
 } from "~/features/challenges/types/profile-challenge-row";
 
 /**
- * Shape produced by `getChallengesConfig()` — local type only (no `~/features/shared/types` → schema).
+ * Shape produced by `getChallengesConfig()` - local type only (no `~/features/shared/types` → schema).
  */
 type ChallengesConfigEntry = {
 	config: { id: number; thresholds: unknown };

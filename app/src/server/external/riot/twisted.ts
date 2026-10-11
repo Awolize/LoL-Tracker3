@@ -18,7 +18,7 @@ export const regionToRegionGroupForAccountAPI = Constants.regionToRegionGroupFor
 export type Regions = Parameters<LolApi["Summoner"]["getByPUUID"]>[1];
 
 // ---------------------------------------------------------------------------
-// DTO types — derived from the API surface because v1.81+ no longer exports
+// DTO types - derived from the API surface because v1.81+ no longer exports
 // these names as types (only the `Dto` value is exported).
 // ---------------------------------------------------------------------------
 

@@ -43,7 +43,7 @@ export type RegionsAreValidIds = AssertTrue<
  */
 const JADE_CHAMPION_PREFIX = "Jade_";
 
-/** True for the classic entries — the ones namespaced with the `Jade_` prefix. */
+/** True for the classic entries - the ones namespaced with the `Jade_` prefix. */
 const isClassicChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
 
 /** The key without the classic prefix (`Jade_Annie` -> `Annie`). */
@@ -52,7 +52,7 @@ export const baseChampionKey = (key: string): string =>
 
 /**
  * The classic and current versions are two separate sets that are never listed together.
- * `showClassic` selects which one — false, the default, is the current version.
+ * `showClassic` selects which one - false, the default, is the current version.
  */
 export const championSetFilter = <T extends { key: string }>(
 	champions: T[],

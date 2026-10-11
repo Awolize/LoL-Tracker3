@@ -44,7 +44,7 @@ services:
     networks:
       - internal-net
 
-  # RustFS — S3-compatible object storage (Apache-2.0), the MinIO successor.
+  # RustFS - S3-compatible object storage (Apache-2.0), the MinIO successor.
   rustfs:
     image: rustfs/rustfs:1.0.1
     container_name: lol-rustfs-dev

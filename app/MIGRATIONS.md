@@ -182,7 +182,7 @@ If migrations are blocking your deployment, you can temporarily disable them:
 
 ### Option 1: Skip the explicit migration step
 
-There is no automatic migration to disable — just don't run
+There is no automatic migration to disable - just don't run
 `docker compose run --rm web node prod-migrate.mjs` and deploy the app against the existing
 schema.
 

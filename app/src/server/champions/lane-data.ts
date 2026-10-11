@@ -6,18 +6,18 @@
  *
  * Two maps are returned, and the caller prefers them in this order:
  *
- *   1. `bySummoner` — how *this* player actually plays each champion, restricted to the
+ *   1. `bySummoner` - how *this* player actually plays each champion, restricted to the
  *      last `PATCH_WINDOW` patches and to champions they have played
  *      `MIN_SUMMONER_GAMES` times or more. This is why a champion can sit in a different
  *      lane for different profiles.
- *   2. `global`     — how that champion is played across every recorded match, used
+ *   2. `global`     - how that champion is played across every recorded match, used
  *      whenever the personal sample is too thin. A typical summoner has only ~1.2
  *      matches stored (rows exist for every participant of a match, but history is
  *      only backfilled for the tracked player), so in practice this is the tier most
  *      profiles resolve through.
  *
  * The window is anchored to the patch Data Dragon reports (`getDataDragonVersion`), capped
- * so it never runs ahead of the matches actually recorded — see `currentPatch`. A single
+ * so it never runs ahead of the matches actually recorded - see `currentPatch`. A single
  * patch is too narrow to be useful: on 16.20 there were only 4 matches, so no summoner
  * champion pair reached the minimum and every champion fell through to the global lane.
  */
@@ -74,7 +74,7 @@ const globalForLanes = globalThis as unknown as {
 };
 
 /**
- * The patch Data Dragon is currently serving — "16.20.1" -> `"16.20"` — or `undefined` when
+ * The patch Data Dragon is currently serving - "16.20.1" -> `"16.20"` - or `undefined` when
  * the version carries no patch component, in which case the data decides the window alone.
  *
  * Resolved live rather than read from `ChampionDetails.version`, because that column is only
@@ -130,7 +130,7 @@ const patchOf = (column: SQL) =>
 
 /**
  * The patch window to count a summoner's games over: the newest `PATCH_WINDOW` patches,
- * taken from the data itself. Data Dragon's patch is only allowed to *cap* that window —
+ * taken from the data itself. Data Dragon's patch is only allowed to *cap* that window -
  * when it has already moved on to a patch with no recorded matches yet, the newest patches
  * that do have matches are used instead, so a patch transition does not silently disable
  * the per-summoner tier. When the version carries no patch the data decides on its own.

@@ -4,8 +4,8 @@ import type { PersistStorage, StorageValue } from "zustand/middleware";
 /**
  * zustand `persist` storage on `localStorage`, encoded with superjson.
  *
- * Both persisted stores need the identical round trip — superjson is what lets the challenge
- * store keep its `Set`s — and the two hand-written copies had drifted into separate
+ * Both persisted stores need the identical round trip - superjson is what lets the challenge
+ * store keep its `Set`s - and the two hand-written copies had drifted into separate
  * `PersistStorage` types. Call it where `persist` is configured so `S` is inferred from the
  * store; the type parameter is only needed when the call site has no contextual type.
  *

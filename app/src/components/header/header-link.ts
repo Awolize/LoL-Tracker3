@@ -2,7 +2,7 @@
  * Shared look for the site header's nav links.
  *
  * The hover lightens the surface with a translucent `foreground` wash instead of filling it
- * with `accent` — a fill turns into a heavy, dark block on hover in the dark theme, while a
+ * with `accent` - a fill turns into a heavy, dark block on hover in the dark theme, while a
  * translucent wash reads the same in both.
  */
 export const headerLinkClassName =

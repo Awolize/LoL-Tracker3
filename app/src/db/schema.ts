@@ -41,9 +41,9 @@ export const matchInfo = pgTable(
 	"MatchInfo",
 	{
 		gameId: text().primaryKey().notNull(),
-		/** Match-V5 `metadata.dataVersion` — the Data Dragon version the game was played on. */
+		/** Match-V5 `metadata.dataVersion` - the Data Dragon version the game was played on. */
 		dataVersion: text(),
-		/** Match-V5 `info.endOfGameResult` — e.g. "GameComplete", "Aborted", "Terminated". */
+		/** Match-V5 `info.endOfGameResult` - e.g. "GameComplete", "Aborted", "Terminated". */
 		endOfGameResult: text(),
 		/** Game length in SECONDS (Match-V5 `info.gameDuration`), not milliseconds. */
 		gameDuration: integer().notNull(),
@@ -53,7 +53,7 @@ export const matchInfo = pgTable(
 		gameVersion: text().notNull(),
 		mapId: integer().notNull(),
 		/**
-		 * Raw Match-V5 `info.participants` — the source of truth. Kept as-is so new
+		 * Raw Match-V5 `info.participants` - the source of truth. Kept as-is so new
 		 * Riot fields are captured without a schema change; `MatchParticipant` holds a
 		 * typed projection of the fields we actually query.
 		 */
@@ -177,7 +177,7 @@ export const challengesConfig = pgTable("ChallengesConfig", {
 	leaderboard: boolean().notNull(),
 	startTimestamp: timestamp({ precision: 3, mode: "date" }),
 	endTimestamp: timestamp({ precision: 3, mode: "date" }),
-	/** Config-DTO `thresholds` — `Map[String, double]`. */
+	/** Config-DTO `thresholds` - `Map[String, double]`. */
 	thresholds: jsonb().$type<Record<string, number>>().notNull(),
 });
 
@@ -411,7 +411,7 @@ export const matchParticipant = pgTable(
 		win: boolean().notNull(),
 		/**
 		 * Match-V5 `gameEndedInEarlySurrender`: the lobby was remade. Nullable because matches that
-		 * predate the field carry no value — treat NULL as false. Personal records needs it to keep
+		 * predate the field carry no value - treat NULL as false. Personal records needs it to keep
 		 * sub-3-minute remakes out of the "fastest win" record without touching the jsonb.
 		 */
 		gameEndedInEarlySurrender: boolean(),

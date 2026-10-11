@@ -66,7 +66,7 @@ const projectionSelect = (from: SQL, where?: SQL) => sql`
 
 // There is deliberately no "repair this one user" function here. The only record of which
 // matches a user played is `MatchParticipant` itself, so such a repair has to join the very
-// projection it is trying to fill — it can only ever re-insert rows that already exist. A
+// projection it is trying to fill - it can only ever re-insert rows that already exist. A
 // previous `projectUserMatchParticipants` did exactly that behind an "if the user has no
 // projected rows" guard, which is precisely the case where its own join returns nothing, so it
 // never inserted a row. A user with no projected rows therefore has no readable history until a
@@ -79,13 +79,13 @@ const projectionSelect = (from: SQL, where?: SQL) => sql`
  *
  * The batch's rows are replaced inside one transaction rather than only inserted when absent: a
  * plain `ON CONFLICT DO NOTHING` would leave a column promoted into the projection *after* a row
- * was first written unpopulated forever — which is exactly the state the multikill/objective
+ * was first written unpopulated forever - which is exactly the state the multikill/objective
  * columns and `gameEndedInEarlySurrender` start in on the ~400k rows that already exist.
  *
  * `DO NOTHING` is still needed on the insert itself: a match can hold two bots, which share the
  * `puuid` "BOT" but not their `participantId`, while `MatchParticipant_matchId_puuid_key` allows
  * the projection to keep only one of them. That is also why the rebuild cannot simply upsert on
- * the primary key — the losing bot row would collide with the unique index.
+ * the primary key - the losing bot row would collide with the unique index.
  */
 export const projectMatchesParticipants = async (gameIds: string[]): Promise<void> => {
 	if (gameIds.length === 0) return;
@@ -140,7 +140,7 @@ export const getChampionIdsForUser = async (
 
 /**
  * The queues this user actually has matches in, so the match-history filter only offers options
- * that can return something — a global queue list would show a lot of dead ends for most profiles.
+ * that can return something - a global queue list would show a lot of dead ends for most profiles.
  */
 export const getUserQueueIds = async (puuid: string): Promise<number[]> => {
 	const rows = await db
@@ -162,7 +162,7 @@ export type UserChampionOption = {
 /**
  * The user's champions, most-played first.
  *
- * `MatchParticipant` carries both id and name, so this needs no join to `ChampionDetails` — and it
+ * `MatchParticipant` carries both id and name, so this needs no join to `ChampionDetails` - and it
  * stays correct for a champion Riot has since renamed.
  */
 export const getUserChampions = async (puuid: string): Promise<UserChampionOption[]> => {
@@ -199,7 +199,7 @@ export type FormEntry = {
  * Everything here is already in the `MatchParticipant` projection, so this needs no jsonb scan.
  * Returned oldest-first so a chart can plot it left to right without re-sorting, while the query
  * still takes the *newest* `take` rows. `queueId` narrows the window to one queue, which the form
- * panel's dropdown uses — the window is always the newest `take` games *of that queue*, not a
+ * panel's dropdown uses - the window is always the newest `take` games *of that queue*, not a
  * filtered subset of the newest `take` overall.
  */
 export const getRecentForm = async (

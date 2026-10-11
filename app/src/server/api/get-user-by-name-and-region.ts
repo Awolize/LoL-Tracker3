@@ -22,7 +22,7 @@ export const RESOLUTION_TTL_MS = 60 * 60 * 1000;
  * The outcome of resolving a Riot ID.
  *
  * A result type rather than a throw, because the failure cases are part of the interface the UI
- * renders — the profile route redirects on a rename, 404s on `not_found` and sends the user back
+ * renders - the profile route redirects on a rename, 404s on `not_found` and sends the user back
  * to the landing page on `rate_limit`.
  *
  * `renamedTo` is set when the requested name 404'd but the account was found by PUUID. Riot IDs
@@ -43,9 +43,9 @@ export type SummonerResolution =
  * Resolves `gameName#tagLine` within a region, refreshing from Riot when the stored row is
  * missing or older than `RESOLUTION_TTL_MS`.
  *
- * This is the app's single resolution pipeline. It used to exist twice — here, with a one-day
+ * This is the app's single resolution pipeline. It used to exist twice - here, with a one-day
  * window and a throw, and again in `summoner/mutations.ts` with an hourly window and an error
- * string — and the two disagreed on how they matched the stored row: this one compares
+ * string - and the two disagreed on how they matched the stored row: this one compares
  * case-insensitively, the other used `eq()` against a lowercased input, so a row stored as
  * `EUW` was invisible to it. That divergence is why one profile 404'd while its row sat in the
  * database; the case-insensitive comparison here is the correct behaviour and the copy is gone.

@@ -83,7 +83,7 @@ export async function getMatches(
 	//
 	// CORE FILTER: the user must be a participant of the match. `MatchParticipant` is the
 	// match <-> summoner link (unique (matchId, puuid)), so this replaces the old join to
-	// the dropped `_MatchSummoners` table — as `EXISTS`, so no join can duplicate a match.
+	// the dropped `_MatchSummoners` table - as `EXISTS`, so no join can duplicate a match.
 	//
 	// The player count comes from `MatchInfo.participants`, matching what the match view
 	// already renders from: the projection can be short a few rows (186 matches hold fewer

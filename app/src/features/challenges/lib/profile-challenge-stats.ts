@@ -212,8 +212,8 @@ function getHighestTierForChallenge(thresholds: Record<string, number>): string 
 }
 
 /**
- * Riot awards no further Challenge Score for taking a challenge past Master, so Master — or
- * whatever lower tier is a challenge's own top — is what "finished" means here. Grandmaster and
+ * Riot awards no further Challenge Score for taking a challenge past Master, so Master - or
+ * whatever lower tier is a challenge's own top - is what "finished" means here. Grandmaster and
  * Challenger thresholds still exist in the config and are still drawn on a challenge's tier ladder;
  * they are simply not required for it to count as complete.
  */
@@ -223,7 +223,7 @@ const SCORING_CEILING = "MASTER";
  * The highest tier that still scores: the challenge's own top tier, capped at Master.
  *
  * Iterating rather than clamping a separately-computed top tier keeps the answer correct when the
- * ceiling tier itself is absent from a config — it then falls to the highest tier that *is* defined
+ * ceiling tier itself is absent from a config - it then falls to the highest tier that *is* defined
  * below the ceiling, instead of reporting a tier that has no threshold.
  */
 function getScoringCapTier(thresholds: Record<string, number>): string | null {

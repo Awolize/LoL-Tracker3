@@ -16,7 +16,7 @@ type ChallengeReaderInput = { username: string; region: string };
  *
  * The five challenges below were the same body five times; only the relation name differed.
  * They stay separate `createServerFn` declarations rather than a factory, because TanStack's
- * compiler discovers server functions from the exported declaration itself — building them
+ * compiler discovers server functions from the exported declaration itself - building them
  * from a factory leaves the five client bindings out of the bundle. Only the body is shared,
  * which is where the duplication actually was.
  */

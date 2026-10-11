@@ -86,7 +86,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 		const { getUserByNameAndRegion } = await import("~/server/api/get-user-by-name-and-region");
 		const resolved = await getUserByNameAndRegion(normalizedUsername, regionEnum);
 		if (!resolved.ok) {
-			// Unresolvable user — there is no rank to build a highlight section around.
+			// Unresolvable user - there is no rank to build a highlight section around.
 			return { leaderboard: top100, hasSections: false };
 		}
 

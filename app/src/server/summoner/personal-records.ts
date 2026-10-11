@@ -60,7 +60,7 @@ type RecordsRow = {
  * Everything here is read from the `MatchParticipant` projection (`gameDuration` from the joined
  * `MatchInfo`), so the query never expands `MatchInfo.participants`. It used to: the multikill
  * counters, the per-game objective counts and the remake flag were jsonb-only, so it crossed
- * `jsonb_array_elements(participants)` and filtered back down to the summoner — reading all ten
+ * `jsonb_array_elements(participants)` and filtered back down to the summoner - reading all ten
  * players' full payloads to keep 15 numbers for one of them.
  *
  * Measured for one account with 2,621 matches: the jsonb version took 722ms cold and still
@@ -69,7 +69,7 @@ type RecordsRow = {
  *
  * `sum`/`max` skip NULL, and a column is NULL for a match that predates the field (Riot only
  * started sending some of these counters mid-2022), so the totals span mixed patches without
- * failing — the same reason the jsonb `->>` extraction was NULL-tolerant.
+ * failing - the same reason the jsonb `->>` extraction was NULL-tolerant.
  *
  * The join to `MatchInfo` is still load-bearing: `gameDuration` lives there, not on the
  * projection. It no longer expands any jsonb.
@@ -110,7 +110,7 @@ export const getPersonalRecords = async (puuid: string): Promise<PersonalRecords
 			perfect_games: sql<number>`count(*) FILTER (WHERE ${matchParticipant.deaths} = 0)::int`,
 			// Remakes ("early surrender") are excluded: a 71-second game is not a fastest-win
 			// record, it is a lobby that never happened. The flag cannot be replaced by a duration
-			// threshold — this account's real record is a 226-second win, inside the remake window.
+			// threshold - this account's real record is a 226-second win, inside the remake window.
 			fastest_win_seconds: sql<
 				number | null
 			>`min(${matchInfo.gameDuration}) FILTER (WHERE ${matchParticipant.win} AND NOT coalesce(${matchParticipant.gameEndedInEarlySurrender}, false))`,

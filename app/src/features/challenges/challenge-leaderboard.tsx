@@ -106,7 +106,7 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 				className={`font-mono text-sm font-bold ${exists ? "text-white" : "text-muted-foreground"}`}
 				style={exists ? { textShadow: "0 1px 2px rgba(0,0,0,0.5)" } : undefined}
 			>
-				{exists ? points.toLocaleString() : "—"}
+				{exists ? points.toLocaleString() : "-"}
 			</div>
 		</motion.div>
 	);

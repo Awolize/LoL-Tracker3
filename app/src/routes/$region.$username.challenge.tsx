@@ -195,7 +195,7 @@ export function RouteComponent() {
 
 /**
  * Lives inside the `OptionsProvider` so it can read the classic/Jade set preference, and
- * applies it to the whole roster view — the header counters included.
+ * applies it to the whole roster view - the header counters included.
  */
 function ChampionPanels({
 	playerChampionInfo,

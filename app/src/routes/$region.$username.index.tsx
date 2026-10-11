@@ -45,7 +45,7 @@ export const Route = createFileRoute("/$region/$username/")({
 			data: { username, region },
 		});
 
-		// Name changed — PUUID fallback found the new name
+		// Name changed - PUUID fallback found the new name
 		if (result.error === "name_changed" && result.newUsername) {
 			throw redirect({
 				to: "/$region/$username",
@@ -57,7 +57,7 @@ export const Route = createFileRoute("/$region/$username/")({
 			});
 		}
 
-		// Truly not found — 404 the page
+		// Truly not found - 404 the page
 		if (result.error === "not_found") {
 			throw notFound();
 		}
