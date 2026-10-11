@@ -168,6 +168,26 @@ the service's `DATABASE_URL` and network, and waits for `db` to be healthy. Runn
 *before* `up -d` means the old container keeps serving while the schema changes, so there is
 no window of errors.
 
+### Backfills run separately, and are not optional
+
+A migration that only *adds* columns leaves every existing row NULL, while the new code reads those
+columns as though they were populated. Applying the migration alone therefore turns a crash into
+silently wrong data. Anything that promotes a jsonb field onto a table needs a backfill as well.
+
+The `web` image cannot run one: the runner stage copies only `drizzle/`, `.output/`, production
+`node_modules` and `prod-migrate.mjs`, so `scripts/` is absent and `tsx` is a devDependency. Run it
+from a checkout pointed at the production database:
+
+```bash
+cd app
+DATABASE_URL='<production connection string>' PARTICIPANT_BACKFILL_BATCH=1000 \
+  ./node_modules/.bin/tsx scripts/backfill-match-participants.ts
+```
+
+It is safe to re-run and rebuilds the projection match by match inside transactions — roughly four
+minutes for 38k matches / 400k participant rows. Until it finishes, expect the records panel to
+report zeroes and, because the remake flag is still NULL, a remake as the fastest win.
+
 To check what is applied:
 
 ```bash

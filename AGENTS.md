@@ -42,6 +42,11 @@ lane calculation works.
   sorts above `"16.19"`, and 16.9 is real data.
 - Migrations do **not** run on container start. Deploy applies them explicitly:
   `docker compose run --rm web node prod-migrate.mjs` before `up -d`.
+- A migration that only **adds columns also needs a backfill**, or existing rows stay NULL while the
+  new code reads them as real values — which turns a crash into silently wrong data. The `web` image
+  cannot run one (`scripts/` and `tsx` are not in the runner stage); the command is in README's
+  deploy section. Promoting a jsonb field onto a table is a three-part change: schema, migration,
+  backfill.
 - The jsonb payload (`MatchInfo.participants`, `MatchInfo.teams`) is the source of truth;
   `MatchParticipant` is a rebuildable projection of it. Anything needing a complete participant
   list must read the jsonb — the projection cannot hold more than one bot per match.
