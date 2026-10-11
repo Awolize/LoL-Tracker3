@@ -1,4 +1,4 @@
-import { and, desc, eq, exists, gte, inArray, notInArray, sql } from "drizzle-orm";
+import { and, desc, eq, exists, gte, inArray, lt, notInArray, or, sql } from "drizzle-orm";
 
 import { db } from "~/db";
 import { match, matchInfo, matchParticipant } from "~/db/schema";
@@ -7,9 +7,21 @@ import type { Summoner } from "~/features/shared/types";
 export type MatchFilterOptions = {
 	mapIds?: number[];
 	queueIdsNotIn?: number[];
+	/** Restrict to these queues. Combines with `queueIdsNotIn` rather than replacing it. */
+	queueIds?: number[];
+	/** Restrict to matches where this user played this champion. */
+	championId?: number;
+	/** Restrict to matches this user won (`true`) or lost (`false`). */
+	win?: boolean;
 	gameMode?: string;
 	gameType?: string;
 	gameStartTimestampGte?: Date;
+	/**
+	 * Keyset cursor: only matches strictly older than this. Pass `gameIdLt` as well to break ties,
+	 * so a page boundary is never duplicated or skipped when a match lands between two requests.
+	 */
+	gameStartTimestampLt?: Date;
+	gameIdLt?: string;
 	take?: number;
 };
 
@@ -18,7 +30,18 @@ export async function getMatches(
 	options: MatchFilterOptions = {},
 	take = options.take || 9999999,
 ) {
-	const { mapIds, queueIdsNotIn, gameMode, gameType, gameStartTimestampGte } = options;
+	const {
+		mapIds,
+		queueIdsNotIn,
+		queueIds,
+		championId,
+		win,
+		gameMode,
+		gameType,
+		gameStartTimestampGte,
+		gameStartTimestampLt,
+		gameIdLt,
+	} = options;
 
 	// 1. Build the WHERE conditions dynamically
 	const filters = [];
@@ -30,6 +53,9 @@ export async function getMatches(
 	if (queueIdsNotIn?.length) {
 		filters.push(notInArray(matchInfo.queueId, queueIdsNotIn));
 	}
+	if (queueIds?.length) {
+		filters.push(inArray(matchInfo.queueId, queueIds));
+	}
 	if (gameMode) {
 		filters.push(eq(matchInfo.gameMode, gameMode));
 	}
@@ -38,6 +64,18 @@ export async function getMatches(
 	}
 	if (gameStartTimestampGte) {
 		filters.push(gte(matchInfo.gameStartTimestamp, gameStartTimestampGte));
+	}
+
+	// Keyset cursor. A bare `timestamp < cursor` would skip or repeat the rows that share a
+	// timestamp at the page boundary, so the tie is broken on the game id, which is unique.
+	if (gameStartTimestampLt && gameIdLt) {
+		const keyset = or(
+			lt(matchInfo.gameStartTimestamp, gameStartTimestampLt),
+			and(eq(matchInfo.gameStartTimestamp, gameStartTimestampLt), lt(match.gameId, gameIdLt)),
+		);
+		if (keyset) filters.push(keyset);
+	} else if (gameStartTimestampLt) {
+		filters.push(lt(matchInfo.gameStartTimestamp, gameStartTimestampLt));
 	}
 
 	// 2. STEP ONE: Get the Game IDs
@@ -70,12 +108,19 @@ export async function getMatches(
 							and(
 								eq(matchParticipant.matchId, match.gameId),
 								eq(matchParticipant.puuid, user.puuid),
+								// Champion and result describe *this user's* participation, so they
+								// belong in the same EXISTS rather than a second one.
+								championId === undefined
+									? undefined
+									: eq(matchParticipant.championId, championId),
+								win === undefined ? undefined : eq(matchParticipant.win, win),
 							),
 						),
 				),
 			),
 		)
-		.orderBy(desc(matchInfo.gameStartTimestamp))
+		// Tie-broken on the game id so the keyset cursor above is a total order.
+		.orderBy(desc(matchInfo.gameStartTimestamp), desc(match.gameId))
 		.limit(take);
 
 	// If no matches found, return early
@@ -99,7 +144,8 @@ export async function getMatches(
 	fullMatches.sort((a, b) => {
 		const aTime = a.matchInfos?.[0]?.gameStartTimestamp?.getTime() || 0;
 		const bTime = b.matchInfos?.[0]?.gameStartTimestamp?.getTime() || 0;
-		return bTime - aTime;
+		// Same total order as the SQL above, so paging stays consistent with the page it follows.
+		return bTime - aTime || (a.gameId < b.gameId ? 1 : a.gameId > b.gameId ? -1 : 0);
 	});
 
 	// `playerCount` is a scalar SQL aggregate, so it rides alongside the hydrated rows

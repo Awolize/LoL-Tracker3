@@ -111,3 +111,17 @@ export const getChampionIdsForUser = async (
 
 	return rows.map((row) => row.championId);
 };
+
+/**
+ * The queues this user actually has matches in, so the match-history filter only offers options
+ * that can return something — a global queue list would show a lot of dead ends for most profiles.
+ */
+export const getUserQueueIds = async (puuid: string): Promise<number[]> => {
+	const rows = await db
+		.selectDistinct({ queueId: matchInfo.queueId })
+		.from(matchParticipant)
+		.innerJoin(matchInfo, eq(matchParticipant.matchId, matchInfo.gameId))
+		.where(eq(matchParticipant.puuid, puuid));
+
+	return rows.map((row) => row.queueId);
+};
