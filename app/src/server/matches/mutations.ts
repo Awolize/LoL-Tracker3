@@ -14,7 +14,10 @@ export const getMatchesFn = createServerFn({
 		const { username, region, take = 50 } = data;
 		const regionConst = regionToConstant(region.toUpperCase());
 
-		const user = await getUserByNameAndRegion(parseRiotId(username), regionConst);
+		const resolved = await getUserByNameAndRegion(parseRiotId(username), regionConst);
+		if (!resolved.ok) throw new Error(`Summoner not found: ${username}`);
+
+		const user = resolved.user;
 		const rawMatches = await getMatches(user, {}, take);
 
 		// Transform to expected format

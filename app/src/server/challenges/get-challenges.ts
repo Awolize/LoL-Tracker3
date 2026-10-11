@@ -26,13 +26,14 @@ const readChallengeRelation = async (
 ): Promise<ChampionDetails[]> => {
 	const username = parseRiotId(data.username);
 	const region = regionToConstant(data.region);
-	const user = await getUserByNameAndRegion(username, region);
+	const resolved = await getUserByNameAndRegion(username, region);
+	if (!resolved.ok) return [];
 
 	// Drizzle cannot type a computed relation key, so the `with` clause is the one place the
 	// dynamic access needs an assertion; the result is typed by the shape we ask for.
 	const withRelations = { [relation]: { with: { championDetail: true } } } as any;
 	const result = (await db.query.challenges.findFirst({
-		where: eq(challenges.puuid, user.puuid),
+		where: eq(challenges.puuid, resolved.user.puuid),
 		with: withRelations,
 	})) as Record<string, { championDetail: ChampionDetails }[]> | undefined;
 
@@ -64,10 +65,11 @@ export const getPlayerChallengesProgress = createServerFn()
 	.handler(async ({ data }) => {
 		const username = parseRiotId(data.username);
 		const region = regionToConstant(data.region);
-		const user = await getUserByNameAndRegion(username, region);
+		const resolved = await getUserByNameAndRegion(username, region);
+		if (!resolved.ok) return null;
 
 		try {
-			return await getChallengesProgressMapForPuuid(user.puuid);
+			return await getChallengesProgressMapForPuuid(resolved.user.puuid);
 		} catch (error) {
 			console.error("Failed to fetch player challenges progress from database:", error);
 			return null;

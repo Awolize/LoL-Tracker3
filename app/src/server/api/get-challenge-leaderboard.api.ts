@@ -84,9 +84,14 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 
 		// User is not in top 100, get their rank and fetch area around them
 		const { getUserByNameAndRegion } = await import("~/server/api/get-user-by-name-and-region");
-		const user = await getUserByNameAndRegion(normalizedUsername, regionEnum);
+		const resolved = await getUserByNameAndRegion(normalizedUsername, regionEnum);
+		if (!resolved.ok) {
+			// Unresolvable user — there is no rank to build a highlight section around.
+			return { leaderboard: top100, hasSections: false };
+		}
+
 		const userRank = await getChallengeUserRank({
-			data: { challengeId, puuid: user.puuid },
+			data: { challengeId, puuid: resolved.user.puuid },
 		});
 
 		if (!userRank) {

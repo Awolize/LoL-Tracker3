@@ -56,9 +56,10 @@ const createChallengeUpdaterWorker =
 	async (data: { username: string; region: string }) => {
 		const username = parseRiotId(data.username);
 		const region = regionToConstant(data.region);
-		const user = await getUserByNameAndRegion(username, region);
+		const resolved = await getUserByNameAndRegion(username, region);
+		if (!resolved.ok) return { success: false, message: "User not found" };
 
-		if (!user) return { success: false, message: "User not found" };
+		const user = resolved.user;
 
 		const uniqueChampIds = await getChampionIdsForUser(
 			user.puuid,
