@@ -134,3 +134,103 @@ summoner has `MIN_SUMMONER_GAMES` (5) games on one champion within the window. M
 With a single patch, the tier switches off for everyone for the first days after a patch drops and
 every champion resolves through the global lane. `PATCH_WINDOW` in `lane-data.ts` widens it while
 staying patch-shaped; both values are exported so they are easy to tune.
+
+## Cleanup backlog
+
+Phases 1–3 of the code audit are done (`f38a415`, `a609a6d`, `3de445c`, `95ce732`, `dbf50ba`,
+`6921531`, `5e83a7f`, `7bc865d`). What is left:
+
+### Waiting on a command only the maintainer can run
+
+- [ ] **Drop the unused dependencies (C3).** `app/package.json` is already edited: `@nivo/core`,
+      `@nivo/line`, `@tanstack/react-devtools`, `@tanstack/react-router-devtools`,
+      `@tanstack/router-plugin`, `@testing-library/{dom,react}`, `jsdom`, `vitest` and the `test`
+      script are gone. **`pnpm install` still has to run** to rewrite `pnpm-lock.yaml` — the
+      Dockerfile installs with `--frozen-lockfile`, so it fails until the lockfile catches up. Run it
+      before committing.
+      `@tanstack/router-plugin` is safe to drop: nothing imports it, and `@tanstack/start-plugin-core`
+      already declares it (`node_modules/.pnpm/@tanstack+react-start@*/node_modules/@tanstack/start-plugin-core/package.json:90`),
+      so `tanstackStart()` resolves it transitively. `@headlessui/react` **stays** — it is used by
+      `components/region-list-selector.tsx:1` and appears in the built bundle. A production
+      `npx vite build` passed against the previous tree.
+- [ ] **`pnpm-workspace.yaml`: set `managePackageManagerVersions: false`** to keep the `pnpm` /
+      `@pnpm/exe` platform packages out of the lockfile (they arrived with the `packageManager` pin).
+
+### Deferred, with the reason
+
+- [ ] **C7, the dropdown half.** `components/ui/dropdown-menu.tsx:210-225` re-exports eight components
+      nothing imports. Dropping the re-exports also deletes their implementations (~100 lines of the
+      vendored primitive), because `noUnusedLocals` flags the orphaned functions — that is a
+      functionality removal rather than an export tidy, so it wants its own decision.
+- [ ] **C16 follow-up.** `projectUserMatchParticipants` / `ensureUserParticipantsProjected` are
+      deleted, with the reason recorded inline in `match-participants.ts`. 23 puuids appear in some
+      match's jsonb with neither a `MatchParticipant` nor a `Summoner` row, so they have no readable
+      history; rebuilding them would mean writing the `Summoner` rows from the jsonb first. Left open
+      deliberately.
+
+### Deliberately kept
+
+- `MatchInfo.dataVersion` — a Riot Match-V5 payload field (`game.metadata.dataVersion`), written and
+  never read, but fields that come from Riot stay.
+- `getArenaMatches` / `getSRMatches` (`get-matches.ts:135`) — no callers yet; the Arena stats feature
+  consumes them. Their `ARENA_MATCH_FILTERS` / `SR_MATCH_FILTERS` siblings are in use by the
+  challenge workers.
+- `card.tsx`'s `CardTitle` / `CardDescription` / `CardAction` / `CardFooter` — unused today, needed by
+  the champion stats page.
+- `Constants` in `external/riot/twisted.ts` — part of that module's deliberate re-export surface.
+- `$region.$username.different.tsx` — an intentional 301 to `/challenge` for old links.
+
+## Feature backlog
+
+Data readiness is the point of this list. "Reads existing data" means no schema change and no new
+Riot endpoint.
+
+### Reads data already stored
+
+- [ ] **F1 — match history filters + pagination.** Queue, champion, role, result, patch, date, and
+      paging past 50. `getMatches` already accepts the filters (`get-matches.ts:7-41`) — the route just
+      passes `{}` and `take: 50`. Needs a small static `queueId → name` map (it is not in the DB).
+- [ ] **F2 — full match scoreboard.** Widen the expanded row with damage, gold, CS, vision, role,
+      items and summoner spells. `MatchInfo.participants` holds all of it, and item/spell icons need
+      no server work because `/api/images/$` proxies any Data Dragon path.
+- [ ] **F3 — personal records.** Pentas, quadras, unreal kills, largest spree, highest damage, fastest
+      win. Mostly jsonb-only fields; follow the projection pattern at `match-participants.ts:28-55`.
+- [ ] **F4 — ban statistics.** Most-banned overall and per lane. `MatchInfo.teams[].bans` is present on
+      37,859 matches and rendered nowhere. Watch `championId: -1` (that side had no ban).
+- [ ] **F5 — Arena stats.** Average placement, top-1/top-4 rate, per-champion placement.
+      `MatchParticipant.placement` is already projected and there are ~3.6k Arena matches; wire up
+      `getArenaMatches`, which is the dead export this was written for.
+- [ ] **F6 — ranked form.** Per-queue W-L, KDA, current streak, last 10. Queues 420 (19,200 rows) and
+      440 (5,408) are already in the projection, and 47 users have ≥100 ranked-solo games.
+- [ ] **F7 — duo / premade stats.** W-L and average KDA per recurring teammate; self-join
+      `MatchParticipant` on `(matchId, teamId)`. Per-profile only — a typical participant has ~1.2
+      stored games. **Measure the self-join on a heavy profile before shipping.**
+- [ ] **F8 — per-champion performance page.** Winrate, KDA, CS/min, damage and vision per champion,
+      filterable by role and queue. The biggest product gap; `getChampionIdsForUser`
+      (`match-participants.ts:115`) is the pattern to copy. **Build on match data, not mastery** —
+      `ChampionMastery` covers only 54 users while 145 puuids have ≥50 match rows.
+- [ ] **F9 — lane matchup / record vs champion.** Self-join on `matchId` with a differing `teamId` and
+      a matching `teamPosition`. `teamPosition` is null on ~27% of rows (288,501 / 397,431), so the
+      join needs a documented fallback rather than silently dropping games.
+- [ ] **F10 — global champion stats pages.** Public per-champion/per-role WR/KDA/CS pages built from
+      every stored match; shares one aggregate module with F8. Patch extraction is already solved
+      (`patchOf` / `patchWindow`) and the sitemap + IndexNow plumbing exists. Keep it behind F8.
+
+### Needs a schema change or a new Riot endpoint
+
+- [ ] **F11 — progress deltas over time.** "You gained 12,400 mastery points this week." Needs a
+      snapshot table: nothing in the schema keeps history (`ChampionMastery` is overwritten in place).
+      No new Riot calls. **Decide retention before shipping.** If this is planned, `@nivo/line` comes
+      off the C3 removal list.
+- [ ] **F12 — rank badge and climb history.** There is no league table, and `lolApi.League.byPUUID` is
+      never called although the SDK exposes it. Do F6 first, then see whether phase 2 is still wanted.
+- [ ] **F13 — match timeline.** The big one: a new endpoint, a frames/events table, and a backfill of
+      every stored match. Defer until F1–F9 ship.
+
+### Already exists — do not propose again
+
+Challenge directory, search and tier bars; challenge leaderboards with a "your rank" deep-link;
+per-challenge threshold ladders, maxed/left-to-max filters and near-top-tier sort; the mastery roster
+with role grouping, sort, Jade toggle and manual role override; the five tracked challenges with
+manual marking; username autocomplete; the image CDN proxy/cache; sitemaps + IndexNow; and the
+theme toggle.
