@@ -1,9 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 
 import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
-import { MatchHistory } from "~/features/matches/match-history";
+import {
+	type MatchSearch,
+	parseMatchSearch,
+	toServerFilters,
+} from "~/features/matches/match-filters";
+import { MATCH_PAGE_SIZE, MatchHistorySection } from "~/features/matches/match-history-section";
 import { regionToDisplay } from "~/features/shared/champs";
 import { parseRiotId } from "~/features/shared/riot-id";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
@@ -13,16 +18,40 @@ import { UserProvider } from "~/stores/user-store";
 import { metaDescription } from "~/utils/seo";
 
 export const Route = createFileRoute("/$region/$username/matches")({
-	loader: async ({ params: { username, region } }) => {
-		const usernameParsed = parseRiotId(username);
-
+	// Identity on purpose. Transforming the search here makes TanStack rewrite the URL: `?queue=420`
+	// arrives as the *number* 420, so returning it as a string produced a canonicalising 307, and
+	// dropping values it could not round-trip produced a 500. Normalisation happens in
+	// `parseMatchSearch`, at the two places the values are actually used.
+	validateSearch: (search: Record<string, unknown>): Record<string, unknown> => search,
+	// Which matches are listed depends on the filters, so a change re-runs the loader instead of
+	// being applied client-side only. The URL stays the single source of truth.
+	loaderDeps: ({ search }) => parseMatchSearch(search),
+	loader: async ({ params: { username, region }, deps }) => {
 		const result = await getMatchesFn({
-			data: { username: usernameParsed, region, take: 50 },
+			data: {
+				username: parseRiotId(username),
+				region,
+				take: MATCH_PAGE_SIZE,
+				withFilterOptions: true,
+				...toServerFilters(deps),
+			},
 		});
+
+		if (!result.ok) {
+			// Mirrors the profile hub: a summoner we cannot resolve is a 404, and a rate limit sends
+			// the visitor home rather than pretending the profile has no matches.
+			if (result.error === "rate_limit") {
+				throw redirect({ to: "/", search: { error: "rate_limit" } });
+			}
+			throw notFound();
+		}
 
 		return {
 			user: result.user,
 			matches: result.matches,
+			availableQueueIds: result.availableQueueIds ?? [],
+			availableChampions: result.availableChampions ?? [],
+			filters: deps,
 			region,
 			username,
 		};
@@ -61,7 +90,16 @@ export const Route = createFileRoute("/$region/$username/matches")({
 });
 
 function RouteComponent() {
-	const { user, matches } = Route.useLoaderData();
+	const { user, matches, availableQueueIds, availableChampions } = Route.useLoaderData();
+	// The route deliberately does not transform its search (see `validateSearch`), so normalise here
+	// rather than trusting the URL's types.
+	const search = parseMatchSearch(Route.useSearch());
+	const navigate = Route.useNavigate();
+	const { region, username } = Route.useParams();
+
+	const onSearchChange = (patch: Partial<MatchSearch>) => {
+		void navigate({ search: (previous) => ({ ...previous, ...patch }) });
+	};
 
 	return (
 		<UserProvider user={user}>
@@ -82,14 +120,23 @@ function RouteComponent() {
 									</p>
 								</div>
 								<div className="flex items-center gap-4">
-									<div className="text-muted-foreground bg-muted rounded-full px-3 py-1 text-sm">
-										{matches.length} matches loaded
-									</div>
 									<FullSummonerUpdate user={user} awaitMatches={true} />
 								</div>
 							</div>
 
-							<MatchHistory matches={matches} />
+							{/* The key remounts the section on a filter change, which clears the pages
+							    appended by "Load more". */}
+							<MatchHistorySection
+								key={JSON.stringify(search)}
+								firstPage={matches}
+								availableQueueIds={availableQueueIds}
+								availableChampions={availableChampions}
+								search={search}
+								onSearchChange={onSearchChange}
+								onClear={() => void navigate({ search: {} })}
+								region={region}
+								username={username}
+							/>
 						</div>
 					</main>
 

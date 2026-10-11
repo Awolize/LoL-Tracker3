@@ -33,6 +33,10 @@ lane calculation works.
   of the bundle. That is a precaution taken in `get-challenges.ts`, not something that was tested —
   share the *body* and keep one declaration per server function.
 - `~/*` path alias (Vite's native `resolve.tsconfigPaths`), never `@`.
+- **TanStack Router coerces numeric search params to numbers**: `?queue=420` reaches the route as
+  `queue: 420`, while `?queue=420,440` stays a string. So `validateSearch` must not transform values
+  (returning the number as a string makes the router rewrite the URL with a 307, and dropping values
+  it cannot round-trip 500s) — validate as identity and normalise where the values are used.
 - Tuning lives in exported constants, not magic numbers.
 - Order versions from the data (`max(timestamp)`), never `ORDER BY` a version *string*: `"16.9"`
   sorts above `"16.19"`, and 16.9 is real data.

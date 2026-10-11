@@ -6,7 +6,7 @@
  * from the jsonb, so the projection can be dropped and re-derived at any time and
  * is never required for the raw data to be correct.
  */
-import { and, eq, gte, inArray, notInArray, type SQL, sql } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, notInArray, type SQL, sql } from "drizzle-orm";
 
 import { db } from "~/db";
 import { matchInfo, matchParticipant } from "~/db/schema";
@@ -124,4 +124,32 @@ export const getUserQueueIds = async (puuid: string): Promise<number[]> => {
 		.where(eq(matchParticipant.puuid, puuid));
 
 	return rows.map((row) => row.queueId);
+};
+
+/** A champion the user has played, for the match-history champion filter. */
+export type UserChampionOption = {
+	championId: number;
+	championName: string;
+	games: number;
+};
+
+/**
+ * The user's champions, most-played first.
+ *
+ * `MatchParticipant` carries both id and name, so this needs no join to `ChampionDetails` — and it
+ * stays correct for a champion Riot has since renamed.
+ */
+export const getUserChampions = async (puuid: string): Promise<UserChampionOption[]> => {
+	const rows = await db
+		.select({
+			championId: matchParticipant.championId,
+			championName: matchParticipant.championName,
+			games: count().mapWith(Number),
+		})
+		.from(matchParticipant)
+		.where(eq(matchParticipant.puuid, puuid))
+		.groupBy(matchParticipant.championId, matchParticipant.championName)
+		.orderBy(desc(count()));
+
+	return rows;
 };
