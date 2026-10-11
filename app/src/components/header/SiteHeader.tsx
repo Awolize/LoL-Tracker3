@@ -11,7 +11,7 @@ type SiteHeaderVariant = "hub" | "subpage";
 
 const shellClassName = "relative sticky top-0 z-30 w-full min-w-0 border-b";
 
-const rowClassName = "grid w-full min-w-0 grid-cols-3 items-center px-1 py-2 md:px-8";
+const rowClassName = "flex w-full min-w-0 flex-wrap items-center gap-x-3 gap-y-1 px-1 py-2 md:px-8";
 
 const variantClassName: Record<SiteHeaderVariant, string> = {
 	hub: "bg-background/95 supports-backdrop-filter:bg-background/60 backdrop-blur",
@@ -32,8 +32,18 @@ export function SiteHeader({ center, variant = "hub" }: SiteHeaderProps) {
 				<div className="flex min-w-0 items-center justify-center">
 					<MainTitleLink />
 				</div>
-				<div className="flex min-w-0 items-center justify-center">{center}</div>
-				<div className="relative flex min-w-0 items-center pe-11 sm:pe-12">
+				{center ? (
+					<div className="flex min-w-0 items-center justify-center">{center}</div>
+				) : null}
+				{/*
+				 * Shares the row with the wordmark and the search when there is room, and drops to a full
+				 * row of its own below `lg` when there is not — the nav is the widest thing here, so it is
+				 * what gives way. `order-last` keeps it below the search on that second line.
+				 */}
+				<div className="order-last w-full min-w-0 lg:order-none lg:w-auto lg:flex-1">
+					<HeaderNav />
+				</div>
+				<div className="relative ml-auto flex min-w-0 items-center pe-11 sm:pe-12">
 					<div className="min-w-0 flex-1">
 						<Search />
 					</div>
@@ -42,8 +52,6 @@ export function SiteHeader({ center, variant = "hub" }: SiteHeaderProps) {
 					</div>
 				</div>
 			</div>
-			{/* Site-wide, and the summoner's sections when the URL names one. */}
-			<HeaderNav />
 		</header>
 	);
 }
