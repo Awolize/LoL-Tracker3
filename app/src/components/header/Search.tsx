@@ -15,7 +15,11 @@ type Suggestion = {
 	region: string;
 };
 
-export default function Search({ onDark = false }: { onDark?: boolean } = {}) {
+export default function Search({
+	onDark = false,
+	/** `end` floats it to the right edge of its column; the landing page keeps the centred default. */
+	align = "center",
+}: { onDark?: boolean; align?: "center" | "end" } = {}) {
 	// `onDark` covers the landing page, whose artwork band stays dark in both themes.
 	const regionTone = onDark ? "text-white" : "text-foreground";
 	const hintTone = onDark ? "text-white/70" : "text-muted-foreground";
@@ -83,7 +87,9 @@ export default function Search({ onDark = false }: { onDark?: boolean } = {}) {
 	};
 
 	return (
-		<div className="flex h-full w-full items-center justify-center md:py-2">
+		<div
+			className={`flex h-full w-full items-center md:py-2 ${align === "end" ? "justify-end" : "justify-center"}`}
+		>
 			<div className="flex flex-col gap-1 md:flex-row md:gap-4">
 				<div className="flex items-center justify-center">
 					<div
