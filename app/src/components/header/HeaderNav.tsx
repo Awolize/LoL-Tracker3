@@ -69,7 +69,10 @@ export function HeaderNav() {
 	return (
 		<nav
 			aria-label="Site sections"
-			className="flex min-w-0 items-center gap-1 overflow-x-auto px-1 pb-2 md:px-8"
+			// Centred once there is room for it. While the row has to scroll (phones), centring an
+			// overflowing flex row clips the leading items and leaves them unreachable, so it stays
+			// start-aligned there and the horizontal scroll does its job.
+			className="flex min-w-0 items-center justify-start gap-1 overflow-x-auto px-1 pb-2 md:justify-center md:px-8"
 		>
 			<Link
 				to="/challenges"
