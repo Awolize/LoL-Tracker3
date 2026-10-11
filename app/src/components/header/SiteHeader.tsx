@@ -1,8 +1,7 @@
 import type { ReactNode } from "react";
 
+import { HeaderNav } from "~/components/header/HeaderNav";
 import { MainTitleLink } from "~/components/header/MainTitleLink";
-import Profile from "~/components/header/Profile";
-import { ProfileNav } from "~/components/header/ProfileNav";
 import Search from "~/components/header/Search";
 import { ThemeSelector } from "~/components/theme-toggle";
 import { cn } from "~/components/utils";
@@ -20,7 +19,7 @@ const variantClassName: Record<SiteHeaderVariant, string> = {
 };
 
 type SiteHeaderProps = {
-	/** Center column; defaults to `Profile` (summoner link when URL is a profile route). */
+	/** Center column; empty by default, since navigation lives in `HeaderNav`. */
 	center?: ReactNode;
 	/** @default "hub" */
 	variant?: SiteHeaderVariant;
@@ -33,9 +32,7 @@ export function SiteHeader({ center, variant = "hub" }: SiteHeaderProps) {
 				<div className="flex min-w-0 items-center justify-center">
 					<MainTitleLink />
 				</div>
-				<div className="flex min-w-0 items-center justify-center">
-					{center ?? <Profile />}
-				</div>
+				<div className="flex min-w-0 items-center justify-center">{center}</div>
 				<div className="relative flex min-w-0 items-center pe-11 sm:pe-12">
 					<div className="min-w-0 flex-1">
 						<Search />
@@ -45,8 +42,8 @@ export function SiteHeader({ center, variant = "hub" }: SiteHeaderProps) {
 					</div>
 				</div>
 			</div>
-			{/* Renders only on profile routes; keeps the summoner's sections reachable from every one. */}
-			<ProfileNav />
+			{/* Site-wide, and the summoner's sections when the URL names one. */}
+			<HeaderNav />
 		</header>
 	);
 }
