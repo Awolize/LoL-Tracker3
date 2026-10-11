@@ -9,13 +9,16 @@ import { ProfileChallengesSection } from "~/features/challenges/profile-challeng
 import type { ProfileHubChallengesPayload } from "~/features/challenges/types/profile-challenge-row";
 import { regionToConstant, regionToDisplay } from "~/features/shared/champs";
 import { PersonalRecordsPanel } from "~/features/summoner/components/personal-records";
+import { RecentFormPanel } from "~/features/summoner/components/recent-form";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
 import { Route as ChallengeRoute } from "~/routes/$region.$username.challenge";
 import { Route as MasteryRoute } from "~/routes/$region.$username.mastery";
 import { Route as MatchesRoute } from "~/routes/$region.$username.matches";
+import type { FormEntry } from "~/server/matches/match-participants";
+import { getRecentFormFn } from "~/server/matches/mutations";
 import {
-	getProfileHubChallengesFn,
 	getPersonalRecordsFn,
+	getProfileHubChallengesFn,
 	getUserByNameAndRegionFn,
 } from "~/server/summoner/mutations";
 import type { PersonalRecords } from "~/server/summoner/personal-records";
@@ -88,11 +91,13 @@ export const Route = createFileRoute("/$region/$username/")({
 
 		let profileChallenges: ProfileHubChallengesPayload | null = null;
 		let personalRecords: PersonalRecords | null = null;
+		let recentForm: FormEntry[] = [];
 		if (result.summonerData) {
 			// Independent of each other, so they share one round trip.
-			[profileChallenges, personalRecords] = await Promise.all([
+			[profileChallenges, personalRecords, recentForm] = await Promise.all([
 				getProfileHubChallengesFn({ data: { puuid: result.summonerData.puuid } }),
 				getPersonalRecordsFn({ data: { puuid: result.summonerData.puuid } }),
+				getRecentFormFn({ data: { puuid: result.summonerData.puuid, take: 50 } }),
 			]);
 		}
 
@@ -103,6 +108,7 @@ export const Route = createFileRoute("/$region/$username/")({
 			rawRegion,
 			profileChallenges,
 			personalRecords,
+			recentForm,
 			...result,
 		};
 	},
@@ -179,6 +185,7 @@ function Client() {
 		error,
 		profileChallenges,
 		personalRecords,
+		recentForm,
 	} = Route.useLoaderData();
 
 	if (error === "rate_limit")
@@ -261,6 +268,12 @@ function Client() {
 						</motion.div>
 					))}
 				</nav>
+
+				{recentForm.length > 1 ? (
+					<motion.div variants={itemVariants}>
+						<RecentFormPanel entries={recentForm} />
+					</motion.div>
+				) : null}
 
 				{personalRecords ? (
 					<motion.div variants={itemVariants}>

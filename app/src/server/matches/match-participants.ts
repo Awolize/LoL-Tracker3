@@ -153,3 +153,48 @@ export const getUserChampions = async (puuid: string): Promise<UserChampionOptio
 
 	return rows;
 };
+
+/** One game's line for the profile form chart. */
+export type FormEntry = {
+	gameId: string;
+	win: boolean;
+	kills: number;
+	deaths: number;
+	assists: number;
+	/** Lane minions plus jungle monsters. */
+	cs: number;
+	gameDuration: number;
+	gameStartTimestamp: Date | null;
+};
+
+/**
+ * The user's most recent games, oldest first, for the profile form chart.
+ *
+ * Everything here is already in the `MatchParticipant` projection, so this needs no jsonb scan.
+ * Returned oldest-first so a chart can plot it left to right without re-sorting, while the query
+ * still takes the *newest* `take` rows.
+ */
+export const getRecentForm = async (puuid: string, take = 50): Promise<FormEntry[]> => {
+	const rows = await db
+		.select({
+			gameId: matchParticipant.matchId,
+			win: matchParticipant.win,
+			kills: matchParticipant.kills,
+			deaths: matchParticipant.deaths,
+			assists: matchParticipant.assists,
+			// Two projected columns summed in SQL: the builder cannot express the arithmetic.
+			cs: sql<number>`${matchParticipant.totalMinionsKilled} + ${matchParticipant.neutralMinionsKilled}`.mapWith(
+				Number,
+			),
+			gameDuration: matchInfo.gameDuration,
+			gameStartTimestamp: matchInfo.gameStartTimestamp,
+		})
+		.from(matchParticipant)
+		.innerJoin(matchInfo, eq(matchParticipant.matchId, matchInfo.gameId))
+		.where(eq(matchParticipant.puuid, puuid))
+		// Same total order as the match list, so "recent" means the same thing in both places.
+		.orderBy(desc(matchInfo.gameStartTimestamp), desc(matchParticipant.matchId))
+		.limit(take);
+
+	return rows.reverse();
+};

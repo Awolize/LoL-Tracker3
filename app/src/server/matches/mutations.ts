@@ -7,8 +7,10 @@ import type { Summoner } from "~/features/shared/types";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { getMatches, type MatchFilterOptions } from "~/server/matches/get-matches";
 import {
+	getRecentForm,
 	getUserChampions,
 	getUserQueueIds,
+	type FormEntry,
 	type UserChampionOption,
 } from "~/server/matches/match-participants";
 
@@ -106,3 +108,8 @@ export const getMatchesFn = createServerFn({
 			availableChampions: filterOptions ? filterOptions[1] : undefined,
 		};
 	});
+
+/** Recent games, oldest first, for the profile form chart. */
+export const getRecentFormFn = createServerFn({ method: "GET" })
+	.validator((input: { puuid: string; take?: number }) => input)
+	.handler(({ data }): Promise<FormEntry[]> => getRecentForm(data.puuid, data.take));
