@@ -43,7 +43,7 @@ export function SiteHeader({ center, variant = "hub" }: SiteHeaderProps) {
 				<div className="order-last w-full min-w-0 min-[1400px]:order-none min-[1400px]:w-auto min-[1400px]:flex-none">
 					<HeaderNav />
 				</div>
-				<div className="relative ml-auto flex min-w-0 items-center pe-11 min-[1400px]:flex-1 min-[1400px]:basis-0 sm:pe-12">
+				<div className="relative ml-auto flex min-w-0 items-center pe-11 min-[1400px]:flex-1 min-[1400px]:basis-0 sm:pe-12 md:pe-5">
 					<div className="min-w-0 flex-1">
 						<Search align="end" />
 					</div>
