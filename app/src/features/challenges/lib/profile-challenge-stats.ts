@@ -44,8 +44,14 @@ function formatTierName(tier: string): string {
  */
 export function formatChallengeTopPercentLabel(percentile: number): string | null {
 	if (!Number.isFinite(percentile)) return null;
-	if (percentile < 0 || percentile > 100) return null;
-	const topPct = 100 - percentile;
+	// Stored as a 0-1 TOP FRACTION (0.069 = top 6.9%), not a 0-100 "percent beaten". Verified
+	// against the database: every Challenge, TotalPoints and CategoryPoints row sits in 0-1.
+	//
+	// The previous `100 - percentile` could not produce a label at all for that input: 100 - 0.001
+	// is 99.999, and anything above 25 is suppressed below, so every row returned null. That is why
+	// no rank ever appeared on the match list despite the data being present for all 399 rows.
+	if (percentile < 0 || percentile > 1) return null;
+	const topPct = percentile * 100;
 	// Hide broad buckets (e.g. percentile 0 → "Top 100%").
 	if (topPct > 25) return null;
 	if (topPct <= 0) return "Top <0.1%";
