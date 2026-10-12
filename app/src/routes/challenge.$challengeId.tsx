@@ -68,7 +68,7 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 		config: ChallengeConfig;
 		rows: LadderBoardRow[];
 		population: number;
-		source: "riot" | "tracked";
+		ladder: "riot" | "fallback";
 		/** `GLOBAL` when every shard is merged; otherwise the selected platform id. */
 		selectedRegion: LadderRegionId | "GLOBAL";
 		truncated: boolean;
@@ -101,7 +101,7 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 				config: config as ChallengeConfig,
 				rows: ladder.rows,
 				population: ladder.population,
-				source: "riot",
+				ladder: "riot",
 				selectedRegion,
 				truncated: ladder.truncated,
 				challengeId,
@@ -117,7 +117,7 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 			config: config as ChallengeConfig,
 			rows: tracked.rows,
 			population: tracked.population,
-			source: "tracked",
+			ladder: "fallback",
 			selectedRegion,
 			truncated: false,
 			challengeId,
@@ -206,7 +206,7 @@ export default function RouteComponent() {
 }
 
 function Client() {
-	const { config, rows, population, source, selectedRegion, truncated, challengeId } =
+	const { config, rows, population, ladder, selectedRegion, truncated, challengeId } =
 		Route.useLoaderData();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
@@ -257,7 +257,7 @@ function Client() {
 						config={config}
 						rows={rows}
 						population={population}
-						source={source}
+						ladder={ladder}
 						selectedRegion={selectedRegion}
 						truncated={truncated}
 						onRegionChange={setRegion}

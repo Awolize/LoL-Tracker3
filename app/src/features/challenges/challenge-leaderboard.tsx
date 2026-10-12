@@ -16,7 +16,7 @@ import type { ChallengeConfig } from "~/features/shared/types";
 import { getDataDragonVersion } from "~/server/api/mutations";
 
 /**
- * The row shape the board renders, whichever source produced it.
+ * The row shape the board renders, whichever ladder produced it.
  *
  * Deliberately not the Drizzle row: an official Riot ladder entry carries only a puuid, so a row
  * may have no name at all. `summoner` null means "Riot ranked this player and we do not track
@@ -47,8 +47,13 @@ interface ChallengeLeaderboardProps {
 	rows: LadderBoardRow[];
 	/** Real number of ranked players on the selected board, never the capped row count. */
 	population: number;
-	/** `tracked` only ever reaches here as the loader's fallback when Riot cannot be read. */
-	source: "riot" | "tracked";
+	/**
+	 * Which ladder is on screen.
+	 *
+	 * `fallback` only ever reaches here when Riot cannot be read, and it has to say so or the
+	 * board would be presenting our 55 synced profiles as if they were Riot's regional ladder.
+	 */
+	ladder: "riot" | "fallback";
 	/** "GLOBAL" for the merged board, otherwise a Riot platform id. */
 	selectedRegion: LadderRegionId | "GLOBAL";
 	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;
@@ -353,7 +358,7 @@ export default function ChallengeLeaderboard({
 	config,
 	rows,
 	population,
-	source,
+	ladder,
 	selectedRegion,
 	onRegionChange,
 	truncated,
@@ -366,7 +371,7 @@ export default function ChallengeLeaderboard({
 
 	const { getProfileImage, getChallengeIcon } = useDataDragonPath(version);
 
-	// Riot's own thresholds are the tier boundaries, and they apply to either source: a value is
+	// Riot's own thresholds are the tier boundaries, and they apply to either board: a value is
 	// worth the same wherever we read it from. Derived rather than memoised - it is an array of
 	// at most nine entries.
 	const thresholds = config.config.thresholds as Record<string, number>;
@@ -430,7 +435,7 @@ export default function ChallengeLeaderboard({
 			<section className="border-border/60 bg-muted/20 flex flex-col gap-3 rounded-xl border p-3">
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<span className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
-						{source === "riot" ? "Riot apex ladders" : "Tracked summoners (fallback)"}
+						{ladder === "riot" ? "Riot apex ladders" : "Tracked summoners (fallback)"}
 					</span>
 					<Dropdown
 						choices={REGION_CHOICES}
@@ -447,7 +452,7 @@ export default function ChallengeLeaderboard({
 					/>
 				</div>
 				<p className="text-muted-foreground/70 text-xs">
-					{source === "riot"
+					{ladder === "riot"
 						? "Riot's official regional apex ladders. Global merges every region and re-ranks them here - not a Riot worldwide ladder."
 						: "Ranked among the summoners this tracker follows - not a Riot ladder."}
 				</p>
@@ -490,7 +495,7 @@ export default function ChallengeLeaderboard({
 						{rows.length === 0 && (
 							<div className="text-muted-foreground flex flex-col items-center justify-center py-12">
 								<p className="text-sm">No players found</p>
-								{source === "tracked" && (
+								{ladder === "fallback" && (
 									<p className="mt-1 text-xs">
 										Nobody tracked has a recorded value for this challenge here.
 									</p>
