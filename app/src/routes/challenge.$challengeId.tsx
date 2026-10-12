@@ -5,6 +5,7 @@ import { z } from "zod";
 import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
+import type { ChallengeTags } from "~/db/schema";
 import ChallengeLeaderboard from "~/features/challenges/challenge-leaderboard";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { parseRiotId } from "~/features/shared/riot-id";
@@ -22,6 +23,8 @@ interface ChallengeConfig {
 		startTimestamp: Date | null;
 		endTimestamp: Date | null;
 		thresholds: Record<string, number>;
+		/** Config-DTO `tags`; not read here, but `ChallengeLeaderboard` takes the whole config. */
+		tags: ChallengeTags | null;
 	};
 	localization: {
 		id: number;

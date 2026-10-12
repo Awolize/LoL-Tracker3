@@ -17,6 +17,7 @@
 		"db:pull": "drizzle-kit pull",
 		"db:studio": "drizzle-kit studio",
 		"db:backfill-participants": "tsx scripts/backfill-match-participants.ts",
+		"db:backfill-challenge-tags": "tsx scripts/backfill-challenges-config-tags.ts",
 		"queue:verify-stable-ids": "tsx scripts/verify-stable-queue-job-ids.ts"
 	},
 	"dependencies": {

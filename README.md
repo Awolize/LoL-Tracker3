@@ -189,6 +189,19 @@ It is safe to re-run and rebuilds the projection match by match inside transacti
 minutes for 38k matches / 400k participant rows. Until it finishes, expect the records panel to
 report zeroes and, because the remake flag is still NULL, a remake as the fastest win.
 
+`ChallengesConfig.tags` needs the same treatment. Riot's `Challenges.Configs` is unreachable while
+the API key is expired (403), so it backfills from CommunityDragon's copy of the same config instead
+of from Riot. It is idempotent:
+
+```bash
+cd app
+DATABASE_URL='<production connection string>' \
+  ./node_modules/.bin/tsx scripts/backfill-challenges-config-tags.ts
+```
+
+If CommunityDragon ever stops publishing `tags`, the script refuses to write rather than filling the
+column with nulls - re-run it then to pick up a newer snapshot.
+
 To check what is applied:
 
 ```bash

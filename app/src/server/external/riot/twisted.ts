@@ -26,9 +26,16 @@ export type ChampionMasteryDTO = InstanceType<typeof Dto.ChampionMasteryDTO>;
 export type SummonerV4DTO = InstanceType<typeof Dto.SummonerV4DTO>;
 export type ChampionsDataDragonDetails = InstanceType<typeof Dto.ChampionsDataDragonDetails>;
 export type AccountDto = Awaited<ReturnType<RiotApi["Account"]["getByRiotId"]>>["response"];
+/**
+ * A challenge config as Riot ships it.
+ *
+ * twisted v1.83's `ConfigDTO.Config` predates Riot's `tags` object - the game's own markers for
+ * what a challenge is (`isCapstone`, `isCategory`, `parent`, ...) - so it is added here, left as an
+ * unknown for the caller to parse, rather than by rewriting the derived DTO shape.
+ */
 export type ChallengeConfigDTO = Awaited<
 	ReturnType<LolApi["Challenges"]["Configs"]>
->["response"][number];
+>["response"][number] & { tags?: unknown };
 type PlayerChallengesDTO = Awaited<
 	ReturnType<LolApi["Challenges"]["PlayerChallenges"]>
 >["response"];

@@ -3,6 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { db } from "~/db";
 import { challengeLocalization, challengesConfig } from "~/db/schema";
 import type { ChallengesConfig } from "~/features/shared/types";
+import { parseChallengeTags } from "~/server/challenges/challenge-tags";
 import { lolApi } from "~/server/external/riot/lol-api";
 import type { ChallengeConfigDTO, Regions } from "~/server/external/riot/twisted";
 
@@ -18,6 +19,11 @@ const updateConfig = async (config: ChallengeConfigDTO): Promise<ChallengesConfi
 		.where(eq(challengesConfig.id, config.id))
 		.then((r) => r[0]);
 
+	// Riot's `tags` is absent from twisted's DTO, so it is parsed off the raw payload. A payload with
+	// no tags must not blank out tags the CommunityDragon backfill already wrote: with the API key
+	// expired, a truncated payload is a likelier failure than Riot authoritatively dropping markers.
+	const payloadTags = parseChallengeTags(config.tags);
+
 	const rowData = {
 		id: config.id,
 		state: config.state ?? null,
@@ -26,6 +32,7 @@ const updateConfig = async (config: ChallengeConfigDTO): Promise<ChallengesConfi
 		startTimestamp: config.startTimestamp ? new Date(config.startTimestamp) : null,
 		endTimestamp: config.endTimestamp ? new Date(config.endTimestamp) : null,
 		thresholds: config.thresholds,
+		tags: payloadTags ?? existing?.tags ?? null,
 	};
 
 	if (existing) {

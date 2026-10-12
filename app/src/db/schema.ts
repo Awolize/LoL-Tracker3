@@ -169,6 +169,29 @@ export const championMastery = pgTable(
 	],
 );
 
+/**
+ * Riot's challenge `tags` map (Config-DTO `tags`), stored verbatim.
+ *
+ * It is the game's own marker for what a challenge *is*, rather than an id range we infer:
+ * `isCapstone: "Y"` on the six category aggregates and on the group aggregates under them,
+ * `isCategory: "true"` on the six aggregates only, and `parent` pointing at the aggregate a
+ * challenge rolls up into. Every value Riot ships is a string - `"Y"`, `"true"`, `"50"`, `".1"`,
+ * `"12"`.
+ *
+ * Kept as one object instead of promoted columns for two reasons: a marker Riot adds later needs no
+ * migration, and a separate `parent` column could drift from the `parent` inside `tags`. Rows are
+ * NULL until the config sync (or the CommunityDragon backfill) has written them.
+ */
+export type ChallengeTags = {
+	isCapstone?: string;
+	isCategory?: string;
+	parent?: string;
+	priority?: string;
+	season?: string;
+	seasonal?: string;
+	[key: string]: string | undefined;
+};
+
 export const challengesConfig = pgTable("ChallengesConfig", {
 	id: integer().primaryKey().notNull(),
 	state: text(),
@@ -179,6 +202,8 @@ export const challengesConfig = pgTable("ChallengesConfig", {
 	endTimestamp: timestamp({ precision: 3, mode: "date" }),
 	/** Config-DTO `thresholds` - `Map[String, double]`. */
 	thresholds: jsonb().$type<Record<string, number>>().notNull(),
+	/** Config-DTO `tags` - Riot's own capstone/category/parent markers. See {@link ChallengeTags}. */
+	tags: jsonb().$type<ChallengeTags>(),
 });
 
 export const challengeLocalization = pgTable(
