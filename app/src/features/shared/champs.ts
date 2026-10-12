@@ -115,10 +115,20 @@ export const sortAlgorithm = (
 	}
 };
 
-/** URL/search param spellings (uppercase) that map to a Riot platform id. */
+/**
+ * URL/search param spellings (uppercase) that map to a Riot platform id.
+ *
+ * Every shard Riot routes has to be here or its profiles are unaddressable: the group is missing
+ * from the map, `regionToConstant` throws `Invalid region`, and the route answers 500. VN2, TW2,
+ * SG2 and ME1 were all missing, so a Vietnam apex profile linked from the challenge ladder could
+ * not be opened at all; BR1 and EUN1 were missing too, in the shard-id spelling the ladder and the
+ * region selector both use.
+ */
 const REGION_PARAM_TO_CONSTANT = {
 	BR: Regions.BRAZIL,
+	BR1: Regions.BRAZIL,
 	EUNE: Regions.EU_EAST,
+	EUN1: Regions.EU_EAST,
 	EUW: Regions.EU_WEST,
 	EUW1: Regions.EU_WEST,
 	KR: Regions.KOREA,
@@ -129,6 +139,10 @@ const REGION_PARAM_TO_CONSTANT = {
 	TR1: Regions.TURKEY,
 	RU: Regions.RUSSIA,
 	JP1: Regions.JAPAN,
+	VN2: Regions.VIETNAM,
+	TW2: Regions.TAIWAN,
+	SG2: Regions.SINGAPORE,
+	ME1: Regions.MIDDLE_EAST,
 	PBE1: Regions.PBE,
 } as Record<string, string>;
 
@@ -148,21 +162,7 @@ export const regionToConstant = (region: string): Regions => {
 };
 
 export const regionToDisplay = (region: string): string => {
-	const keys = Object.keys({
-		BR: Regions.BRAZIL,
-		EUNE: Regions.EU_EAST,
-		EUW: Regions.EU_WEST,
-		EUW1: Regions.EU_WEST,
-		KR: Regions.KOREA,
-		LA1: Regions.LAT_NORTH,
-		LA2: Regions.LAT_SOUTH,
-		NA1: Regions.AMERICA_NORTH,
-		OC1: Regions.OCEANIA,
-		TR1: Regions.TURKEY,
-		RU: Regions.RUSSIA,
-		JP1: Regions.JAPAN,
-		PBE1: Regions.PBE,
-	});
+	const keys = Object.keys(REGION_PARAM_TO_CONSTANT);
 
 	const upper = region.toUpperCase();
 	if (!keys.includes(upper)) {
