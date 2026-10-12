@@ -47,5 +47,27 @@ export const useDataDragonPath = (version: string) => {
 		return `/api/images/cdn/${version}/img/challenges/${challengeId}-${highestTier}.webp`;
 	};
 
-	return { getChampionImage, getProfileImage, getItemImage, getSpellImage, getChallengeIcon };
+	/**
+	 * Icon for a challenge at one specific tier.
+	 *
+	 * `getChallengeIcon` answers a different question: it returns the art of the *highest* tier a
+	 * challenge defines, which is what the global directory and leaderboard want. A profile has to
+	 * show the tier its summoner actually reached, so it passes that tier in here.
+	 *
+	 * Riot publishes a token per *tier* only — there is no `unranked` variant upstream — so a null
+	 * tier is a last resort for a challenge with no ladder at all, and the image proxy answers it
+	 * with its fallback. Callers should pass a real tier wherever one exists.
+	 */
+	const getChallengeTierIcon = (challengeId: number, tier: string | null) => {
+		return `/api/images/cdn/${version}/img/challenges/${challengeId}-${(tier ?? "unranked").toLowerCase()}.webp`;
+	};
+
+	return {
+		getChampionImage,
+		getProfileImage,
+		getItemImage,
+		getSpellImage,
+		getChallengeIcon,
+		getChallengeTierIcon,
+	};
 };

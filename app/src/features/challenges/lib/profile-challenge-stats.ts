@@ -191,6 +191,46 @@ export function getProfileChallengeThresholdStripModel(
 	return { entries, pillStates, footerHint, currentValue: numericCurrent };
 }
 
+/**
+ * The tier the summoner has actually reached on a challenge, for picking the matching icon.
+ *
+ * Derived from `getProfileChallengeThresholdStripModel` — the same model the tier pills render — so
+ * the icon and the pills can never disagree about where the player stands. `cleared` is the numeric
+ * path (the value has passed that threshold), `current` the level path (Riot reported that tier
+ * directly); both mean reached, and the highest one wins. Null means no tier yet, which the caller
+ * draws as the neutral `unranked` art.
+ */
+export function getChallengeReachedTier(
+	row: ProfileChallengeRow,
+	challengesSynced: boolean,
+): string | null {
+	const { entries, pillStates } = getProfileChallengeThresholdStripModel(row, challengesSynced);
+
+	for (let i = entries.length - 1; i >= 0; i--) {
+		const state = pillStates[i];
+		if (state === "cleared" || state === "current") return entries[i]!.tier;
+	}
+
+	return null;
+}
+
+/**
+ * The tier whose icon to draw for a challenge.
+ *
+ * The summoner's reached tier where they have one. Where they have none, the challenge's own entry
+ * tier — Riot ships a token per tier and nothing for "no progress", so falling back to the bottom of
+ * the ladder at least draws a real asset, which is what the proxy cannot do for an invented name.
+ */
+export function getChallengeIconTier(
+	row: ProfileChallengeRow,
+	challengesSynced: boolean,
+): string | null {
+	const reached = getChallengeReachedTier(row, challengesSynced);
+	if (reached) return reached;
+
+	return getOrderedChallengeThresholds(row.thresholds)[0]?.tier ?? null;
+}
+
 function tierIndex(level: string | null): number | null {
 	if (!level) return null;
 	const u = level.toUpperCase();

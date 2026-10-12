@@ -12,6 +12,7 @@ import {
 	computeProfileChallengeStats,
 	formatChallengeTopPercentLabel,
 	getProfileChallengeThresholdStripModel,
+	getChallengeIconTier,
 	isChallengeAtHighestTier,
 	isLeftToMaxChallenge,
 	type LadderSegment,
@@ -227,7 +228,7 @@ export function ProfileChallengesSection({
 	const [searchTerm, setSearchTerm] = useState("");
 	const [tierFilter, setTierFilter] = useState<TierFilter>("all");
 	const [sortNearCompletion, setSortNearCompletion] = useState(false);
-	const { getChallengeIcon } = useDataDragonPath(dataDragonVersion);
+	const { getChallengeTierIcon } = useDataDragonPath(dataDragonVersion);
 
 	useEffect(() => {
 		if (!challengesSynced) {
@@ -401,9 +402,12 @@ export function ProfileChallengesSection({
 											<div className="flex w-full min-w-0 items-center gap-2">
 												<div className="bg-muted/30 relative h-9 w-9 shrink-0 overflow-hidden rounded-md">
 													<img
-														src={getChallengeIcon(
+														src={getChallengeTierIcon(
 															row.id,
-															row.thresholds,
+															getChallengeIconTier(
+																row,
+																challengesSynced,
+															),
 														)}
 														alt=""
 														className="h-full w-full object-contain p-px"
