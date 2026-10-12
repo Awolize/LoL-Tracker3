@@ -417,8 +417,6 @@ export default function ChallengeLeaderboard({
 				</motion.div>
 			</section>
 
-		
-
 			{/* Leaderboard List */}
 			<section>
 				<div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
@@ -447,6 +445,7 @@ export default function ChallengeLeaderboard({
 						{population.toLocaleString()}{" "}
 						{population === 1 ? "summoner ranked" : "summoners ranked"}
 						{population > rows.length && ` · top ${rows.length} shown`}
+						{truncated && " · Master tier capped by Riot"}
 					</span>
 				</div>
 				<div className="bg-background/50 overflow-hidden rounded-xl border shadow-sm">
