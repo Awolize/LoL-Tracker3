@@ -423,25 +423,24 @@ export default function ChallengeLeaderboard({
 			<section>
 				<div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
 					<div className="flex items-center gap-3">
-					<h3 className="text-muted-foreground text-sm font-semibold tracking-widest uppercase">
-						Challenge Points Leaderboard
-						
-					</h3>
+						<h3 className="text-muted-foreground text-sm font-semibold tracking-widest uppercase">
+							Challenge Points Leaderboard
+						</h3>
 
-					<Dropdown
-						choices={REGION_CHOICES}
-						choice={selectedChoice}
-						menuLabel="Region"
-						callback={(value) => {
-							if (value < 0) {
-								onRegionChange("GLOBAL");
-								return;
-							}
-							const region = LADDER_REGIONS[value];
-							if (region) onRegionChange(region.id);
-						}}
-					/>
-</div>
+						<Dropdown
+							choices={REGION_CHOICES}
+							choice={selectedChoice}
+							menuLabel="Region"
+							callback={(value) => {
+								if (value < 0) {
+									onRegionChange("GLOBAL");
+									return;
+								}
+								const region = LADDER_REGIONS[value];
+								if (region) onRegionChange(region.id);
+							}}
+						/>
+					</div>
 
 					{/* The real population, counted for this board - never the row cap. */}
 					<span className="text-muted-foreground font-mono text-xs">
