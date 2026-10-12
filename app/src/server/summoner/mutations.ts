@@ -176,6 +176,14 @@ export const fullUpdateSummoner = createServerFn({ method: "POST" })
 				"update-champion-details",
 				"update-challenges-config",
 				"update-mastery",
+				// Writes `ChallengesDetails` and `Challenge`, which is what the profile hub's
+				// challenge panels read (`getChallengesProgressMapForPuuid`). Without it the
+				// mutation resolved while those rows were still missing, so the caller's
+				// `router.invalidate()` re-ran the loader against empty tables and the panel fell
+				// into its "No challenge progress stored yet" state until a manual refresh.
+				// `run-challenges-computation` is not an alternative: it fills the five
+				// champion-list tables, which are unrelated to that panel.
+				"update-challenges",
 			];
 
 			if (awaitMatches) {
