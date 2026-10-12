@@ -49,6 +49,10 @@ export type SummonerResolution =
  * case-insensitively, the other used `eq()` against a lowercased input, so a row stored as
  * `EUW` was invisible to it. That divergence is why one profile 404'd while its row sat in the
  * database; the case-insensitive comparison here is the correct behaviour and the copy is gone.
+ *
+ * A failed refresh is not a missing profile. When Riot cannot be read - a 5xx, a dropped
+ * connection, the retry wrapper giving up - a stored row is served as-is rather than reported as
+ * `not_found`, because only Riot's own 404 is evidence that the account is gone.
  */
 export async function getUserByNameAndRegion(
 	username: string,
@@ -57,8 +61,11 @@ export async function getUserByNameAndRegion(
 ): Promise<SummonerResolution> {
 	const [gameName, tagLine] = username.toLowerCase().split("#");
 
+	/** The stored row, readable from the catch below so a failed refresh can still serve it. */
+	let stored: Summoner | undefined;
+
 	try {
-		const user = await db.query.summoner.findFirst({
+		stored = await db.query.summoner.findFirst({
 			where: (s) =>
 				and(
 					sql`lower(${s.gameName}) = lower(${gameName})`,
@@ -66,6 +73,7 @@ export async function getUserByNameAndRegion(
 					eq(s.region, region),
 				),
 		});
+		const user = stored;
 
 		const isFresh =
 			user?.updatedAt !== null &&
@@ -81,15 +89,19 @@ export async function getUserByNameAndRegion(
 		let riotSummoner;
 		let account;
 		let renamedTo: string | undefined;
-
 		try {
 			// Primary path: resolve by Riot ID.
 			const resolvedByName = await getSummonerByUsernameRateLimit(username, region);
 			riotSummoner = resolvedByName.summoner;
 			account = resolvedByName.account;
 		} catch (error: any) {
-			// Rename fallback: the old Riot ID 404s, but we know the PUUID.
-			if (error?.status !== 404 || !user?.puuid) throw error;
+			// Anything that is not a 404 says nothing about whether the account exists - the
+			// outer catch turns it into a stale-row fallback rather than a 404.
+			if (error?.status !== 404) throw error;
+
+			// Rename fallback: the old Riot ID 404s, but we know the PUUID. With no PUUID to
+			// fall back to there is nothing else to try, so this is a genuine not-found.
+			if (!user?.puuid) return { ok: false, error: "not_found" };
 
 			try {
 				const resolvedByPuuid = await getSummonerByPuuidRateLimit(user.puuid, region);
@@ -104,8 +116,9 @@ export async function getUserByNameAndRegion(
 						new Date().toLocaleString(),
 						`Pruned dead summoner ${gameName}#${tagLine} (puuid ${user.puuid})`,
 					);
+					return { ok: false, error: "not_found" };
 				}
-				throw puuidError; // re-throw either way; the outer catch maps it
+				throw puuidError; // non-404: outer catch serves the stored row
 			}
 		}
 
@@ -169,6 +182,22 @@ export async function getUserByNameAndRegion(
 		};
 	} catch (error: any) {
 		console.error("error:", new Date().toLocaleString(), username, region, error);
+
+		// A stored row we could not re-verify is not a missing profile. Riot being unreachable or
+		// answering 5xx (or the retry wrapper giving up) says nothing about the account, and
+		// turning that into a 404 was the bug: a profile that exists 404'd whenever the refresh
+		// call failed. Serve the row we have and let the next request try Riot again - the
+		// freshness check runs on every load, so nothing is cached into staleness.
+		//
+		// A genuine 404 returned from the block above, so reaching this point means the failure
+		// was never an answer about whether the account exists.
+		if (stored) {
+			console.log(
+				`[Resolve] ${username} (${region}): Riot lookup failed, serving the stored row from ${stored.updatedAt.toISOString()}`,
+			);
+			return { ok: true, user: stored, isCached: true, lastUpdated: stored.updatedAt };
+		}
+
 		return { ok: false, error: error?.status === 429 ? "rate_limit" : "not_found" };
 	}
 }
