@@ -9,6 +9,17 @@ const log = (...args: any[]) => {
 	if (DEBUG) console.log(...args);
 };
 
+const CHALLENGE_ASSETS = "https://raw.communitydragon.org/latest/game/assets/challenges/config";
+
+/**
+ * Ids 0-5 are not challenges. They are the six category aggregates (CRYSTAL, IMAGINATION,
+ * EXPERTISE, VETERANCY, TEAMWORK, COLLECTION) whose thresholds are category points, and Riot marks
+ * them with an empty `levelToIconPath`. CommunityDragon publishes no `tokens/` art for them - only
+ * one shared, per-tier crystal crest under `00_crystals/`.
+ */
+const CATEGORY_AGGREGATE_IDS: ReadonlySet<string> = new Set(["0", "1", "2", "3", "4", "5"]);
+const CATEGORY_CREST_DIR = "00_crystals";
+
 const toWebp = (buf: Buffer) => sharp(buf).webp({ quality: 85 }).toBuffer();
 
 const mime = (ext: string) =>
@@ -66,6 +77,7 @@ export const Route = createFileRoute("/api/images/$")({
 
 						let challengeId = match[1];
 						const requestedTier = match[2].toLowerCase();
+						const isCategoryAggregate = CATEGORY_AGGREGATE_IDS.has(challengeId);
 
 						// --- ASSET REDIRECTS ---
 						// Maps New Mastery 10 IDs to the Legacy Mastery 7 asset IDs
@@ -89,10 +101,17 @@ export const Route = createFileRoute("/api/images/$")({
 
 						// Helper to try fetching a specific tier
 						const fetchTier = async (tier: string) => {
-							const cDragonUrl = `https://raw.communitydragon.org/latest/game/assets/challenges/config/${challengeId}/tokens/${tier}.png`;
+							const cDragonUrl = isCategoryAggregate
+								? `${CHALLENGE_ASSETS}/${CATEGORY_CREST_DIR}/challengecrystal_${tier}.png`
+								: `${CHALLENGE_ASSETS}/${challengeId}/tokens/${tier}.png`;
 							const res = await fetch(cDragonUrl);
-							if (res.ok) return Buffer.from(await res.arrayBuffer());
-							return null;
+							// A missing piece of cosmetic art is a normal outcome, not a failure:
+							// only a genuine problem (network error, unexpected status) is worth an
+							// error-level event, and `fetch` itself throws for the former.
+							if (res.status === 404) return null;
+							if (!res.ok)
+								throw new Error(`CommunityDragon ${res.status} for ${cDragonUrl}`);
+							return Buffer.from(await res.arrayBuffer());
 						};
 
 						// A. Try the requested tier (e.g., 'master')
@@ -107,10 +126,14 @@ export const Route = createFileRoute("/api/images/$")({
 							buf = await fetchTier("iron");
 						}
 
-						if (!buf)
-							throw new Error(
-								`CommunityDragon 404 for ${challengeId} (checked ${requestedTier} & iron)`,
+						if (!buf) {
+							// The browser gets the same deliberate 404 this route always answered a
+							// miss with, but a missing token is not an error worth alerting on.
+							log(
+								`No CommunityDragon art for ${challengeId} (checked ${requestedTier} & iron)`,
 							);
+							return new Response("Image not found", { status: 404 });
+						}
 
 						original = buf;
 						log("Fetched challenge from CommunityDragon");
@@ -121,6 +144,12 @@ export const Route = createFileRoute("/api/images/$")({
 							: path;
 
 						const res = await fetch(`https://ddragon.leagueoflegends.com/${riotPath}`);
+						// Same rule as the challenge branch: a 404 is a missing cosmetic asset,
+						// while any other status is real breakage.
+						if (res.status === 404) {
+							log(`No DDragon art for ${riotPath}`);
+							return new Response("Image not found", { status: 404 });
+						}
 						if (!res.ok) throw new Error(`DDragon ${res.status}`);
 						original = Buffer.from(await res.arrayBuffer());
 
