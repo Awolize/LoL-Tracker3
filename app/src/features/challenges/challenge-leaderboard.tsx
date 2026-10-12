@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 
+import { Button } from "~/components/ui/button";
 import {
 	LADDER_REGIONS,
 	ladderRegionLabel,
@@ -23,16 +24,11 @@ import { getDataDragonVersion } from "~/server/api/mutations";
  * them" - the row still renders, it just cannot link anywhere.
  */
 export interface LadderBoardRow {
-	position: number;
 	puuid: string;
 	value: number;
 	region: string;
-	/** Riot's position inside the shard's own apex ladder, or null for a tracked-only row. */
-	regionalPosition: number | null;
 	/** The Riot ID Riot ranks here, present whether or not we hold a profile for it. */
 	riotId: { gameName: string; tagLine: string } | null;
-	/** The apex tier this row came from: CHALLENGER / GRANDMASTER / MASTER, or "" when tracked. */
-	tier: string;
 	summoner: {
 		puuid: string;
 		gameName: string | null;
@@ -59,6 +55,12 @@ interface ChallengeLeaderboardProps {
 	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;
 	/** True when Riot truncated an apex tier at its page size - the tail is missing. */
 	truncated: boolean;
+	/** True while rows beyond the ones rendered exist on the server. */
+	hasMore?: boolean;
+	/** Loads the next page. Absent when there is nothing more, or the board is not paged. */
+	onLoadMore?: () => void;
+	/** Rows already shown on earlier pages, so rank numbering continues rather than restarting. */
+	rankOffset?: number;
 	highlightedUser?: { username: string; region: string };
 }
 
@@ -278,31 +280,20 @@ const LeaderboardRow = ({
 
 					<div className="flex flex-col justify-center">
 						<div className="flex items-center gap-1.5">
-							{entry.summoner ? (
-								<Link
-									to="/$region/$username"
-									params={{
-										region: entry.summoner.region,
-										username: `${entry.summoner.gameName || "Unknown"}-${entry.summoner.tagLine || ""}`,
-									}}
-									className={`hover:text-primary max-w-[200px] truncate font-medium transition-colors hover:underline ${
-										isHighlighted
-											? "text-foreground font-bold"
-											: "text-foreground/90"
-									}`}
-								>
-									{entry.summoner.gameName || "Unknown"}
-								</Link>
-							) : (
-								// A player Riot ranks but this site has no profile for. Their name is real and
-								// comes from Account-v1, so it is shown as text rather than a dead link.
-								<span
-									className="text-foreground/90 max-w-[200px] truncate font-medium"
-									title="Riot ranks this player; the tracker has no synced profile for them yet"
-								>
-									{displayName ?? `${entry.puuid.slice(0, 8)}…`}
-								</span>
-							)}
+							<Link
+								to="/$region/$username"
+								params={{
+									region: entry.region,
+									username: `${entry?.riotId?.gameName || "Unknown"}-${entry?.riotId?.tagLine || ""}`,
+								}}
+								className={`hover:text-primary max-w-[200px] truncate font-medium transition-colors hover:underline ${
+									isHighlighted
+										? "text-foreground font-bold"
+										: "text-foreground/90"
+								}`}
+							>
+								{displayName || "Unknown"}
+							</Link>
 						</div>
 						<div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-[10px] leading-none">
 							<span className="text-[9px] font-semibold tracking-wider uppercase">
@@ -348,6 +339,9 @@ export default function ChallengeLeaderboard({
 	selectedRegion,
 	onRegionChange,
 	truncated,
+	hasMore = false,
+	onLoadMore,
+	rankOffset = 0,
 	highlightedUser,
 }: ChallengeLeaderboardProps) {
 	const { data: version = "15.24.1" } = useQuery({
@@ -440,11 +434,11 @@ export default function ChallengeLeaderboard({
 						/>
 					</div>
 
-					{/* The real population, counted for this board - never the row cap. */}
+					{/* The real population, counted for this board - never the page size. */}
 					<span className="text-muted-foreground font-mono text-xs">
 						{population.toLocaleString()}{" "}
 						{population === 1 ? "summoner ranked" : "summoners ranked"}
-						{population > rows.length && ` · top ${rows.length} shown`}
+						{population > rows.length && ` · ${rows.length} shown`}
 						{truncated && " · Master tier capped by Riot"}
 					</span>
 				</div>
@@ -455,7 +449,7 @@ export default function ChallengeLeaderboard({
 								key={`${entry.region}-${entry.puuid}`}
 								entry={entry}
 								index={index}
-								offset={0}
+								offset={rankOffset}
 								highlightedUsername={normalizedUsername}
 								highlightedRegion={normalizedRegion}
 								getPlayerTier={getPlayerTier}
@@ -471,6 +465,22 @@ export default function ChallengeLeaderboard({
 										Nobody tracked has a recorded value for this challenge here.
 									</p>
 								)}
+							</div>
+						)}
+
+						{/* Only offered while rows remain: Riot caps a tier at its page size, so the
+						    ladder can end before the population count does, and a control here would
+						    promise rows that do not exist. */}
+						{hasMore && onLoadMore && (
+							<div className="border-border/40 flex justify-center border-t p-3">
+								<Button
+									type="button"
+									variant="outline"
+									size="sm"
+									onClick={onLoadMore}
+								>
+									Load more
+								</Button>
 							</div>
 						)}
 					</div>
