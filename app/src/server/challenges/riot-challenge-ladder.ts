@@ -54,11 +54,18 @@ export const LADDER_PAGE_LIMIT = 200;
 /**
  * How long a fetched snapshot is served without asking Riot again.
  *
- * The values drift slowly (EUW1 CRYSTAL's top moved 29,405 over a day) and every page view reads
- * the snapshot, so a long window is what keeps the Riot budget flat. Fifteen minutes is the tuning
- * knob, and it is explicitly **not** an eviction: see {@link CACHE_TTL_SECONDS}.
+ * A day. The values drift slowly - EUW1 CRYSTAL's top moved 29,405 over a day - and a sync costs
+ * 136 Riot calls, so there is nothing to gain from refreshing more often than the ranking
+ * meaningfully moves.
+ *
+ * **This is a freshness window, not a schedule.** A refresh is still queued by a page view, so
+ * "once a day" honestly means "the first look of the day refreshes it": a challenge nobody opens
+ * keeps whatever snapshot it had. The scheduled sweep is what makes the cadence independent of
+ * visits.
+ *
+ * It is also explicitly **not** an eviction: see {@link CACHE_TTL_SECONDS}.
  */
-export const LADDER_FRESH_SECONDS = 15 * 60;
+export const LADDER_FRESH_SECONDS = 24 * 60 * 60;
 
 /**
  * How long a snapshot is kept in Redis at all.
