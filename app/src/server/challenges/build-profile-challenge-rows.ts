@@ -1,3 +1,4 @@
+import { isChallengeAtHighestTier } from "~/features/challenges/lib/profile-challenge-stats";
 import type {
 	ProfileChallengeRow,
 	ProfileChallengesProgressInput,
@@ -29,15 +30,6 @@ const RETIRED_SEASONAL_NAME_PATTERN = /20\d\d|seasonal/i;
 
 function isRetiredSeasonalChallengeName(name: string): boolean {
 	return RETIRED_SEASONAL_NAME_PATTERN.test(name);
-}
-
-/**
- * Riot records no level and no value for a challenge the player has not progressed; either one
- * being present means it was earned. A `null` progress object never reaches here - it means the
- * progress map itself was missing, and an unsynced profile must still show the full catalog.
- */
-function hasRecordedProgress(progress: ProfileChallengeRow["progress"]): boolean {
-	return progress !== null && (progress.level !== null || progress.value !== null);
 }
 
 function rowProgress(
@@ -80,7 +72,7 @@ export function buildProfileChallengeRows(
 			(r) =>
 				!challengesSynced ||
 				!isRetiredSeasonalChallengeName(r.name) ||
-				hasRecordedProgress(r.progress),
+				isChallengeAtHighestTier(r, challengesSynced),
 		);
 
 	rows.sort((a, b) => a.name.localeCompare(b.name));
