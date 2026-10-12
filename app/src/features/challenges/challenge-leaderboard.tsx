@@ -56,8 +56,6 @@ interface ChallengeLeaderboardProps {
 	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;
 	/** True when Riot truncated an apex tier at its page size - the tail is missing. */
 	truncated: boolean;
-	/** Shards with no apex ladder at all for this challenge. */
-	emptyRegions: string[];
 	highlightedUser?: { username: string; region: string };
 }
 
@@ -175,6 +173,8 @@ interface LeaderboardRowProps {
 	index: number;
 	highlightedUsername: string | null;
 	highlightedRegion: string | null;
+	/** Only meaningful on a single-region board; see the note where it renders. */
+	showRegionalPosition: boolean;
 	getPlayerTier: (value: number) => string | null;
 	getProfileImage: (id: string) => string;
 }
@@ -184,6 +184,7 @@ const LeaderboardRow = ({
 	index,
 	highlightedUsername,
 	highlightedRegion,
+	showRegionalPosition,
 	getPlayerTier,
 	getProfileImage,
 }: LeaderboardRowProps) => {
@@ -309,12 +310,16 @@ const LeaderboardRow = ({
 									<span className="opacity-80">#{entry.riotId.tagLine}</span>
 								</>
 							)}
-							{entry.regionalPosition !== null && (
+							{/* Riot's position inside a shard's own ladder. On the merged board it is a
+							    different ranking from the number on the left with nothing to explain why -
+							    a player can be 3rd in their region and 1st across all of them - so it is
+							    shown only on a single-region board, where the two agree. */}
+							{showRegionalPosition && entry.regionalPosition !== null && (
 								<>
 									<span className="text-border">|</span>
 									<span
 										className="opacity-80"
-										title="Position on Riot's own regional ladder"
+										title="Riot's position on this region's own ladder"
 									>
 										Riot #{entry.regionalPosition}
 									</span>
@@ -354,7 +359,6 @@ export default function ChallengeLeaderboard({
 	selectedRegion,
 	onRegionChange,
 	truncated,
-	emptyRegions,
 	highlightedUser,
 }: ChallengeLeaderboardProps) {
 	const { data: version = "15.24.1" } = useQuery({
@@ -444,49 +448,10 @@ export default function ChallengeLeaderboard({
 						}}
 					/>
 				</div>
-				<p className="text-muted-foreground/80 text-xs leading-relaxed">
-					{source === "riot" ? (
-						<>
-							Riot's official regional apex ladders (Challenger, Grandmaster and
-							Master only), read per shard and cached at most every 15 minutes.
-							{selectedRegion === "GLOBAL" ? (
-								<>
-									{" "}
-									<strong>
-										Global means every configured shard merged and re-ranked by
-										this tracker
-									</strong>{" "}
-									- not a Riot worldwide ladder, which does not exist.
-								</>
-							) : (
-								<>
-									{" "}
-									Positions labelled <span className="font-mono">Riot #</span> are
-									that shard&apos;s own apex ranking.
-								</>
-							)}
-							{truncated && (
-								<>
-									{" "}
-									Riot caps the Master tier, so the bottom of it is missing from
-									this board.
-								</>
-							)}
-							{emptyRegions.length > 0 && (
-								<>
-									{" "}
-									No apex ladder exists for {emptyRegions.join(", ")} on this
-									challenge.
-								</>
-							)}
-						</>
-					) : (
-						<>
-							Ranked among the summoners this tracker follows - not a Riot ladder.
-							This is the fallback board: it is complete across tiers but covers only
-							the profiles this site has synced.
-						</>
-					)}
+				<p className="text-muted-foreground/70 text-xs">
+					{source === "riot"
+						? "Riot's apex ladders, per region. Global merges every region and re-ranks them here - not a Riot worldwide ladder."
+						: "Ranked among the summoners this tracker follows - not a Riot ladder."}
 				</p>
 			</section>
 
@@ -506,6 +471,7 @@ export default function ChallengeLeaderboard({
 						{population.toLocaleString()}{" "}
 						{population === 1 ? "summoner ranked" : "summoners ranked"}
 						{population > rows.length && ` · top ${rows.length} shown`}
+						{truncated && " · Master tier capped by Riot"}
 					</span>
 				</div>
 				<div className="bg-background/50 overflow-hidden rounded-xl border shadow-sm">
@@ -517,6 +483,7 @@ export default function ChallengeLeaderboard({
 								index={index}
 								highlightedUsername={normalizedUsername}
 								highlightedRegion={normalizedRegion}
+								showRegionalPosition={selectedRegion !== "GLOBAL"}
 								getPlayerTier={getPlayerTier}
 								getProfileImage={getProfileImage}
 							/>

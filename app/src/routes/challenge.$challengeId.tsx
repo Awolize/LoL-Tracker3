@@ -217,16 +217,8 @@ export default function RouteComponent() {
 }
 
 function Client() {
-	const {
-		config,
-		rows,
-		population,
-		source,
-		selectedRegion,
-		truncated,
-		emptyRegions,
-		challengeId,
-	} = Route.useLoaderData();
+	const { config, rows, population, source, selectedRegion, truncated, challengeId } =
+		Route.useLoaderData();
 	const search = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { data: version = "15.24.1" } = useQuery({
@@ -279,7 +271,6 @@ function Client() {
 						source={source}
 						selectedRegion={selectedRegion}
 						truncated={truncated}
-						emptyRegions={emptyRegions}
 						onRegionChange={setRegion}
 						highlightedUser={
 							search.username && search.region
