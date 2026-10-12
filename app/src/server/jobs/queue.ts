@@ -4,6 +4,11 @@ import { and, eq, ilike } from "drizzle-orm";
 
 import { db } from "~/db";
 import { challengesConfig, summoner } from "~/db/schema";
+import {
+	LADDER_SWEEP_CHALLENGES,
+	LADDER_SWEEP_INTERVAL_MS,
+	selectSweepChallenges,
+} from "~/server/challenges/ladder-sweep";
 import { syncChallengeLadder } from "~/server/challenges/riot-challenge-ladder";
 import { runAllChallengeUpdatesWorker } from "~/server/challenges/update-challenges";
 import { updateChallengesConfigServer } from "~/server/challenges/update-challenges-config";
@@ -11,6 +16,7 @@ import { upsertPlayerChallenges } from "~/server/challenges/update-player-challe
 import { updateChampionDetails } from "~/server/champions/update-champion-details";
 import { upsertMastery } from "~/server/champions/upsertMastery";
 import type { Regions } from "~/server/external/riot/twisted";
+import { stableGlobalJobOpts } from "~/server/jobs/queue-stable-job-opts";
 import { fetchMatchIds, updateGamesSingle } from "~/server/matches/updateGames";
 import {
 	challengeLeaderboardUrl,
@@ -36,6 +42,26 @@ export const updateQueue = new Queue(QUEUE_NAME, {
 export const updateQueueEvents = new QueueEvents(QUEUE_NAME, { connection });
 
 updateQueueEvents.on("error", (err) => console.error("[QueueEvents] Error:", err));
+
+/**
+ * Keep the most-read ladder boards fresh without waiting for a visit.
+ *
+ * Idempotent by scheduler id, so importing this module more than once (web and worker both do)
+ * leaves one schedule rather than stacking them. The handler only *queues* the sweeps; the single
+ * worker above runs them, so the cadence cannot accidentally run a sweep per process.
+ *
+ * Registered here rather than in a route because a schedule is queue infrastructure, and this is
+ * the module that already owns the queue's lifecycle.
+ */
+const LADDER_SWEEP_SCHEDULER_ID = "ladder-sweep";
+
+updateQueue
+	.upsertJobScheduler(
+		LADDER_SWEEP_SCHEDULER_ID,
+		{ every: LADDER_SWEEP_INTERVAL_MS },
+		{ name: "ladder-sweep", data: {} },
+	)
+	.catch((err) => console.error("[Ladder] Could not register the sweep schedule:", err));
 
 // --- IndexNow buffer ---
 const pendingIndexNowUrls = new Set<string>();
@@ -212,6 +238,23 @@ if (!global.__riotWorker) {
 							username: `${gameName}#${tagLine}`,
 							region,
 						});
+					}
+
+					// Queues a small number of refreshes on a schedule. It does no Riot work itself:
+					// a repeatable job that swept inline would double the allowance it is trying to
+					// stay inside, and could not be paced by the single worker.
+					case "ladder-sweep": {
+						const challengeIds = await selectSweepChallenges(LADDER_SWEEP_CHALLENGES);
+						for (const challengeToSync of challengeIds) {
+							await updateQueue.add(
+								"ladder-sync",
+								{ challengeId: challengeToSync },
+								stableGlobalJobOpts(`ladder-sync__${challengeToSync}`, {
+									priority: 70,
+								}),
+							);
+						}
+						return { success: true, queued: challengeIds };
 					}
 
 					// Riot's official apex ladder for one challenge, across the configured shards.

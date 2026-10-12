@@ -5,6 +5,7 @@ import { db } from "~/db";
 import { challenge, challengesDetails, summoner } from "~/db/schema";
 import type { LadderBoardRow } from "~/features/challenges/challenge-leaderboard";
 import { regionToConstant } from "~/features/shared/champs";
+import { recordLadderView } from "~/server/challenges/ladder-sweep";
 import {
 	type LadderRegionId,
 	type LadderRow,
@@ -143,6 +144,10 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 		}): Promise<ChallengeLadderResult | null> => {
 			const selected = boardRegion(region);
 			const snapshot = await readCachedLadder(challengeId);
+
+			// Note the read so the scheduled sweep can keep the boards people actually open fresh
+			// first. Awaiting is fine: one Redis increment, and its own failures are swallowed.
+			await recordLadderView(challengeId);
 
 			// Stale-while-revalidate: keep serving a stored snapshot and refresh it behind the reader.
 			// A deterministic job id means a stampede of page views collapses into one pending job per
