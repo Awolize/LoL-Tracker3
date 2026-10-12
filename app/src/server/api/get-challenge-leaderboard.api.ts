@@ -26,11 +26,15 @@ const getChallengeUserRank = createServerFn()
 
 		const userValue = userChallenge[0].value!; // We know this exists since we got a result
 
-		// Count users with higher values (better rank)
+		// Count users with higher values (better rank), within this challenge only. Without the
+		// challengeId predicate this counts every higher-scoring row in the table across all 400+
+		// challenges, so it returns a cross-challenge number rather than this board's rank. Latent
+		// today - no challenge has more than 54 ranked summoners, so the caller's "not in the top
+		// 100" branch never runs - but it would misrank the first challenge to exceed 100.
 		const higherCountResult = await db
 			.select({ count: sql<number>`count(*)` })
 			.from(challenge)
-			.where(gt(challenge.value, userValue));
+			.where(and(eq(challenge.challengeId, challengeId), gt(challenge.value, userValue)));
 
 		const higherCount = higherCountResult[0]?.count ?? 0;
 
