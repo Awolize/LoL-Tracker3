@@ -9,7 +9,7 @@ import {
 	LADDER_SWEEP_INTERVAL_MS,
 	selectSweepChallenges,
 } from "~/server/challenges/ladder-sweep";
-import { syncChallengeLadder } from "~/server/challenges/riot-challenge-ladder";
+import { nameStoredLadder, syncChallengeLadder } from "~/server/challenges/riot-challenge-ladder";
 import { runAllChallengeUpdatesWorker } from "~/server/challenges/update-challenges";
 import { updateChallengesConfigServer } from "~/server/challenges/update-challenges-config";
 import { upsertPlayerChallenges } from "~/server/challenges/update-player-challenges";
@@ -259,12 +259,33 @@ if (!global.__riotWorker) {
 
 					// Riot's official apex ladder for one challenge, across the configured shards.
 					// Debounced by job id, so a busy leaderboard page queues at most one of these.
+					// Publishes the board and returns; naming is queued as its own job below so the
+					// worker slot is not held for the naming pass.
 					case "ladder-sync": {
-						const snapshot = await syncChallengeLadder(data.challengeId as number);
+						const challengeToSync = data.challengeId as number;
+						const snapshot = await syncChallengeLadder(challengeToSync);
+						await updateQueue.add(
+							"ladder-name",
+							{ challengeId: challengeToSync },
+							stableGlobalJobOpts(`ladder-name__${challengeToSync}`, {
+								priority: 80,
+							}),
+						);
 						return {
 							success: true,
 							rows: snapshot.global.length,
 							regions: snapshot.regionsWithData.length,
+						};
+					}
+
+					// The slow half of a refresh: up to 100 Account-v1 calls, paced by the key's app
+					// budget. Lower priority than everything above it, so names never delay the board
+					// or a player's own refresh.
+					case "ladder-name": {
+						const named = await nameStoredLadder(data.challengeId as number);
+						return {
+							success: true,
+							named: named?.global.filter((row) => row.gameName !== null).length ?? 0,
 						};
 					}
 

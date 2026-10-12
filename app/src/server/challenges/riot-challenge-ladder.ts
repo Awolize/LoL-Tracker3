@@ -314,35 +314,23 @@ async function fetchLadderPages(
 }
 
 /**
- * Fill in a Riot ID for the highest-ranked rows the shards returned, in place.
+ * Fill in a Riot ID for the highest-ranked rows, in place.
  *
  * Riot's leaderboard DTO has no name, so without this the board is a list of puuids: fine as a
- * ranking, useless as a ladder. Names are attached to the raw entries, which is what the snapshot
- * builder reads, so both the merged board and the per-region views pick them up.
+ * ranking, useless as a ladder.
  *
  * Only the best {@link LADDER_NAME_MAX_ROWS} by value are looked up - that is the slice any view
- * can show - and each puuid is looked up once even when it appears in more than one tier page.
+ * can show - and each puuid is looked up once, so a player ranked in two tiers costs one call.
+ * Rows that already have a name are skipped, which is what makes a repeated pass cheap enough to
+ * be worth not optimising further.
  */
-async function nameLadderRows(
-	raw: { region: LadderRegionId; tier: LadderTier; entries: RiotLadderEntry[] }[],
-): Promise<void> {
-	const all = raw.flatMap((page) => page.entries);
-	if (all.length === 0) return;
-
-	// Same ordering the merged board uses, so the rows we name are the rows it shows first.
-	const ranked = [...all].sort(
-		(a, b) => b.value - a.value || a.position - b.position || a.puuid.localeCompare(b.puuid),
-	);
-	const budget = new Set(ranked.slice(0, LADDER_NAME_MAX_ROWS));
-
+async function nameLadderRows(rows: LadderRow[]): Promise<void> {
 	const wanted = new Map<string, LadderRegionId>();
-	for (const page of raw) {
-		for (const entry of page.entries) {
-			if (budget.has(entry) && !wanted.has(entry.puuid)) {
-				wanted.set(entry.puuid, page.region);
-			}
-		}
+	for (const row of rows.slice(0, LADDER_NAME_MAX_ROWS)) {
+		if (row.gameName !== null && row.tagLine !== null) continue;
+		if (!wanted.has(row.puuid)) wanted.set(row.puuid, row.region);
 	}
+	if (wanted.size === 0) return;
 
 	const names = new Map<string, { gameName: string; tagLine: string }>();
 	await resolveRiotIds(
@@ -350,11 +338,11 @@ async function nameLadderRows(
 		(puuid, account) => names.set(puuid, account),
 	);
 
-	for (const entry of all) {
-		const account = names.get(entry.puuid);
+	for (const row of rows) {
+		const account = names.get(row.puuid);
 		if (!account) continue;
-		entry.gameName = account.gameName;
-		entry.tagLine = account.tagLine;
+		row.gameName = account.gameName;
+		row.tagLine = account.tagLine;
 	}
 }
 
@@ -474,25 +462,77 @@ export async function readCachedLadder(challengeId: number): Promise<LadderSnaps
  * untouched - a partial board cached for fifteen minutes would read as a real ladder with a hole
  * in it, which is the one outcome this feature must not produce.
  */
+/**
+ * Write a snapshot and hand it back enriched.
+ *
+ * Names are carried over from whatever is already stored, so a refresh does not throw away the
+ * Account-v1 work of the previous one: without this, every re-sync would blank the Riot IDs for
+ * the ~25 s until its naming pass caught up, because the slice is budget-bound and deliberately
+ * only covers part of the board.
+ */
+async function publishSnapshot(
+	challengeId: number,
+	raw: { region: LadderRegionId; tier: LadderTier; entries: RiotLadderEntry[] }[],
+): Promise<LadderSnapshot> {
+	const previouslyNamed = await readCachedLadder(challengeId);
+	if (previouslyNamed) {
+		const known = new Map(
+			previouslyNamed.global
+				.filter((row) => row.gameName !== null && row.tagLine !== null)
+				.map((row) => [
+					row.puuid,
+					{ gameName: row.gameName as string, tagLine: row.tagLine as string },
+				]),
+		);
+		for (const page of raw) {
+			for (const entry of page.entries) {
+				if (entry.gameName !== undefined) continue;
+				const carried = known.get(entry.puuid);
+				if (carried) {
+					entry.gameName = carried.gameName;
+					entry.tagLine = carried.tagLine;
+				}
+			}
+		}
+	}
+
+	const snapshot = buildSnapshot(challengeId, raw);
+	await connection.set(cacheKey(challengeId), JSON.stringify(snapshot), "EX", CACHE_TTL_SECONDS);
+	return attachTrackedSummoners(snapshot);
+}
+
+/**
+ * Fetch every configured shard/tier page and publish the board.
+ *
+ * Naming is deliberately **not** part of this. It used to run inline, which meant the sync held its
+ * worker slot for the naming pass (up to 100 calls at ~4/second, so ~25 s on top of the ~23 s
+ * sweep) against a worker with `concurrency: 2` shared with player refreshes. The board is real
+ * without names, so it is published immediately and {@link nameStoredLadder} decorates it after.
+ */
 export async function syncChallengeLadder(challengeId: number): Promise<LadderSnapshot> {
-	const raw = await fetchLadderPages(challengeId);
+	return publishSnapshot(challengeId, await fetchLadderPages(challengeId));
+}
 
-	// Publish the ladder before naming anything. Naming costs a quarter of a second per row, and
-	// holding the board back for a minute to attach cosmetic Riot IDs would mean a challenge stays
-	// on the tracked fallback for that whole time for no gain. The first write makes the board
-	// real; the second decorates it.
-	await connection.set(
-		cacheKey(challengeId),
-		JSON.stringify(buildSnapshot(challengeId, raw)),
-		"EX",
-		CACHE_TTL_SECONDS,
-	);
+/**
+ * Attach Account-v1 Riot IDs to the stored snapshot, in place.
+ *
+ * Its own job because it is the slow half of a refresh and the board does not need it to be
+ * correct - only to be named. Reads whatever is currently stored, so it does not depend on the
+ * sync that triggered it still being alive, and re-writes only if it actually resolved something
+ * new; a second call is a no-op rather than another 100 calls.
+ */
+export async function nameStoredLadder(challengeId: number): Promise<LadderSnapshot | null> {
+	const snapshot = await readCachedLadder(challengeId);
+	if (!snapshot) return null;
 
-	await nameLadderRows(raw);
+	const before = snapshot.global.filter((row) => row.gameName !== null).length;
+	await nameLadderRows(snapshot.global);
+	const after = snapshot.global.filter((row) => row.gameName !== null).length;
 
-	const named = buildSnapshot(challengeId, raw);
-	await connection.set(cacheKey(challengeId), JSON.stringify(named), "EX", CACHE_TTL_SECONDS);
-	return attachTrackedSummoners(named);
+	if (after === before) return snapshot;
+
+	await connection.set(cacheKey(challengeId), JSON.stringify(snapshot), "EX", CACHE_TTL_SECONDS);
+	return snapshot;
 }
 
 /** True when a snapshot is already stored for this challenge, i.e. a refresh is not needed. */
