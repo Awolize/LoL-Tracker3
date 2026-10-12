@@ -174,10 +174,10 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 interface LeaderboardRowProps {
 	entry: LadderBoardRow;
 	index: number;
+	/** Rows already rendered above this one, so the rank continues across sections. */
+	offset: number;
 	highlightedUsername: string | null;
 	highlightedRegion: string | null;
-	/** Only meaningful on a single-region board; see the note where it renders. */
-	showRegionalPosition: boolean;
 	getPlayerTier: (value: number) => string | null;
 	getProfileImage: (id: string) => string;
 }
@@ -185,9 +185,9 @@ interface LeaderboardRowProps {
 const LeaderboardRow = ({
 	entry,
 	index,
+	offset,
 	highlightedUsername,
 	highlightedRegion,
-	showRegionalPosition,
 	getPlayerTier,
 	getProfileImage,
 }: LeaderboardRowProps) => {
@@ -252,13 +252,14 @@ const LeaderboardRow = ({
 			)}
 
 			<div className="relative z-10 flex items-center gap-4">
-				{/* Rank within the board being shown */}
+				{/* Position within the board on screen, so a region board counts 1, 2, 3... rather
+				    than showing the rank it held on the merged board. */}
 				<div
 					className={`w-10 text-center font-mono text-sm ${
 						isHighlighted ? "text-foreground font-bold" : "text-muted-foreground/70"
 					}`}
 				>
-					{entry.position}
+					{offset + index + 1}
 				</div>
 
 				{/* Avatar & Info */}
@@ -311,21 +312,6 @@ const LeaderboardRow = ({
 								<>
 									<span className="text-border">|</span>
 									<span className="opacity-80">#{entry.riotId.tagLine}</span>
-								</>
-							)}
-							{/* Riot's position inside a shard's own ladder. On the merged board it is a
-							    different ranking from the number on the left with nothing to explain why -
-							    a player can be 3rd in their region and 1st across all of them - so it is
-							    shown only on a single-region board, where the two agree. */}
-							{showRegionalPosition && entry.regionalPosition !== null && (
-								<>
-									<span className="text-border">|</span>
-									<span
-										className="opacity-80"
-										title="Riot's position on this region's own ladder"
-									>
-										Riot #{entry.regionalPosition}
-									</span>
 								</>
 							)}
 						</div>
@@ -431,12 +417,17 @@ export default function ChallengeLeaderboard({
 				</motion.div>
 			</section>
 
-			{/* Source & region controls */}
-			<section className="border-border/60 bg-muted/20 flex flex-col gap-3 rounded-xl border p-3">
-				<div className="flex flex-wrap items-center justify-between gap-3">
-					<span className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
-						{ladder === "riot" ? "Riot apex ladders" : "Tracked summoners (fallback)"}
-					</span>
+		
+
+			{/* Leaderboard List */}
+			<section>
+				<div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
+					<div className="flex items-center gap-3">
+					<h3 className="text-muted-foreground text-sm font-semibold tracking-widest uppercase">
+						Challenge Points Leaderboard
+						
+					</h3>
+
 					<Dropdown
 						choices={REGION_CHOICES}
 						choice={selectedChoice}
@@ -450,31 +441,13 @@ export default function ChallengeLeaderboard({
 							if (region) onRegionChange(region.id);
 						}}
 					/>
-				</div>
-				<p className="text-muted-foreground/70 text-xs">
-					{ladder === "riot"
-						? "Riot's official regional apex ladders. Global merges every region and re-ranks them here - not a Riot worldwide ladder."
-						: "Ranked among the summoners this tracker follows - not a Riot ladder."}
-				</p>
-			</section>
+</div>
 
-			{/* Leaderboard List */}
-			<section>
-				<div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
-					<h3 className="text-muted-foreground text-sm font-semibold tracking-widest uppercase">
-						Challenge Points Leaderboard
-						<span className="ml-2 font-normal normal-case">
-							{selectedRegion === "GLOBAL"
-								? "Global (merged)"
-								: ladderRegionLabel(selectedRegion)}
-						</span>
-					</h3>
 					{/* The real population, counted for this board - never the row cap. */}
 					<span className="text-muted-foreground font-mono text-xs">
 						{population.toLocaleString()}{" "}
 						{population === 1 ? "summoner ranked" : "summoners ranked"}
 						{population > rows.length && ` · top ${rows.length} shown`}
-						{truncated && " · Master tier capped by Riot"}
 					</span>
 				</div>
 				<div className="bg-background/50 overflow-hidden rounded-xl border shadow-sm">
@@ -484,9 +457,9 @@ export default function ChallengeLeaderboard({
 								key={`${entry.region}-${entry.puuid}`}
 								entry={entry}
 								index={index}
+								offset={0}
 								highlightedUsername={normalizedUsername}
 								highlightedRegion={normalizedRegion}
-								showRegionalPosition={selectedRegion !== "GLOBAL"}
 								getPlayerTier={getPlayerTier}
 								getProfileImage={getProfileImage}
 							/>
