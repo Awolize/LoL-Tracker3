@@ -174,10 +174,11 @@ function ChallengesView() {
 					</div>
 					<div className="min-w-0 text-left">
 						<h3 className="text-card-foreground group-hover:text-primary text-sm font-semibold transition-colors">
-							Crystal - overall challenge points ranking
+							The overall Crystal leaderboard
 						</h3>
 						<p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-							Challenge 0 aggregates all five categories into a single leaderboard.
+							Ranks every player by their Crystal points - the total across all five
+							categories: Imagination, Expertise, Veterancy, Teamwork and Collection.
 						</p>
 					</div>
 				</Link>
