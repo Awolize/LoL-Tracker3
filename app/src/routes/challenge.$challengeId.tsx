@@ -51,6 +51,18 @@ interface ChallengeConfig {
  * numbers and rewrites the URL with a 307 when a validator changes the type), so every field is
  * validated as identity and normalised where it is used.
  */
+/**
+ * Boards whose page title is not the challenge's own name.
+ *
+ * CRYSTAL (id 0) is the capstone that scores every other challenge - the only config tagged
+ * `isCategory` with no `parent` - so its page is a total-points board rather than one challenge's.
+ * A lookup rather than a derived check because the route cannot derive it: the config's `tags` are
+ * not part of what `getChallengeConfig` returns here.
+ */
+const CAPSTONE_BOARD_TITLES: Record<number, string> = {
+	0: "Total Challenge Points Leaderboard",
+};
+
 const searchSchema = z.object({
 	username: z.string().optional(),
 	region: z.string().optional(),
@@ -219,6 +231,12 @@ function Client() {
 	/** Riot's name for the challenge, which the subtitle uses to say which board this is. */
 	const challengeName = config.localization?.name || `Challenge ${challengeId}`;
 
+	// CRYSTAL is the one board that is not "a challenge's points": it scores all of them, so it
+	// titles itself rather than the challenge it is stored under. Every other board is that
+	// challenge, and says so.
+	const headerTitle = CAPSTONE_BOARD_TITLES[challengeId] ?? challengeName;
+	const headerSubtitle = CAPSTONE_BOARD_TITLES[challengeId] ? challengeName : null;
+
 	/**
 	 * The selected region lives in the URL, so a board is shareable and the back button works.
 	 * Choosing the merged board removes the param rather than spelling out a default.
@@ -237,8 +255,8 @@ function Client() {
 		<div className="bg-background min-h-screen">
 			<div className="container mx-auto px-4 py-8">
 				<div className="mx-auto max-w-4xl space-y-6">
-					{/* The page is a leaderboard, so it leads with the board rather than with the
-					    challenge's name; the art and the challenge line identify which board it is. */}
+					{/* The art and the title name the board. For most challenges that is the
+					    challenge itself; CRYSTAL is the exception and subtitles its own name. */}
 					<div className="flex flex-row items-center justify-center gap-4">
 						<img
 							src={getChallengeIcon(challengeId, config.config.thresholds)}
@@ -246,12 +264,12 @@ function Client() {
 							className="h-16 w-16 shrink-0 rounded-lg object-cover"
 						/>
 						<div className="flex flex-col gap-0.5">
-							<h1 className="text-2xl font-bold sm:text-3xl">
-								Total Challenge Points Leaderboard
-							</h1>
-							<p className="text-muted-foreground text-sm sm:text-base">
-								{challengeName}
-							</p>
+							<h1 className="text-2xl font-bold sm:text-3xl">{headerTitle}</h1>
+							{headerSubtitle && (
+								<p className="text-muted-foreground text-sm sm:text-base">
+									{headerSubtitle}
+								</p>
+							)}
 						</div>
 					</div>
 
