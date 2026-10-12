@@ -30,6 +30,10 @@ export interface LadderBoardRow {
 	region: string;
 	/** Riot's position inside the shard's own apex ladder, or null for a tracked-only row. */
 	regionalPosition: number | null;
+	/** The Riot ID Riot ranks here, present whether or not we hold a profile for it. */
+	riotId: { gameName: string; tagLine: string } | null;
+	/** The apex tier this row came from: CHALLENGER / GRANDMASTER / MASTER, or "" when tracked. */
+	tier: string;
 	summoner: {
 		puuid: string;
 		gameName: string | null;
@@ -185,10 +189,9 @@ const LeaderboardRow = ({
 	getProfileImage,
 }: LeaderboardRowProps) => {
 	const rowRef = useRef<HTMLDivElement>(null);
+	const displayName = entry.riotId?.gameName ?? entry.summoner?.gameName ?? null;
 	const entryUsername =
-		entry.summoner?.gameName && entry.summoner.tagLine
-			? `${entry.summoner.gameName}#${entry.summoner.tagLine}`
-			: null;
+		entry.riotId !== null ? `${entry.riotId.gameName}#${entry.riotId.tagLine}` : null;
 
 	const isHighlighted = Boolean(
 		highlightedUsername &&
@@ -287,11 +290,13 @@ const LeaderboardRow = ({
 									{entry.summoner.gameName || "Unknown"}
 								</Link>
 							) : (
+								// A player Riot ranks but this site has no profile for. Their name is real and
+								// comes from Account-v1, so it is shown as text rather than a dead link.
 								<span
-									className="text-muted-foreground/70 max-w-[200px] truncate font-medium"
-									title="Riot ranked this player on its apex ladder; the tracker holds no profile for them"
+									className="text-foreground/90 max-w-[200px] truncate font-medium"
+									title="Riot ranks this player; the tracker has no synced profile for them yet"
 								>
-									{`${entry.puuid.slice(0, 8)}…`}
+									{displayName ?? `${entry.puuid.slice(0, 8)}…`}
 								</span>
 							)}
 						</div>
@@ -299,10 +304,10 @@ const LeaderboardRow = ({
 							<span className="text-[9px] font-semibold tracking-wider uppercase">
 								{regionToDisplay(entry.region)}
 							</span>
-							{entry.summoner?.tagLine && (
+							{entry.riotId && (
 								<>
 									<span className="text-border">|</span>
-									<span className="opacity-80">#{entry.summoner.tagLine}</span>
+									<span className="opacity-80">#{entry.riotId.tagLine}</span>
 								</>
 							)}
 							{entry.regionalPosition !== null && (

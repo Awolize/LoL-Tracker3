@@ -9,7 +9,12 @@ import {
 } from "~/features/challenges/ladder-regions";
 import { rateLimitWrapper } from "~/server/api/rate-limit-wrapper";
 import { lolApi } from "~/server/external/riot/lol-api";
-import type { Levels, Regions } from "~/server/external/riot/twisted";
+import { riotApi } from "~/server/external/riot/riot-api";
+import {
+	type Levels,
+	type Regions,
+	regionToRegionGroupForAccountAPI,
+} from "~/server/external/riot/twisted";
 import { connection } from "~/server/jobs/redis";
 
 export { LADDER_REGIONS, isLadderRegionId };
@@ -59,6 +64,36 @@ export const CACHE_TTL_SECONDS = 15 * 60;
 export const LADDER_FETCH_GAP_MS = 650;
 
 /**
+ * How many Account-v1 lookups run at once when naming the players Riot ranked.
+ *
+ * Four in flight, paced by {@link LADDER_NAME_GAP_MS}. The account endpoint's own limit is far
+ * higher (`x-method-rate-limit: 1000:60`); what binds is the key's app budget.
+ */
+export const LADDER_NAME_CONCURRENCY = 4;
+
+/**
+ * Minimum spacing between Account-v1 calls, shared across every slot.
+ *
+ * Four requests per second. Nothing is gained by going faster: the key allows
+ * `100:120` app-wide, so the 36-call ladder sweep and the naming slice below already spend the
+ * whole two-minute budget, and the first attempt at this measured a 429 with `Retry-After: 115`
+ * when it tried roughly three times this rate.
+ */
+export const LADDER_NAME_GAP_MS = 250;
+
+/**
+ * The most rows worth naming per sync.
+ *
+ * This is a budget, not a preference. Measured on CRYSTAL: the merged board is 1,283 rows but the
+ * page caps at 100, of which 37 were already named from our own `Summoner` table and 63 needed an
+ * Account-v1 call. Naming exactly the top 100 therefore covers every row any view can show for
+ * 36 + 100 = 136 app-budget calls per two-minute window - the whole allowance, which is why the
+ * cut cannot simply be raised. Rows above it keep Riot's own `Riot #` position, so they are
+ * complete ladder rows without a Riot ID attached.
+ */
+export const LADDER_NAME_MAX_ROWS = 100;
+
+/**
  * Extra attempts per page when Riot answers 5xx.
  *
  * Measured: `101101`'s deep `limit=200` pages answered 504 twice in one sweep while every other
@@ -70,11 +105,18 @@ export const LADDER_FETCH_RETRIES = 2;
 const CACHE_PREFIX = "challenge-ladder:v1";
 const cacheKey = (challengeId: number) => `${CACHE_PREFIX}:${challengeId}`;
 
-/** One `by-level/{tier}` row, exactly as Riot ships it. */
+/**
+ * One `by-level/{tier}` row as Riot ships it, plus the Riot ID we resolve for it.
+ *
+ * The leaderboard DTO itself is only `{position, puuid, value}` - it carries no name at all - so
+ * `gameName`/`tagLine` are filled in from Account-v1 afterwards.
+ */
 export type RiotLadderEntry = {
 	position: number;
 	puuid: string;
 	value: number;
+	gameName?: string | null;
+	tagLine?: string | null;
 };
 
 /** A merged row: Riot's ladder facts plus whatever the tracker already knows about the puuid. */
@@ -150,14 +192,75 @@ const isTransientLadderError = (error: unknown): boolean => {
 };
 
 /**
- * Fetch every configured shard/tier once and build the merged snapshot.
+ * Resolve the Riot IDs of ladder puuids from Account-v1, in a bounded pool.
+ *
+ * The account API routes by *region group*, not by shard, and `LADDER_REGIONS` only spans three
+ * of them (AMERICAS / EUROPE / ASIA), so one call per player covers every shard they could have
+ * been ranked on. Note the group is taken from the region the puuid was ranked in - the same
+ * puuid is reachable from any shard in its group, so no player is looked up twice.
+ *
+ * Unknown and failing puuids are simply absent from the map: a missing name is cosmetic and must
+ * never fail the sync, which is why a 404 is silent and any other error is a warning.
+ */
+async function resolveRiotIds(
+	puuids: { puuid: string; region: LadderRegionId }[],
+	onResolved: (puuid: string, account: { gameName: string; tagLine: string }) => void,
+): Promise<void> {
+	const queue = [...puuids];
+	let failures = 0;
+
+	// A shared clock rather than a per-slot sleep: the slots race to pull from the queue, so the
+	// spacing has to be a property of the calls, not of any one worker.
+	let nextAllowedAt = 0;
+	const throttle = async () => {
+		const now = Date.now();
+		const waitFor = Math.max(0, nextAllowedAt - now);
+		nextAllowedAt = Math.max(now, nextAllowedAt) + LADDER_NAME_GAP_MS;
+		if (waitFor > 0) await sleep(waitFor);
+	};
+
+	await Promise.all(
+		Array.from({ length: LADDER_NAME_CONCURRENCY }, async () => {
+			for (;;) {
+				const next = queue.shift();
+				if (!next) return;
+				await throttle();
+				try {
+					const group = regionToRegionGroupForAccountAPI(ladderRegion(next.region));
+					const account = (
+						await rateLimitWrapper(() => riotApi.Account.getByPUUID(next.puuid, group))
+					).response;
+					onResolved(next.puuid, account);
+				} catch (error) {
+					failures++;
+					const status = (error as { status?: number } | null)?.status;
+					if (status !== 404) {
+						console.warn(
+							`[Ladder] Could not resolve a Riot ID for ${next.puuid.slice(0, 8)}…:`,
+							error instanceof Error ? error.message : error,
+						);
+					}
+				}
+			}
+		}),
+	);
+
+	console.log(
+		`[Ladder] Named ${puuids.length - failures}/${puuids.length} ladder rows via Account-v1`,
+	);
+}
+
+/**
+ * Fetch every configured shard/tier page once.
  *
  * Sequential with a fixed gap rather than concurrent: the SDK is shared and the whole point of
  * this path is to stay far below the rate limit, not to finish fast. A shard that has no ladder
  * for a challenge (VN2 answers 400 for CRYSTAL, for instance) is recorded as a zero rather than
  * failing the sync, because a missing regional ladder is normal.
  */
-export async function fetchLadderSnapshot(challengeId: number): Promise<LadderSnapshot> {
+async function fetchLadderPages(
+	challengeId: number,
+): Promise<{ region: LadderRegionId; tier: LadderTier; entries: RiotLadderEntry[] }[]> {
 	const raw: { region: LadderRegionId; tier: LadderTier; entries: RiotLadderEntry[] }[] = [];
 
 	for (const region of LADDER_REGIONS) {
@@ -183,7 +286,52 @@ export async function fetchLadderSnapshot(challengeId: number): Promise<LadderSn
 		}
 	}
 
-	return buildSnapshot(challengeId, raw);
+	return raw;
+}
+
+/**
+ * Fill in a Riot ID for the highest-ranked rows the shards returned, in place.
+ *
+ * Riot's leaderboard DTO has no name, so without this the board is a list of puuids: fine as a
+ * ranking, useless as a ladder. Names are attached to the raw entries, which is what the snapshot
+ * builder reads, so both the merged board and the per-region views pick them up.
+ *
+ * Only the best {@link LADDER_NAME_MAX_ROWS} by value are looked up - that is the slice any view
+ * can show - and each puuid is looked up once even when it appears in more than one tier page.
+ */
+async function nameLadderRows(
+	raw: { region: LadderRegionId; tier: LadderTier; entries: RiotLadderEntry[] }[],
+): Promise<void> {
+	const all = raw.flatMap((page) => page.entries);
+	if (all.length === 0) return;
+
+	// Same ordering the merged board uses, so the rows we name are the rows it shows first.
+	const ranked = [...all].sort(
+		(a, b) => b.value - a.value || a.position - b.position || a.puuid.localeCompare(b.puuid),
+	);
+	const budget = new Set(ranked.slice(0, LADDER_NAME_MAX_ROWS));
+
+	const wanted = new Map<string, LadderRegionId>();
+	for (const page of raw) {
+		for (const entry of page.entries) {
+			if (budget.has(entry) && !wanted.has(entry.puuid)) {
+				wanted.set(entry.puuid, page.region);
+			}
+		}
+	}
+
+	const names = new Map<string, { gameName: string; tagLine: string }>();
+	await resolveRiotIds(
+		[...wanted].map(([puuid, region]) => ({ puuid, region })),
+		(puuid, account) => names.set(puuid, account),
+	);
+
+	for (const entry of all) {
+		const account = names.get(entry.puuid);
+		if (!account) continue;
+		entry.gameName = account.gameName;
+		entry.tagLine = account.tagLine;
+	}
 }
 
 /** Merge raw shard/tier pages into one global board, re-ranked by us, plus per-region boards. */
@@ -202,8 +350,8 @@ function buildSnapshot(
 				regionalPosition: entry.position,
 				tier,
 				region,
-				gameName: null,
-				tagLine: null,
+				gameName: entry.gameName ?? null,
+				tagLine: entry.tagLine ?? null,
 				profileIconId: null,
 				tracked: false,
 			});
@@ -303,9 +451,24 @@ export async function readCachedLadder(challengeId: number): Promise<LadderSnaps
  * in it, which is the one outcome this feature must not produce.
  */
 export async function syncChallengeLadder(challengeId: number): Promise<LadderSnapshot> {
-	const snapshot = await fetchLadderSnapshot(challengeId);
-	await connection.set(cacheKey(challengeId), JSON.stringify(snapshot), "EX", CACHE_TTL_SECONDS);
-	return attachTrackedSummoners(snapshot);
+	const raw = await fetchLadderPages(challengeId);
+
+	// Publish the ladder before naming anything. Naming costs a quarter of a second per row, and
+	// holding the board back for a minute to attach cosmetic Riot IDs would mean a challenge stays
+	// on the tracked fallback for that whole time for no gain. The first write makes the board
+	// real; the second decorates it.
+	await connection.set(
+		cacheKey(challengeId),
+		JSON.stringify(buildSnapshot(challengeId, raw)),
+		"EX",
+		CACHE_TTL_SECONDS,
+	);
+
+	await nameLadderRows(raw);
+
+	const named = buildSnapshot(challengeId, raw);
+	await connection.set(cacheKey(challengeId), JSON.stringify(named), "EX", CACHE_TTL_SECONDS);
+	return attachTrackedSummoners(named);
 }
 
 /** True when a snapshot is already stored for this challenge, i.e. a refresh is not needed. */

@@ -3,8 +3,8 @@ import { and, count, desc, eq } from "drizzle-orm";
 
 import { db } from "~/db";
 import { challenge, challengesDetails, summoner } from "~/db/schema";
+import type { LadderBoardRow } from "~/features/challenges/challenge-leaderboard";
 import { regionToConstant } from "~/features/shared/champs";
-import type { Summoner } from "~/features/shared/types";
 import {
 	LADDER_REGIONS,
 	type LadderRegionId,
@@ -14,19 +14,6 @@ import {
 } from "~/server/challenges/riot-challenge-ladder";
 import { updateQueue } from "~/server/jobs/queue";
 import { stableGlobalJobOpts } from "~/server/jobs/queue-stable-job-opts";
-
-/** One row of the region board the UI renders, whatever source it came from. */
-export type LadderBoardRow = {
-	/** 1-based rank within the board being shown. */
-	position: number;
-	puuid: string;
-	value: number;
-	region: string;
-	/** Riot's position inside the shard's own apex ladder; null for non-apex rows. */
-	regionalPosition: number | null;
-	tier: string;
-	summoner: Pick<Summoner, "puuid" | "gameName" | "tagLine" | "region" | "profileIconId"> | null;
-};
 
 export type ChallengeLadderResult =
 	| {
@@ -62,6 +49,10 @@ const toBoardRow = (row: LadderRow): LadderBoardRow => ({
 	region: row.region,
 	regionalPosition: row.regionalPosition,
 	tier: row.tier,
+	riotId:
+		row.gameName !== null && row.tagLine !== null
+			? { gameName: row.gameName, tagLine: row.tagLine }
+			: null,
 	summoner: row.tracked
 		? {
 				puuid: row.puuid,
@@ -182,6 +173,10 @@ export const getTrackedChallengeBoardFn = createServerFn({ method: "GET" })
 				region: row.region,
 				regionalPosition: null,
 				tier: "",
+				riotId:
+					row.gameName !== null && row.tagLine !== null
+						? { gameName: row.gameName, tagLine: row.tagLine }
+						: null,
 				summoner: {
 					puuid: row.puuid,
 					gameName: row.gameName,
