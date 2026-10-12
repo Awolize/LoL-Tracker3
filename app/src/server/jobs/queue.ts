@@ -7,6 +7,7 @@ import { challengesConfig, summoner } from "~/db/schema";
 import {
 	LADDER_SWEEP_CHALLENGES,
 	LADDER_SWEEP_INTERVAL_MS,
+	markSwept,
 	selectSweepChallenges,
 } from "~/server/challenges/ladder-sweep";
 import { nameStoredLadder, syncChallengeLadder } from "~/server/challenges/riot-challenge-ladder";
@@ -244,8 +245,8 @@ if (!global.__riotWorker) {
 					// a repeatable job that swept inline would double the allowance it is trying to
 					// stay inside, and could not be paced by the single worker.
 					case "ladder-sweep": {
-						const challengeIds = await selectSweepChallenges(LADDER_SWEEP_CHALLENGES);
-						for (const challengeToSync of challengeIds) {
+						const { selected } = await selectSweepChallenges(LADDER_SWEEP_CHALLENGES);
+						for (const challengeToSync of selected) {
 							await updateQueue.add(
 								"ladder-sync",
 								{ challengeId: challengeToSync },
@@ -254,7 +255,11 @@ if (!global.__riotWorker) {
 								}),
 							);
 						}
-						return { success: true, queued: challengeIds };
+						// Move them to the back of the rotation before returning: without this the
+						// same challenges are picked again on the next tick and the rest never come
+						// round.
+						await markSwept(selected);
+						return { success: true, queued: selected };
 					}
 
 					// Riot's official apex ladder for one challenge, across the configured shards.
