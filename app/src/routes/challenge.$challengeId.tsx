@@ -51,6 +51,17 @@ interface ChallengeConfig {
  * numbers and rewrites the URL with a 307 when a validator changes the type), so every field is
  * validated as identity and normalised where it is used.
  */
+/**
+ * Riot's localization strings are not plain text: some carry inline markup (`Obtain
+ * <em>champions</em>`). React escapes it, so rendering it raw puts the tags on screen - strip
+ * them and keep the words rather than trusting the string or injecting HTML.
+ */
+const plainText = (value: string | null | undefined): string =>
+	(value ?? "")
+		.replace(/<[^>]*>/g, "")
+		.replace(/\s+/g, " ")
+		.trim();
+
 const searchSchema = z.object({
 	username: z.string().optional(),
 	region: z.string().optional(),
@@ -217,6 +228,18 @@ function Client() {
 	const { getChallengeIcon } = useDataDragonPath(version);
 
 	/**
+	 * Riot's own summary of the challenge, or nothing rather than an empty line.
+	 *
+	 * `description` is the fuller sentence and is the cleaner one upstream - `shortDescription`
+	 * carries inline markup on 72 of 405 rows ("Obtain <em>champions</em>", "Collect <em>mythic
+	 * champion skins</em>") while `description` does on 1 - so it is preferred, with the short one
+	 * as the fallback because `description` is empty on a handful of challenges (CRYSTAL's is).
+	 */
+	const challengeSubtitle = plainText(
+		config.localization?.description || config.localization?.shortDescription,
+	);
+
+	/**
 	 * The selected region lives in the URL, so a board is shareable and the back button works.
 	 * Choosing the merged board removes the param rather than spelling out a default.
 	 */
@@ -234,20 +257,22 @@ function Client() {
 		<div className="bg-background min-h-screen">
 			<div className="container mx-auto px-4 py-8">
 				<div className="mx-auto max-w-4xl space-y-6">
-					{/* Page Title */}
-					<div className="flex flex-row justify-center gap-4 text-center">
+					{/* Page title: the challenge's own art, name, and Riot's one-line summar
+					    of what it is. `description` is empty for most challenges while
+					    `shortDescription` is populated, so prefer the short one and fall back. */}
+					<div className="flex flex-row items-center justify-center gap-5">
 						<img
 							src={getChallengeIcon(challengeId, config.config.thresholds)}
 							alt={config.localization?.name || `Challenge ${challengeId}`}
-							className="h-24 w-24 rounded-lg object-cover"
+							className="h-20 w-20 shrink-0 rounded-lg object-cover"
 						/>
-						<div>
-							<h2 className="mb-2 text-4xl font-bold">
+						<div className="flex flex-col gap-1">
+							<h2 className="text-3xl font-bold">
 								{config.localization?.name || `Challenge ${challengeId}`}
 							</h2>
-							{config.localization?.description && (
-								<p className="text-muted-foreground text-lg">
-									{config.localization.description}
+							{challengeSubtitle && (
+								<p className="text-muted-foreground text-base">
+									{challengeSubtitle}
 								</p>
 							)}
 						</div>
