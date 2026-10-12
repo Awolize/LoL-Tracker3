@@ -16,6 +16,7 @@ import {
 	getChallengeReachedTier,
 	isChallengeAtHighestTier,
 	isLeftToMaxChallenge,
+	tierTextColor,
 	type LadderSegment,
 	type ProfileChallengeThresholdStripModel,
 	type TierPillState,
@@ -35,12 +36,6 @@ function filterChipClass(active: boolean) {
 		active && "bg-muted text-foreground shadow-sm",
 		"focus-visible:ring-ring focus-visible:ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1",
 	);
-}
-
-function tierTextColor(level: string | null): string | undefined {
-	if (!level) return undefined;
-	const key = level.toLowerCase();
-	return `var(--tier-${key})`;
 }
 
 /**

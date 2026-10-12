@@ -5,16 +5,19 @@ import { motion } from "motion/react";
 import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
+import { CapstonePanel } from "~/features/challenges/capstone-panel";
 import { ProfileChallengesSection } from "~/features/challenges/profile-challenges-section";
 import type { ProfileHubChallengesPayload } from "~/features/challenges/types/profile-challenge-row";
 import { regionToConstant, regionToDisplay } from "~/features/shared/champs";
 import { PersonalRecordsPanel } from "~/features/summoner/components/personal-records";
 import { RecentFormPanel, RECENT_FORM_GAMES } from "~/features/summoner/components/recent-form";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
+import type { ProfileCapstones } from "~/server/challenges/capstone-progress";
 import type { FormEntry } from "~/server/matches/match-participants";
 import { getRecentFormFn, getUserQueuesFn } from "~/server/matches/mutations";
 import {
 	getPersonalRecordsFn,
+	getProfileCapstonesFn,
 	getProfileHubChallengesFn,
 	getUserByNameAndRegionFn,
 } from "~/server/summoner/mutations";
@@ -68,18 +71,21 @@ export const Route = createFileRoute("/$region/$username/")({
 
 		let profileChallenges: ProfileHubChallengesPayload | null = null;
 		let personalRecords: PersonalRecords | null = null;
+		let capstones: ProfileCapstones | null = null;
 		let recentForm: FormEntry[] = [];
 		let formQueueIds: number[] = [];
 		if (result.summonerData) {
 			// Independent of each other, so they share one round trip.
-			[profileChallenges, personalRecords, recentForm, formQueueIds] = await Promise.all([
-				getProfileHubChallengesFn({ data: { puuid: result.summonerData.puuid } }),
-				getPersonalRecordsFn({ data: { puuid: result.summonerData.puuid } }),
-				getRecentFormFn({
-					data: { puuid: result.summonerData.puuid, take: RECENT_FORM_GAMES },
-				}),
-				getUserQueuesFn({ data: { puuid: result.summonerData.puuid } }),
-			]);
+			[profileChallenges, personalRecords, capstones, recentForm, formQueueIds] =
+				await Promise.all([
+					getProfileHubChallengesFn({ data: { puuid: result.summonerData.puuid } }),
+					getPersonalRecordsFn({ data: { puuid: result.summonerData.puuid } }),
+					getProfileCapstonesFn({ data: { puuid: result.summonerData.puuid } }),
+					getRecentFormFn({
+						data: { puuid: result.summonerData.puuid, take: RECENT_FORM_GAMES },
+					}),
+					getUserQueuesFn({ data: { puuid: result.summonerData.puuid } }),
+				]);
 		}
 
 		return {
@@ -89,6 +95,7 @@ export const Route = createFileRoute("/$region/$username/")({
 			rawRegion,
 			profileChallenges,
 			personalRecords,
+			capstones,
 			recentForm,
 			formQueueIds,
 			...result,
@@ -167,6 +174,7 @@ function Client() {
 		error,
 		profileChallenges,
 		personalRecords,
+		capstones,
 		recentForm,
 		formQueueIds,
 	} = Route.useLoaderData();
@@ -241,6 +249,15 @@ function Client() {
 				{personalRecords ? (
 					<motion.div variants={itemVariants}>
 						<PersonalRecordsPanel records={personalRecords} />
+					</motion.div>
+				) : null}
+
+				{capstones && profileChallenges ? (
+					<motion.div variants={itemVariants}>
+						<CapstonePanel
+							capstones={capstones}
+							dataDragonVersion={profileChallenges.dataDragonVersion}
+						/>
 					</motion.div>
 				) : null}
 

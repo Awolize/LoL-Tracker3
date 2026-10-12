@@ -11,6 +11,7 @@ import { getChallengesConfig } from "~/server/api/get-challenges-config";
 import { getDataDragonVersion } from "~/server/api/get-datadragon-version";
 import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region";
 import { buildProfileChallengeRows } from "~/server/challenges/build-profile-challenge-rows";
+import { getProfileCapstones, type ProfileCapstones } from "~/server/challenges/capstone-progress";
 import { getChallengesProgressMapForPuuid } from "~/server/challenges/challenges-progress-map";
 import { getCompleteChampionData } from "~/server/champions/get-complete-champion-data";
 import { updateQueue, updateQueueEvents } from "~/server/jobs/queue";
@@ -300,3 +301,13 @@ export const getProfileHubChallengesFn = createServerFn({ method: "GET" })
 export const getPersonalRecordsFn = createServerFn({ method: "GET" })
 	.validator((input: { puuid: string }) => input)
 	.handler(({ data }): Promise<PersonalRecords> => getPersonalRecords(data.puuid));
+
+/**
+ * Capstone (Crystal + category) progress for the profile hub.
+ *
+ * These six aggregates are not `Challenge` rows, so they never travel with the list payload; the
+ * panel reads them from the aggregate tables instead. Null means nothing is stored for the puuid.
+ */
+export const getProfileCapstonesFn = createServerFn({ method: "GET" })
+	.validator((input: { puuid: string }) => input)
+	.handler(({ data }): Promise<ProfileCapstones | null> => getProfileCapstones(data.puuid));

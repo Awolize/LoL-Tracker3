@@ -13,8 +13,21 @@ const TIER_ORDER = [
 	"IRON",
 ] as const;
 
-/** Iron → Challenger; matches leaderboard ladder order. */
-const TIER_ORDER_ASC = [...TIER_ORDER].reverse() as readonly string[];
+/** Iron → Challenger; matches leaderboard ladder order. Also the canonical tier order. */
+export const TIER_ORDER_ASC = [...TIER_ORDER].reverse() as readonly string[];
+
+/**
+ * The theme's tier colour for a tier name, or undefined when it is not a tier.
+ *
+ * Lives here rather than in a component because more than one surface draws tier names; the tokens
+ * are in `styles.css` and the name is the whole lookup.
+ */
+export function tierTextColor(level: string | null): string | undefined {
+	if (!level) return undefined;
+	const upper = level.toUpperCase();
+	if (!(TIER_ORDER_ASC as readonly string[]).includes(upper)) return undefined;
+	return `var(--tier-${upper.toLowerCase()})`;
+}
 
 function tierAscIndex(tier: string): number {
 	return (TIER_ORDER_ASC as readonly string[]).indexOf(tier.toUpperCase());
