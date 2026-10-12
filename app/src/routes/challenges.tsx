@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { SearchIcon, XIcon } from "lucide-react";
+import { SearchIcon, TrophyIcon, XIcon } from "lucide-react";
 import { useMemo, useState } from "react";
 
 // Local imports (assuming these exist based on your code)
@@ -98,7 +98,7 @@ export const Route = createFileRoute("/challenges")({
 			...seo({
 				title: "Challenges - lol.awot.dev",
 				description:
-					"Explore every League of Legends seasonal and legacy challenge in one directory: filter by Veterancy, Expertise, Teamwork, and more, inspect Crystal tier thresholds, then open leaderboards to compare top summoners worldwide.",
+					"Explore every League of Legends seasonal and legacy challenge in one directory: filter by Veterancy, Expertise, Teamwork, and more, inspect Crystal tier thresholds, then open leaderboards ranked across the summoners this tracker follows.",
 			}),
 		],
 	}),
@@ -153,10 +153,34 @@ function ChallengesView() {
 				<div className="space-y-4 text-center">
 					<h2 className="text-4xl font-bold tracking-tight">Challenges</h2>
 					<p className="text-muted-foreground mx-auto max-w-2xl">
-						Browse all available challenges, view tier requirements, and see global
-						leaderboards.
+						Browse all available challenges, view tier requirements, and open the
+						leaderboards tracked here.
 					</p>
 				</div>
+
+				{/*
+				 * The overall ranking. Challenge 0 is the Crystal aggregate over all five categories,
+				 * so it is deliberately a separate affordance rather than another tab: the "Legacy &
+				 * Events" tab is the fallback bucket for challenges whose parent chain reaches no
+				 * category, which is a different set entirely.
+				 */}
+				<Link
+					to="/challenge/$challengeId"
+					params={{ challengeId: "0" }}
+					className="group bg-card hover:border-primary/50 mx-auto flex max-w-2xl items-center gap-4 rounded-xl border p-4 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-lg"
+				>
+					<div className="bg-muted/20 flex h-12 w-12 shrink-0 items-center justify-center rounded-lg">
+						<TrophyIcon className="text-primary h-6 w-6" />
+					</div>
+					<div className="min-w-0 text-left">
+						<h3 className="text-card-foreground group-hover:text-primary text-sm font-semibold transition-colors">
+							Crystal - overall challenge points ranking
+						</h3>
+						<p className="text-muted-foreground mt-1 text-xs leading-relaxed">
+							Challenge 0 aggregates all five categories into a single leaderboard.
+						</p>
+					</div>
+				</Link>
 
 				{/* Controls */}
 				<div className="bg-background/95 sticky top-16 z-20 -mx-4 border-b px-4 py-4 backdrop-blur md:static md:border-none md:bg-transparent md:p-0">
