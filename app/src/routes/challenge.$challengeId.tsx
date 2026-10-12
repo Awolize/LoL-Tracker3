@@ -227,6 +227,9 @@ function Client() {
 	});
 	const { getChallengeIcon } = useDataDragonPath(version);
 
+	/** Riot's name for the challenge, which the subtitle uses to say which board this is. */
+	const challengeName = config.localization?.name || `Challenge ${challengeId}`;
+
 	/**
 	 * Riot's own summary of the challenge, or nothing rather than an empty line.
 	 *
@@ -257,24 +260,22 @@ function Client() {
 		<div className="bg-background min-h-screen">
 			<div className="container mx-auto px-4 py-8">
 				<div className="mx-auto max-w-4xl space-y-6">
-					{/* Page title: the challenge's own art, name, and Riot's one-line summar
-					    of what it is. `description` is empty for most challenges while
-					    `shortDescription` is populated, so prefer the short one and fall back. */}
-					<div className="flex flex-row items-center justify-center gap-5">
+					{/* The page is a leaderboard, so it leads with the board rather than with the
+					    challenge's name; the art and the challenge line identify which board it is. */}
+					<div className="flex flex-row items-center justify-center gap-4">
 						<img
 							src={getChallengeIcon(challengeId, config.config.thresholds)}
-							alt={config.localization?.name || `Challenge ${challengeId}`}
-							className="h-20 w-20 shrink-0 rounded-lg object-cover"
+							alt={challengeName}
+							className="h-16 w-16 shrink-0 rounded-lg object-cover"
 						/>
-						<div className="flex flex-col gap-1">
-							<h2 className="text-3xl font-bold">
-								{config.localization?.name || `Challenge ${challengeId}`}
-							</h2>
-							{challengeSubtitle && (
-								<p className="text-muted-foreground text-base">
-									{challengeSubtitle}
-								</p>
-							)}
+						<div className="flex flex-col gap-0.5">
+							<h1 className="text-2xl font-bold sm:text-3xl">
+								Total Challenge Points Leaderboard
+							</h1>
+							<p className="text-muted-foreground text-sm sm:text-base">
+								{challengeName}
+								{challengeSubtitle && ` - ${challengeSubtitle}`}
+							</p>
 						</div>
 					</div>
 
