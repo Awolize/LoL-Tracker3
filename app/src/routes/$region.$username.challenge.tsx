@@ -6,6 +6,10 @@ import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
 import { DifferentSideBar } from "~/features/challenges/challenge-side-bar";
+import {
+	isImplementedChallengeId,
+	type ImplementedChallengeId,
+} from "~/features/challenges/lib/implemented-challenges";
 import { ChampionListHeader } from "~/features/mastery/champion-list-header";
 import { RoleChampionList } from "~/features/mastery/role-champion-list";
 import { championSetFilter, regionToDisplay } from "~/features/shared/champs";
@@ -114,20 +118,25 @@ export function RouteComponent() {
 	const [challengeChampions, setChallengeChampions] = useState<any[]>([]);
 	const [playerProgress, setPlayerProgress] = useState<Record<number, any> | null>(null);
 
+	// One fetcher per implemented challenge. Typed by the shared id list, so adding an id there
+	// fails the build until its fetcher exists rather than silently answering an empty list.
+	const challengeMap: Record<ImplementedChallengeId, () => Promise<any[]>> = {
+		401106: () => getJackOfAllChamps({ data: queryParams }),
+		602001: () => getChampionOcean({ data: queryParams }),
+		2024308: () => getChampionOcean2024Split3({ data: queryParams }),
+		602002: () => getAdaptToAllSituations({ data: queryParams }),
+		202303: () => getInvincible({ data: queryParams }),
+	};
+
 	useEffect(() => {
 		async function fetchChallenge() {
 			if (!selectedChallengeId) {
 				setChallengeChampions([]);
 				return;
 			}
-			const challengeMap: { [key: number]: () => Promise<any[]> } = {
-				401106: () => getJackOfAllChamps({ data: queryParams }),
-				602001: () => getChampionOcean({ data: queryParams }),
-				2024308: () => getChampionOcean2024Split3({ data: queryParams }),
-				602002: () => getAdaptToAllSituations({ data: queryParams }),
-				202303: () => getInvincible({ data: queryParams }),
-			};
-			const fetchFn = challengeMap[selectedChallengeId];
+			const fetchFn = isImplementedChallengeId(selectedChallengeId)
+				? challengeMap[selectedChallengeId]
+				: undefined;
 			if (fetchFn) {
 				const data = await fetchFn();
 				setChallengeChampions(data || []);

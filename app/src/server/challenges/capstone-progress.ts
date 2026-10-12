@@ -13,7 +13,13 @@ import { categoryPoints, challenge, totalPoints } from "~/db/schema";
  */
 export const CRYSTAL_CHALLENGE_ID = 0;
 
-/** The five category aggregates, in Riot's own display order. */
+/**
+ * The five category aggregates, in Riot's own display order.
+ *
+ * Names, not the category ids: `CategoryPoints.category` and the API's own aggregate payload are
+ * keyed by these strings, so a tags-driven list (`tags->>'isCategory' = 'true'` on ids 0-5) would
+ * have to join name to id on every read for no gain. The five names are fixed by Riot.
+ */
 export const CAPSTONE_CATEGORY_ORDER = [
 	"IMAGINATION",
 	"EXPERTISE",

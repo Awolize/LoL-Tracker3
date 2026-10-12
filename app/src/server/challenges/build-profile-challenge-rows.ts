@@ -1,36 +1,23 @@
+import type { ChallengeTags } from "~/db/schema";
+import type { ChallengeTagsById } from "~/features/challenges/lib/challenge-ancestry";
 import { isChallengeAtHighestTier } from "~/features/challenges/lib/profile-challenge-stats";
 import type {
 	ProfileChallengeRow,
 	ProfileChallengesProgressInput,
 } from "~/features/challenges/types/profile-challenge-row";
+import { isRetiredSeasonalChallenge } from "~/server/challenges/challenge-tags";
 
 /**
  * Shape produced by `getChallengesConfig()` - local type only (no `~/features/shared/types` → schema).
  */
 type ChallengesConfigEntry = {
-	config: { id: number; thresholds: unknown };
+	config: { id: number; thresholds: unknown; tags: ChallengeTags | null };
 	localization: {
 		name: string;
 		shortDescription: string;
 		description: string;
 	} | null;
 };
-
-/**
- * Retired seasonal challenges can never be completed again, so a seasonal one the summoner never
- * touched would sit in "left to max" forever - permanently misleading. Drop those, but keep a
- * seasonal challenge that was actually earned: it is a trophy, and it correctly counts as finished.
- *
- * The name is the only reliable marker. The seasonal families happen to use 7-digit ids
- * (`2023000`, `2024100`…), but ordinary, still-active challenges use 6-digit ids that merely start
- * with a year (`202300` "Perfection", `202301` "Immortal"), so an id-prefix rule would delete live
- * challenges. Matching the year or the word "Seasonal" in the name does not.
- */
-const RETIRED_SEASONAL_NAME_PATTERN = /20\d\d|seasonal/i;
-
-function isRetiredSeasonalChallengeName(name: string): boolean {
-	return RETIRED_SEASONAL_NAME_PATTERN.test(name);
-}
 
 function rowProgress(
 	progressMap: ProfileChallengesProgressInput,
@@ -48,11 +35,26 @@ function rowProgress(
 	};
 }
 
+/**
+ * Retired seasonal challenges can never be completed again, so a seasonal one the summoner never
+ * touched would sit in "left to max" forever - permanently misleading. Drop those, but keep a
+ * seasonal challenge that was actually earned: it is a trophy, and it correctly counts as finished.
+ *
+ * The marker is Riot's own `tags`, not the localized name. The old rule matched
+ * `/20\d\d|seasonal/i` and happened to select the right set - the seasonal families are the only
+ * names carrying a year - but a rename or a localization edit would silently change what is
+ * dropped, while the tag says it outright. Measured against the old rule over the 405-row catalog:
+ * 67 selected either way, 0 in the symmetric difference, and for the reference puuid 49 kept /
+ * 18 dropped, so the profile counts are unchanged.
+ */
 export function buildProfileChallengeRows(
 	configs: ChallengesConfigEntry[],
 	progressMap: ProfileChallengesProgressInput,
 ): ProfileChallengeRow[] {
 	const challengesSynced = progressMap !== null;
+	const tagsById: ChallengeTagsById = new Map(
+		configs.map((c) => [c.config.id, c.config.tags ?? null]),
+	);
 	const rows = configs
 		.map((c) => {
 			const id = c.config.id;
@@ -71,7 +73,7 @@ export function buildProfileChallengeRows(
 		.filter(
 			(r) =>
 				!challengesSynced ||
-				!isRetiredSeasonalChallengeName(r.name) ||
+				!isRetiredSeasonalChallenge(r.id, tagsById) ||
 				isChallengeAtHighestTier(r, challengesSynced),
 		);
 

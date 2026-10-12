@@ -17,6 +17,10 @@ import type { CapstoneAggregate, ProfileCapstones } from "~/server/challenges/ca
  * per-category token, and its `00_crystals` crest is the *same file for all six ids* - so five
  * copies of the crest would distinguish nothing. Categories are instead told apart by name and the
  * theme's tier colour.
+ *
+ * The id stays a constant rather than coming from `ChallengesConfig.tags`: the panel already reads
+ * the aggregates by category *name* from `TotalPoints` / `CategoryPoints`, so reading the ids from
+ * tags would add a name-to-id join to every profile load without changing a pixel.
  */
 const CRYSTAL_ICON_CHALLENGE_ID = 0;
 

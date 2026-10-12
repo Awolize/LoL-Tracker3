@@ -4,6 +4,7 @@ import { useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import { Input } from "~/components/ui/input";
+import { isImplementedChallengeId } from "~/features/challenges/lib/implemented-challenges";
 import type { Summoner } from "~/features/shared/types";
 import { FullSummonerUpdate } from "~/features/summoner/components/summoner-update";
 import { useSelectedChallenge } from "~/stores/selected-challenge-context";
@@ -40,9 +41,6 @@ export const DifferentSideBar = ({ challenges, username, region, user }: Differe
 	const handleItemClick = (itemId: number) => {
 		setSelectedChallengeId(selectedChallengeId === itemId ? null : itemId);
 	};
-
-	// Implemented challenges
-	const implementedChallengeIds = [401106, 602001, 2024308, 602002, 202303];
 
 	const filteredChallenges = challenges
 		.filter((item) => {
@@ -86,7 +84,7 @@ export const DifferentSideBar = ({ challenges, username, region, user }: Differe
 					</div>
 					<ul className="flex flex-col gap-1 overflow-y-auto">
 						{filteredChallenges.map((item) => {
-							const implemented = implementedChallengeIds.includes(item.config.id);
+							const implemented = isImplementedChallengeId(item.config.id);
 
 							if (!showAll && !implemented) return null;
 

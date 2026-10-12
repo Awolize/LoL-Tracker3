@@ -16,6 +16,10 @@ const CHALLENGE_ASSETS = "https://raw.communitydragon.org/latest/game/assets/cha
  * EXPERTISE, VETERANCY, TEAMWORK, COLLECTION) whose thresholds are category points, and Riot marks
  * them with an empty `levelToIconPath`. CommunityDragon publishes no `tokens/` art for them - only
  * one shared, per-tier crystal crest under `00_crystals/`.
+ *
+ * The range stays a hardcoded set rather than a `ChallengesConfig.tags->>'isCategory'` lookup: this
+ * route serves every image on the site, and a Postgres round trip per image request is exactly what
+ * it must not do. Riot's six aggregate ids are fixed, so the constant is the whole answer.
  */
 const CATEGORY_AGGREGATE_IDS: ReadonlySet<string> = new Set(["0", "1", "2", "3", "4", "5"]);
 const CATEGORY_CREST_DIR = "00_crystals";

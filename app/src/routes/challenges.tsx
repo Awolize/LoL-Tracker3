@@ -5,6 +5,10 @@ import { useMemo, useState } from "react";
 
 // Local imports (assuming these exist based on your code)
 import { SiteHeader } from "~/components/header/SiteHeader";
+import {
+	resolveChallengeCategoryId,
+	type ChallengeTagsById,
+} from "~/features/challenges/lib/challenge-ancestry";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { getChallengesConfig, getDataDragonVersion } from "~/server/api/mutations";
 import { seo } from "~/utils/seo";
@@ -38,6 +42,9 @@ const CATEGORY_CONFIG: Record<string, string> = {
 
 const ORDERED_CATEGORY_IDS = ["1", "2", "3", "4", "5", "0"];
 
+/** Bucket for a challenge whose parent chain reaches no category (see `processChallenges`). */
+const LEGACY_CATEGORY_KEY = "0";
+
 // --- Logic / Utilities ---
 
 /**
@@ -54,26 +61,20 @@ function processChallenges(challenges: Challenge[]): CategoryMap {
 		"0": [],
 	};
 
+	const tagsById: ChallengeTagsById = new Map(
+		challenges.map((challenge) => [challenge.config.id, challenge.config.tags ?? null]),
+	);
+
 	challenges.forEach((challenge) => {
 		const { id } = challenge.config;
-		const idStr = id.toString();
 
-		// Skip Crystal (0) and Headers (1-5)
+		// Ids 0-5 are the category aggregates themselves, not challenges inside one.
 		if (id <= 5) return;
 
-		// 7-digit IDs are Legacy/Seasonal
-		if (idStr.length === 7) {
-			categories["0"].push(challenge);
-			return;
-		}
-
-		// Standard categorization based on first digit
-		const firstDigit = idStr[0];
-		if (Object.hasOwn(categories, firstDigit)) {
-			categories[firstDigit].push(challenge);
-		} else {
-			categories["0"].push(challenge);
-		}
+		// Riot's `tags.parent` chain is the category, not the id's first digit (nor its length:
+		// the 7-digit retired seasons reach no category and belong in the legacy bucket).
+		const categoryId = resolveChallengeCategoryId(id, tagsById);
+		categories[categoryId === null ? LEGACY_CATEGORY_KEY : String(categoryId)].push(challenge);
 	});
 
 	// Sort buckets alphabetically
