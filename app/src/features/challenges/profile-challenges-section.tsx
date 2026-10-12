@@ -13,6 +13,7 @@ import {
 	formatChallengeTopPercentLabel,
 	getProfileChallengeThresholdStripModel,
 	getChallengeIconTier,
+	getChallengeReachedTier,
 	isChallengeAtHighestTier,
 	isLeftToMaxChallenge,
 	type LadderSegment,
@@ -382,6 +383,8 @@ export function ProfileChallengesSection({
 									challengesSynced,
 								);
 								const maxed = isChallengeAtHighestTier(row, challengesSynced);
+								// No tier reached means the art below shows a badge they do not hold, so it is muted.
+								const reachedTier = getChallengeReachedTier(row, challengesSynced);
 								const ladderSegments =
 									strip.entries.length > 0
 										? buildChallengeLadderSegments(
@@ -410,7 +413,11 @@ export function ProfileChallengesSection({
 															),
 														)}
 														alt=""
-														className="h-full w-full object-contain p-px"
+														className={cn(
+															"h-full w-full object-contain p-px",
+															reachedTier === null &&
+																"grayscale opacity-50",
+														)}
 														loading="lazy"
 													/>
 												</div>
