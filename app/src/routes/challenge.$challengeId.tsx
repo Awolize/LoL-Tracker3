@@ -50,6 +50,8 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 		config: ChallengeConfig;
 		leaderboard: any[];
 		hasSections: boolean;
+		/** How many tracked summoners the board actually ranks for this challenge. */
+		population: number;
 		challengeId: number;
 		search: { username?: string; region?: string };
 	}> => {
@@ -77,6 +79,7 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 			config: config as ChallengeConfig,
 			leaderboard: leaderboardResult.leaderboard,
 			hasSections: leaderboardResult.hasSections,
+			population: leaderboardResult.population,
 			challengeId,
 			search,
 		};
@@ -163,7 +166,7 @@ export default function RouteComponent() {
 }
 
 function Client() {
-	const { config, leaderboard, hasSections, challengeId } = Route.useLoaderData();
+	const { config, leaderboard, hasSections, population, challengeId } = Route.useLoaderData();
 	const search = Route.useSearch();
 	const { data: version = "15.24.1" } = useQuery({
 		queryKey: ["dd-version"],
@@ -198,6 +201,7 @@ function Client() {
 						config={config}
 						leaderboard={leaderboard}
 						hasSections={hasSections}
+						population={population}
 						challengeId={challengeId}
 						highlightedUser={
 							search.username && search.region

@@ -1,5 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, desc, eq, gt, sql } from "drizzle-orm";
+import { and, count, desc, eq, gt, sql } from "drizzle-orm";
 
 import { db } from "~/db";
 import { challenge, challengesDetails, summoner } from "~/db/schema";
@@ -40,8 +40,22 @@ const getChallengeUserRank = createServerFn()
 export const getChallengeLeaderboardWithHighlight = createServerFn()
 	.validator((input: { challengeId: number; username?: string; region?: string }) => input)
 	.handler(async ({ data: { challengeId, username, region } }) => {
+		// The board ranks only the summoners whose rows survive these joins, so the honest population
+		// is that same join counted - never a hardcoded total and never the "top 100" the list is
+		// capped at. `Challenge` covers 400+ challenge ids but only a handful of tracked summoners
+		// each, so this number is real and usually small.
+		const populationQuery = db
+			.select({ population: count() })
+			.from(challenge)
+			.innerJoin(
+				challengesDetails,
+				eq(challenge.challengesDetailsId, challengesDetails.puuid),
+			)
+			.innerJoin(summoner, eq(challengesDetails.puuid, summoner.puuid))
+			.where(eq(challenge.challengeId, challengeId));
+
 		// Always fetch top 100
-		const top100 = await db
+		const top100Query = db
 			.select({
 				challenge: challenge,
 				summoner: {
@@ -61,9 +75,12 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 			.orderBy(desc(challenge.value))
 			.limit(100);
 
+		const [top100, populationRows] = await Promise.all([top100Query, populationQuery]);
+		const population = populationRows[0]?.population ?? 0;
+
 		// If no username/region provided, return top 100
 		if (!username || !region) {
-			return { leaderboard: top100, hasSections: false };
+			return { leaderboard: top100, hasSections: false, population };
 		}
 
 		// Check if user is in top 100
@@ -79,7 +96,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 
 		if (userInTop100) {
 			// User is in top 100, return normal leaderboard
-			return { leaderboard: top100, hasSections: false };
+			return { leaderboard: top100, hasSections: false, population };
 		}
 
 		// User is not in top 100, get their rank and fetch area around them
@@ -87,7 +104,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 		const resolved = await getUserByNameAndRegion(normalizedUsername, regionEnum);
 		if (!resolved.ok) {
 			// Unresolvable user - there is no rank to build a highlight section around.
-			return { leaderboard: top100, hasSections: false };
+			return { leaderboard: top100, hasSections: false, population };
 		}
 
 		const userRank = await getChallengeUserRank({
@@ -96,7 +113,7 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 
 		if (!userRank) {
 			// User has no challenge data, return top 100
-			return { leaderboard: top100, hasSections: false };
+			return { leaderboard: top100, hasSections: false, population };
 		}
 
 		// Fetch area around user (user-12 to user+12, 25 entries total)
@@ -125,5 +142,5 @@ export const getChallengeLeaderboardWithHighlight = createServerFn()
 		// Combine: top 75 + user area (25 entries)
 		const finalLeaderboard = [...top100.slice(0, 75), ...userArea];
 
-		return { leaderboard: finalLeaderboard, hasSections: true };
+		return { leaderboard: finalLeaderboard, hasSections: true, population };
 	});

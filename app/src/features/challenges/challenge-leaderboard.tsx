@@ -14,6 +14,8 @@ interface ChallengeLeaderboardProps {
 	config: ChallengeConfig;
 	leaderboard: LeaderboardEntry[];
 	hasSections: boolean;
+	/** Tracked summoners ranked for this challenge, straight from the count query. */
+	population: number;
 	challengeId: number;
 	highlightedUser?: {
 		username: string;
@@ -272,6 +274,7 @@ const LeaderboardRow = ({
 export default function ChallengeLeaderboard({
 	config,
 	leaderboard,
+	population,
 	challengeId,
 	highlightedUser,
 }: ChallengeLeaderboardProps) {
@@ -360,9 +363,20 @@ export default function ChallengeLeaderboard({
 
 			{/* Leaderboard List */}
 			<section>
-				<h3 className="text-muted-foreground mb-3 px-1 text-sm font-semibold tracking-widest uppercase">
-					Leaderboard
-				</h3>
+				<div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
+					<h3 className="text-muted-foreground text-sm font-semibold tracking-widest uppercase">
+						Leaderboard
+					</h3>
+					{/* The real population, counted for this challenge - never the "top 100" the list is
+					    capped at, and never a global total this site cannot see. */}
+					<span className="text-muted-foreground font-mono text-xs">
+						{population.toLocaleString()}{" "}
+						{population === 1 ? "summoner tracked" : "summoners tracked"}
+					</span>
+				</div>
+				<p className="text-muted-foreground/80 mb-3 px-1 text-xs leading-relaxed">
+					Ranked among the summoners this tracker follows - not a global Riot ladder.
+				</p>
 				<div className="bg-background/50 overflow-hidden rounded-xl border shadow-sm">
 					<div className="flex flex-col">
 						{renderEntries(topSection)}
