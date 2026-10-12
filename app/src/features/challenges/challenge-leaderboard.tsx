@@ -432,7 +432,7 @@ export default function ChallengeLeaderboard({
 			<section className="border-border/60 bg-muted/20 flex flex-col gap-3 rounded-xl border p-3">
 				<div className="flex flex-wrap items-center justify-between gap-3">
 					<span className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
-						{"Challenge Points Ladder" }
+						{source === "riot" ? "Riot apex ladders" : "Tracked summoners (fallback)"}
 					</span>
 					<Dropdown
 						choices={REGION_CHOICES}
@@ -450,7 +450,7 @@ export default function ChallengeLeaderboard({
 				</div>
 				<p className="text-muted-foreground/70 text-xs">
 					{source === "riot"
-						? "Challenge Points Ladder, per region. Global merges every region and re-ranks them"
+						? "Riot's official regional apex ladders. Global merges every region and re-ranks them here - not a Riot worldwide ladder."
 						: "Ranked among the summoners this tracker follows - not a Riot ladder."}
 				</p>
 			</section>
