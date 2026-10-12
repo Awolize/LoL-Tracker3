@@ -17,6 +17,14 @@ export const regionToRegionGroupForAccountAPI = Constants.regionToRegionGroupFor
 /** Platform routing id, e.g. `"EUW1"`. */
 export type Regions = Parameters<LolApi["Summoner"]["getByPUUID"]>[1];
 
+/**
+ * A challenge leaderboard level, e.g. `"CHALLENGER"`.
+ *
+ * Derived from the SDK's own `Leaderboards` signature for the same reason as the DTOs below:
+ * v1.81+ exports `Levels` as a value only, so the type has to come off the method.
+ */
+export type Levels = Parameters<LolApi["Challenges"]["Leaderboards"]>[1];
+
 // ---------------------------------------------------------------------------
 // DTO types - derived from the API surface because v1.81+ no longer exports
 // these names as types (only the `Dto` value is exported).

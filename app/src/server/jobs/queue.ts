@@ -4,6 +4,7 @@ import { and, eq, ilike } from "drizzle-orm";
 
 import { db } from "~/db";
 import { challengesConfig, summoner } from "~/db/schema";
+import { syncChallengeLadder } from "~/server/challenges/riot-challenge-ladder";
 import { runAllChallengeUpdatesWorker } from "~/server/challenges/update-challenges";
 import { updateChallengesConfigServer } from "~/server/challenges/update-challenges-config";
 import { upsertPlayerChallenges } from "~/server/challenges/update-player-challenges";
@@ -211,6 +212,17 @@ if (!global.__riotWorker) {
 							username: `${gameName}#${tagLine}`,
 							region,
 						});
+					}
+
+					// Riot's official apex ladder for one challenge, across the configured shards.
+					// Debounced by job id, so a busy leaderboard page queues at most one of these.
+					case "ladder-sync": {
+						const snapshot = await syncChallengeLadder(data.challengeId as number);
+						return {
+							success: true,
+							rows: snapshot.global.length,
+							regions: snapshot.regionsWithData.length,
+						};
 					}
 
 					case "indexnow-flush": {

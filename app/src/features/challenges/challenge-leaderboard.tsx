@@ -1,26 +1,61 @@
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { StarIcon } from "lucide-react";
 import { motion } from "motion/react";
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 
+import {
+	LADDER_REGIONS,
+	ladderRegionLabel,
+	type LadderRegionId,
+} from "~/features/challenges/ladder-regions";
 import { regionToDisplay } from "~/features/shared/champs";
+import { Dropdown, type Choice } from "~/features/shared/components/dropdown";
+import { TogglePill } from "~/features/shared/components/toggle-pill";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { parseRiotId } from "~/features/shared/riot-id";
-import type { ChallengeConfig, LeaderboardEntry } from "~/features/shared/types";
+import type { ChallengeConfig } from "~/features/shared/types";
 import { getDataDragonVersion } from "~/server/api/mutations";
+
+/**
+ * The row shape the board renders, whichever source produced it.
+ *
+ * Deliberately not the Drizzle row: an official Riot ladder entry carries only a puuid, so a row
+ * may have no name at all. `summoner` null means "Riot ranked this player and we do not track
+ * them" - the row still renders, it just cannot link anywhere.
+ */
+export interface LadderBoardRow {
+	position: number;
+	puuid: string;
+	value: number;
+	region: string;
+	/** Riot's position inside the shard's own apex ladder, or null for a tracked-only row. */
+	regionalPosition: number | null;
+	summoner: {
+		puuid: string;
+		gameName: string | null;
+		tagLine: string | null;
+		region: string;
+		profileIconId: number;
+	} | null;
+}
+
+export type LadderSource = "riot" | "tracked";
 
 interface ChallengeLeaderboardProps {
 	config: ChallengeConfig;
-	leaderboard: LeaderboardEntry[];
-	hasSections: boolean;
-	/** Tracked summoners ranked for this challenge, straight from the count query. */
+	rows: LadderBoardRow[];
+	/** Real number of ranked players on the selected board, never the capped row count. */
 	population: number;
-	challengeId: number;
-	highlightedUser?: {
-		username: string;
-		region: string;
-	};
+	source: LadderSource;
+	/** "GLOBAL" for the merged board, otherwise a Riot platform id. */
+	selectedRegion: LadderRegionId | "GLOBAL";
+	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;
+	onSourceChange: (source: LadderSource) => void;
+	/** True when Riot truncated an apex tier at its page size - the tail is missing. */
+	truncated: boolean;
+	/** Shards with no apex ladder at all for this challenge. */
+	emptyRegions: string[];
+	highlightedUser?: { username: string; region: string };
 }
 
 // --- Animation Variants ---
@@ -52,7 +87,24 @@ const TIER_ORDER = [
 	"CHALLENGER",
 ];
 
-// Helper to get the CSS variable string for a tier
+const GLOBAL_CHOICE: Choice = { text: "Global (all regions)", value: -1 };
+
+/** Data Dragon's default (id 29) rather than a broken image for a player we do not track. */
+const DEFAULT_PROFILE_ICON_ID = 29;
+
+/**
+ * The region list, as dropdown choices.
+ *
+ * Built from the shared `LADDER_REGIONS` so the list the UI offers and the list the server
+ * fetches cannot drift. The underlying field is a string id, not a number, so the shared numeric
+ * `Choice` shape carries the index and the id is recovered from the same array.
+ */
+const REGION_CHOICES: Choice[] = [
+	GLOBAL_CHOICE,
+	...LADDER_REGIONS.map((region, index) => ({ text: region.label, value: index })),
+];
+
+/** Helper to get the CSS variable string for a tier */
 const getTierVar = (tier: string) => `var(--tier-${tier.toLowerCase()})`;
 
 // --- Tier Badge Component ---
@@ -116,11 +168,10 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 
 // --- Leaderboard Row Component ---
 interface LeaderboardRowProps {
-	entry: LeaderboardEntry;
+	entry: LadderBoardRow;
 	index: number;
-	offset?: number;
-	highlightedUsername?: string | null;
-	highlightedRegion?: string | null;
+	highlightedUsername: string | null;
+	highlightedRegion: string | null;
 	getPlayerTier: (value: number) => string | null;
 	getProfileImage: (id: string) => string;
 }
@@ -128,23 +179,26 @@ interface LeaderboardRowProps {
 const LeaderboardRow = ({
 	entry,
 	index,
-	offset = 0,
 	highlightedUsername,
 	highlightedRegion,
 	getPlayerTier,
 	getProfileImage,
 }: LeaderboardRowProps) => {
 	const rowRef = useRef<HTMLDivElement>(null);
-	const actualIndex = offset + index;
-	const entryUsername = `${entry.summoner.gameName}#${entry.summoner.tagLine}`;
+	const entryUsername =
+		entry.summoner?.gameName && entry.summoner.tagLine
+			? `${entry.summoner.gameName}#${entry.summoner.tagLine}`
+			: null;
 
-	const isHighlighted =
+	const isHighlighted = Boolean(
 		highlightedUsername &&
 		highlightedRegion &&
-		entryUsername === highlightedUsername &&
-		regionToDisplay(entry.summoner.region).toUpperCase() === highlightedRegion;
+		entryUsername &&
+		entryUsername.toLowerCase() === highlightedUsername.toLowerCase() &&
+		regionToDisplay(entry.region).toUpperCase() === highlightedRegion.toUpperCase(),
+	);
 
-	const tier = getPlayerTier(entry.challenge.value ?? 0);
+	const tier = getPlayerTier(entry.value);
 	const tierKey = tier?.toLowerCase() || "iron";
 	const tierVar = tier ? `var(--tier-${tierKey})` : "var(--muted-foreground)";
 
@@ -192,20 +246,22 @@ const LeaderboardRow = ({
 			)}
 
 			<div className="relative z-10 flex items-center gap-4">
-				{/* Rank */}
+				{/* Rank within the board being shown */}
 				<div
-					className={`w-6 text-center font-mono text-sm ${
+					className={`w-10 text-center font-mono text-sm ${
 						isHighlighted ? "text-foreground font-bold" : "text-muted-foreground/70"
 					}`}
 				>
-					{actualIndex + 1}
+					{entry.position}
 				</div>
 
 				{/* Avatar & Info */}
 				<div className="flex items-center gap-3">
 					<div className="relative">
 						<img
-							src={getProfileImage(String(entry.summoner.profileIconId))}
+							src={getProfileImage(
+								String(entry.summoner?.profileIconId ?? DEFAULT_PROFILE_ICON_ID),
+							)}
 							alt=""
 							loading="lazy"
 							className="bg-muted h-8 w-8 rounded-full border-2 object-cover"
@@ -215,36 +271,51 @@ const LeaderboardRow = ({
 
 					<div className="flex flex-col justify-center">
 						<div className="flex items-center gap-1.5">
-							<Link
-								to="/$region/$username"
-								params={{
-									region: entry.summoner.region,
-									username: `${entry.summoner.gameName || "Unknown"}-${entry.summoner.tagLine || ""}`,
-								}}
-								className={`hover:text-primary max-w-[200px] truncate font-medium transition-colors hover:underline ${
-									isHighlighted
-										? "text-foreground font-bold"
-										: "text-foreground/90"
-								}`}
-							>
-								{entry.summoner.gameName || "Unknown"}
-							</Link>
-							{isHighlighted && (
-								<motion.div
-									initial={{ scale: 0, rotate: -180 }}
-									animate={{ scale: 1, rotate: 0 }}
-									transition={{ type: "spring", stiffness: 200 }}
+							{entry.summoner ? (
+								<Link
+									to="/$region/$username"
+									params={{
+										region: entry.summoner.region,
+										username: `${entry.summoner.gameName || "Unknown"}-${entry.summoner.tagLine || ""}`,
+									}}
+									className={`hover:text-primary max-w-[200px] truncate font-medium transition-colors hover:underline ${
+										isHighlighted
+											? "text-foreground font-bold"
+											: "text-foreground/90"
+									}`}
 								>
-									<StarIcon className="h-3 w-3 fill-yellow-500 text-yellow-500" />
-								</motion.div>
+									{entry.summoner.gameName || "Unknown"}
+								</Link>
+							) : (
+								<span
+									className="text-muted-foreground/70 max-w-[200px] truncate font-medium"
+									title="Riot ranked this player on its apex ladder; the tracker holds no profile for them"
+								>
+									{`${entry.puuid.slice(0, 8)}…`}
+								</span>
 							)}
 						</div>
 						<div className="text-muted-foreground mt-1 flex items-center gap-1.5 text-[10px] leading-none">
 							<span className="text-[9px] font-semibold tracking-wider uppercase">
-								{regionToDisplay(entry.summoner.region)}
+								{regionToDisplay(entry.region)}
 							</span>
-							<span className="text-border">|</span>
-							<span className="opacity-80">#{entry.summoner.tagLine}</span>
+							{entry.summoner?.tagLine && (
+								<>
+									<span className="text-border">|</span>
+									<span className="opacity-80">#{entry.summoner.tagLine}</span>
+								</>
+							)}
+							{entry.regionalPosition !== null && (
+								<>
+									<span className="text-border">|</span>
+									<span
+										className="opacity-80"
+										title="Position on Riot's own regional ladder"
+									>
+										Riot #{entry.regionalPosition}
+									</span>
+								</>
+							)}
 						</div>
 					</div>
 				</div>
@@ -257,7 +328,7 @@ const LeaderboardRow = ({
 						isHighlighted ? "text-foreground" : "text-foreground/80"
 					}`}
 				>
-					{(entry.challenge.value ?? 0).toLocaleString()}
+					{entry.value.toLocaleString()}
 				</div>
 				<div
 					className="mt-0.5 text-[10px] leading-none font-bold tracking-wide capitalize"
@@ -273,9 +344,14 @@ const LeaderboardRow = ({
 // --- Main Export ---
 export default function ChallengeLeaderboard({
 	config,
-	leaderboard,
+	rows,
 	population,
-	challengeId,
+	source,
+	selectedRegion,
+	onRegionChange,
+	onSourceChange,
+	truncated,
+	emptyRegions,
 	highlightedUser,
 }: ChallengeLeaderboardProps) {
 	const { data: version = "15.24.1" } = useQuery({
@@ -285,48 +361,33 @@ export default function ChallengeLeaderboard({
 
 	const { getProfileImage, getChallengeIcon } = useDataDragonPath(version);
 
-	// Determine logic for tier calculation
-	const activeThresholds = useMemo(() => {
-		const thresholds = config.config.thresholds as Record<string, number>;
-		return Object.entries(thresholds).sort(
-			([tierA], [tierB]) => TIER_ORDER.indexOf(tierA) - TIER_ORDER.indexOf(tierB),
-		);
-	}, [config.config.thresholds]);
+	// Riot's own thresholds are the tier boundaries, and they apply to either source: a value is
+	// worth the same wherever we read it from. Derived rather than memoised - it is an array of
+	// at most nine entries.
+	const thresholds = config.config.thresholds as Record<string, number>;
+	const activeThresholds = Object.entries(thresholds).sort(
+		([tierA], [tierB]) => TIER_ORDER.indexOf(tierA) - TIER_ORDER.indexOf(tierB),
+	);
 
 	// Find the player's current tier based on their points
-	const getPlayerTier = useCallback(
-		(value: number) => {
-			for (let i = activeThresholds.length - 1; i >= 0; i--) {
-				const [tier, threshold] = activeThresholds[i];
-				if (value >= threshold) return tier;
-			}
-			return null; // Below minimum threshold
-		},
-		[activeThresholds],
-	);
+	const getPlayerTier = (value: number) => {
+		for (let i = activeThresholds.length - 1; i >= 0; i--) {
+			const [tier, threshold] = activeThresholds[i];
+			if (value >= threshold) return tier;
+		}
+		return null; // Below minimum threshold
+	};
 
 	const normalizedUsername = highlightedUser ? parseRiotId(highlightedUser.username) : null;
 	const normalizedRegion = highlightedUser
 		? regionToDisplay(highlightedUser.region).toUpperCase()
 		: null;
 
-	const renderEntries = (entries: LeaderboardEntry[], offset = 0) =>
-		entries.map((entry, index) => (
-			<LeaderboardRow
-				key={`${entry.summoner.region}-${entry.summoner.gameName}-${entry.summoner.tagLine}-${offset + index}`}
-				entry={entry}
-				index={index}
-				offset={offset}
-				highlightedUsername={normalizedUsername}
-				highlightedRegion={normalizedRegion}
-				getPlayerTier={getPlayerTier}
-				getProfileImage={getProfileImage}
-			/>
-		));
-
-	const shouldShowSections = highlightedUser && leaderboard.length > 75;
-	const topSection = shouldShowSections ? leaderboard.slice(0, 75) : leaderboard;
-	const bottomSection = shouldShowSections ? leaderboard.slice(75) : [];
+	const selectedChoice =
+		selectedRegion === "GLOBAL"
+			? GLOBAL_CHOICE
+			: (REGION_CHOICES.find((choice) => choice.text === ladderRegionLabel(selectedRegion)) ??
+				GLOBAL_CHOICE);
 
 	return (
 		<div className="flex flex-col gap-6">
@@ -343,7 +404,6 @@ export default function ChallengeLeaderboard({
 				>
 					{/* Display Tiers Highest to Lowest (Challenger -> Iron) */}
 					{[...TIER_ORDER].reverse().map((tier) => {
-						const thresholds = config.config.thresholds as Record<string, number>;
 						const points = thresholds[tier];
 						const exists = points !== undefined;
 
@@ -354,11 +414,86 @@ export default function ChallengeLeaderboard({
 								points={points || 0}
 								exists={exists}
 								// Pass a single-entry object to force the hook to return this tier's icon
-								iconUrl={getChallengeIcon(challengeId, { [tier]: 1 })}
+								iconUrl={getChallengeIcon(config.config.id, { [tier]: 1 })}
 							/>
 						);
 					})}
 				</motion.div>
+			</section>
+
+			{/* Source & region controls */}
+			<section className="border-border/60 bg-muted/20 flex flex-col gap-3 rounded-xl border p-3">
+				<div className="flex flex-wrap items-center justify-between gap-3">
+					<div className="flex items-center gap-2">
+						<TogglePill
+							label="Riot apex ladder"
+							checked={source === "riot"}
+							onChange={() => onSourceChange("riot")}
+						/>
+						<TogglePill
+							label="Tracked summoners"
+							checked={source === "tracked"}
+							onChange={() => onSourceChange("tracked")}
+						/>
+					</div>
+					<Dropdown
+						choices={REGION_CHOICES}
+						choice={selectedChoice}
+						menuLabel="Region"
+						callback={(value) => {
+							if (value < 0) {
+								onRegionChange("GLOBAL");
+								return;
+							}
+							const region = LADDER_REGIONS[value];
+							if (region) onRegionChange(region.id);
+						}}
+					/>
+				</div>
+				<p className="text-muted-foreground/80 text-xs leading-relaxed">
+					{source === "riot" ? (
+						<>
+							Riot's official regional apex ladders (Challenger, Grandmaster and
+							Master only), read per shard and cached at most every 15 minutes.
+							{selectedRegion === "GLOBAL" ? (
+								<>
+									{" "}
+									<strong>
+										Global means every configured shard merged and re-ranked by
+										this tracker
+									</strong>{" "}
+									- not a Riot worldwide ladder, which does not exist.
+								</>
+							) : (
+								<>
+									{" "}
+									Positions labelled <span className="font-mono">Riot #</span> are
+									that shard&apos;s own apex ranking.
+								</>
+							)}
+							{truncated && (
+								<>
+									{" "}
+									Riot caps the Master tier, so the bottom of it is missing from
+									this board.
+								</>
+							)}
+							{emptyRegions.length > 0 && (
+								<>
+									{" "}
+									No apex ladder exists for {emptyRegions.join(", ")} on this
+									challenge.
+								</>
+							)}
+						</>
+					) : (
+						<>
+							Ranked among the summoners this tracker follows - not a Riot ladder.
+							This is the fallback board: it is complete across tiers but covers only
+							the profiles this site has synced.
+						</>
+					)}
+				</p>
 			</section>
 
 			{/* Leaderboard List */}
@@ -366,38 +501,41 @@ export default function ChallengeLeaderboard({
 				<div className="mb-3 flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 px-1">
 					<h3 className="text-muted-foreground text-sm font-semibold tracking-widest uppercase">
 						Leaderboard
+						<span className="ml-2 font-normal normal-case">
+							{selectedRegion === "GLOBAL"
+								? "Global (merged)"
+								: ladderRegionLabel(selectedRegion)}
+						</span>
 					</h3>
-					{/* The real population, counted for this challenge - never the "top 100" the list is
-					    capped at, and never a global total this site cannot see. */}
+					{/* The real population, counted for this board - never the row cap. */}
 					<span className="text-muted-foreground font-mono text-xs">
 						{population.toLocaleString()}{" "}
-						{population === 1 ? "summoner tracked" : "summoners tracked"}
+						{population === 1 ? "summoner ranked" : "summoners ranked"}
+						{population > rows.length && ` · top ${rows.length} shown`}
 					</span>
 				</div>
-				<p className="text-muted-foreground/80 mb-3 px-1 text-xs leading-relaxed">
-					Ranked among the summoners this tracker follows - not a global Riot ladder.
-				</p>
 				<div className="bg-background/50 overflow-hidden rounded-xl border shadow-sm">
 					<div className="flex flex-col">
-						{renderEntries(topSection)}
+						{rows.map((entry, index) => (
+							<LeaderboardRow
+								key={`${entry.region}-${entry.puuid}`}
+								entry={entry}
+								index={index}
+								highlightedUsername={normalizedUsername}
+								highlightedRegion={normalizedRegion}
+								getPlayerTier={getPlayerTier}
+								getProfileImage={getProfileImage}
+							/>
+						))}
 
-						{shouldShowSections && (
-							<motion.div
-								initial={{ opacity: 0 }}
-								whileInView={{ opacity: 1 }}
-								className="bg-muted/20 border-border/40 flex items-center justify-center border-y py-3"
-							>
-								<div className="bg-muted-foreground/30 mx-0.5 h-1 w-1 rounded-full" />
-								<div className="bg-muted-foreground/30 mx-0.5 h-1 w-1 rounded-full" />
-								<div className="bg-muted-foreground/30 mx-0.5 h-1 w-1 rounded-full" />
-							</motion.div>
-						)}
-
-						{renderEntries(bottomSection, shouldShowSections ? 75 : 0)}
-
-						{leaderboard.length === 0 && (
+						{rows.length === 0 && (
 							<div className="text-muted-foreground flex flex-col items-center justify-center py-12">
 								<p className="text-sm">No players found</p>
+								{source === "tracked" && (
+									<p className="mt-1 text-xs">
+										Nobody tracked has a recorded value for this challenge here.
+									</p>
+								)}
 							</div>
 						)}
 					</div>

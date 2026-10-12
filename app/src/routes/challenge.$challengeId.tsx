@@ -6,11 +6,19 @@ import FooterLinks from "~/components/footer/FooterLinks";
 import RiotGamesDisclaimer from "~/components/footer/RiotGamesDisclaimer";
 import { SiteHeader } from "~/components/header/SiteHeader";
 import type { ChallengeTags } from "~/db/schema";
-import ChallengeLeaderboard from "~/features/challenges/challenge-leaderboard";
+import ChallengeLeaderboard, {
+	type LadderBoardRow,
+	type LadderSource,
+} from "~/features/challenges/challenge-leaderboard";
+import { isLadderRegionId, type LadderRegionId } from "~/features/challenges/ladder-regions";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { parseRiotId } from "~/features/shared/riot-id";
 import { getChallengeConfig } from "~/server/api/get-challenge-config.api";
-import { getChallengeLeaderboardWithHighlight } from "~/server/api/get-challenge-leaderboard.api";
+import {
+	LADDER_BOARD_LIMIT,
+	getChallengeLadderFn,
+	getTrackedChallengeBoardFn,
+} from "~/server/api/get-challenge-ladder.api";
 import { getDataDragonVersion } from "~/server/api/mutations";
 import { metaDescription } from "~/utils/seo";
 
@@ -35,10 +43,25 @@ interface ChallengeConfig {
 	} | null;
 }
 
+/**
+ * The two boards this page can show, spelled in the URL so a board is linkable.
+ *
+ * `riot` is Riot's own regional apex ladder (Challenger/Grandmaster/Master only); `tracked` is
+ * this tracker's own synced population, which covers every tier but only the profiles we hold.
+ * `validateSearch` must not transform values (TanStack Router coerces single numeric params to
+ * numbers and rewrites the URL with a 307 when a validator changes the type), so every field is
+ * validated as identity and normalised where it is used.
+ */
 const searchSchema = z.object({
 	username: z.string().optional(),
 	region: z.string().optional(),
+	source: z.string().optional(),
+	/** A Riot platform id, e.g. `EUW1`. Every non-numeric value stays a string. */
+	ladderRegion: z.string().optional(),
 });
+
+const isLadderSource = (value: string | undefined): value is LadderSource =>
+	value === "riot" || value === "tracked";
 
 export const Route = createFileRoute("/challenge/$challengeId")({
 	validateSearch: searchSchema,
@@ -48,38 +71,66 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 		deps: { search },
 	}): Promise<{
 		config: ChallengeConfig;
-		leaderboard: any[];
-		hasSections: boolean;
-		/** How many tracked summoners the board actually ranks for this challenge. */
+		rows: LadderBoardRow[];
 		population: number;
+		source: LadderSource;
+		/** `GLOBAL` when every shard is merged; otherwise the selected platform id. */
+		selectedRegion: LadderRegionId | "GLOBAL";
+		truncated: boolean;
+		emptyRegions: string[];
 		challengeId: number;
-		search: { username?: string; region?: string };
+		search: { username?: string; region?: string; source?: string; ladderRegion?: string };
 	}> => {
 		const challengeId = parseInt(challengeIdRaw, 10);
 		if (isNaN(challengeId)) {
 			throw new Error("Invalid challenge ID");
 		}
 
-		const [config, leaderboardResult] = await Promise.all([
-			getChallengeConfig({ data: { challengeId } }),
-			getChallengeLeaderboardWithHighlight({
-				data: {
-					challengeId,
-					username: search.username,
-					region: search.region,
-				},
-			}),
-		]);
+		const requested: LadderSource = isLadderSource(search.source) ? search.source : "riot";
+		const selectedRegion: LadderRegionId | "GLOBAL" =
+			search.ladderRegion && isLadderRegionId(search.ladderRegion)
+				? search.ladderRegion
+				: "GLOBAL";
 
+		const config = await getChallengeConfig({ data: { challengeId } });
 		if (!config) {
 			throw new Error("Challenge not found");
 		}
 
+		// Asking for the Riot ladder when Riot cannot be read (a hard failure, not a missing
+		// regional ladder) falls back to the tracked board and says so, rather than rendering an
+		// empty ladder as if the challenge had no players.
+		if (requested === "riot") {
+			const ladder = await getChallengeLadderFn({
+				data: { challengeId, region: selectedRegion === "GLOBAL" ? null : selectedRegion },
+			});
+			if (ladder && ladder.source === "riot") {
+				return {
+					config: config as ChallengeConfig,
+					rows: ladder.rows,
+					population: ladder.population,
+					source: "riot",
+					selectedRegion,
+					truncated: ladder.truncated,
+					emptyRegions: ladder.emptyRegions,
+					challengeId,
+					search,
+				};
+			}
+		}
+
+		const tracked = await getTrackedChallengeBoardFn({
+			data: { challengeId, region: selectedRegion === "GLOBAL" ? null : selectedRegion },
+		});
+
 		return {
 			config: config as ChallengeConfig,
-			leaderboard: leaderboardResult.leaderboard,
-			hasSections: leaderboardResult.hasSections,
-			population: leaderboardResult.population,
+			rows: tracked.rows,
+			population: tracked.population,
+			source: "tracked",
+			selectedRegion,
+			truncated: false,
+			emptyRegions: [],
 			challengeId,
 			search,
 		};
@@ -166,13 +217,46 @@ export default function RouteComponent() {
 }
 
 function Client() {
-	const { config, leaderboard, hasSections, population, challengeId } = Route.useLoaderData();
+	const {
+		config,
+		rows,
+		population,
+		source,
+		selectedRegion,
+		truncated,
+		emptyRegions,
+		challengeId,
+	} = Route.useLoaderData();
 	const search = Route.useSearch();
+	const navigate = Route.useNavigate();
 	const { data: version = "15.24.1" } = useQuery({
 		queryKey: ["dd-version"],
 		queryFn: getDataDragonVersion,
 	});
 	const { getChallengeIcon } = useDataDragonPath(version);
+
+	/**
+	 * The board choice lives in the URL, so a region or a source is shareable and the back button
+	 * works. Both setters replace rather than push: flipping between boards is not navigation.
+	 */
+	const setBoard = (next: {
+		source?: LadderSource;
+		ladderRegion?: LadderRegionId | "GLOBAL";
+	}) => {
+		navigate({
+			search: (prev) => ({
+				...prev,
+				source: next.source ?? source,
+				ladderRegion:
+					next.ladderRegion === undefined
+						? selectedRegion
+						: next.ladderRegion === "GLOBAL"
+							? undefined
+							: next.ladderRegion,
+			}),
+			replace: true,
+		});
+	};
 
 	return (
 		<div className="bg-background min-h-screen">
@@ -199,10 +283,14 @@ function Client() {
 
 					<ChallengeLeaderboard
 						config={config}
-						leaderboard={leaderboard}
-						hasSections={hasSections}
+						rows={rows}
 						population={population}
-						challengeId={challengeId}
+						source={source}
+						selectedRegion={selectedRegion}
+						truncated={truncated}
+						emptyRegions={emptyRegions}
+						onSourceChange={(next) => setBoard({ source: next })}
+						onRegionChange={(next) => setBoard({ ladderRegion: next })}
 						highlightedUser={
 							search.username && search.region
 								? {
@@ -212,6 +300,14 @@ function Client() {
 								: undefined
 						}
 					/>
+
+					{/* The board cap, stated rather than implied by a truncated list. */}
+					{population > rows.length && (
+						<p className="text-muted-foreground/70 px-1 text-center text-xs">
+							Showing the top {Math.min(rows.length, LADDER_BOARD_LIMIT)} of{" "}
+							{population.toLocaleString()} ranked players.
+						</p>
+					)}
 				</div>
 			</div>
 		</div>
