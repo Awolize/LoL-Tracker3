@@ -328,6 +328,7 @@ function Client() {
 						rows={rows}
 						population={population}
 						preparing={preparing}
+						challengeId={challengeId}
 						selectedRegion={selectedRegion}
 						truncated={truncated}
 						hasMore={hasMore}

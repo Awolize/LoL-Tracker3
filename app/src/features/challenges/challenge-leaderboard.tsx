@@ -1,5 +1,5 @@
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link, useRouter } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { useEffect, useRef } from "react";
 
@@ -14,6 +14,10 @@ import { Dropdown, type Choice } from "~/features/shared/components/dropdown";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { parseRiotId } from "~/features/shared/riot-id";
 import type { ChallengeConfig } from "~/features/shared/types";
+import {
+	getChallengeLadderStatusFn,
+	type LadderStatus,
+} from "~/server/api/get-challenge-ladder.api";
 import { getDataDragonVersion } from "~/server/api/mutations";
 
 /**
@@ -51,6 +55,8 @@ interface ChallengeLeaderboardProps {
 	 * exact "small board pretending to be a ranking" trap this page keeps having to avoid.
 	 */
 	preparing?: boolean;
+	/** Which challenge this board belongs to; used to poll a board that has no snapshot yet. */
+	challengeId: number;
 	/** "GLOBAL" for the merged board, otherwise a Riot platform id. */
 	selectedRegion: LadderRegionId | "GLOBAL";
 	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;
@@ -64,6 +70,63 @@ interface ChallengeLeaderboardProps {
 	rankOffset?: number;
 	highlightedUser?: { username: string; region: string };
 }
+
+/**
+ * How often a board being built is checked, and how long we keep checking.
+ *
+ * Measured on a cold board: rows at ~46 s and names another ~40 s later, so the ceiling is a few
+ * times the whole sequence rather than a guess. The poll stops early the moment both land; the
+ * ceiling exists so a challenge whose names never resolve shows its rows instead of spinning.
+ */
+const PREPARING_POLL_MS = 4000;
+const PREPARING_POLL_CEILING_MS = 5 * 60 * 1000;
+
+/**
+ * Watch a board being built, and invalidate the route once there is something worth showing.
+ *
+ * Only mounts while `preparing`, so a board with rows never polls: SWR keeps serving the stale
+ * snapshot it has, and a spinner over rows we already have would be strictly worse than the rows.
+ *
+ * Two conditions, both required. The sync publishes rows first and Account-v1 names in a later
+ * pass, so stopping at "rows exist" would swap in thousands of raw puuids and leave the reader to
+ * reload again - the same problem one step later. The ceiling is the escape hatch for a challenge
+ * whose names never resolve; reaching it shows the rows rather than spinning forever.
+ */
+const usePreparingBoard = (challengeId: number, active: boolean) => {
+	const router = useRouter();
+	const queryClient = useQueryClient();
+
+	const status = useQuery({
+		queryKey: ["ladderStatus", challengeId],
+		queryFn: () => getChallengeLadderStatusFn({ data: { challengeId } }),
+		enabled: active,
+		refetchInterval: (query) => {
+			const data = query.state.data as LadderStatus | undefined;
+			if (!data) return PREPARING_POLL_MS;
+			// Rows and at least one name: the board is worth swapping in.
+			if (data.ready && data.named > 0) return false;
+			return PREPARING_POLL_MS;
+		},
+	});
+
+	const startedAt = useRef<number | null>(null);
+	if (active && startedAt.current === null) startedAt.current = Date.now();
+	const timedOut =
+		startedAt.current !== null && Date.now() - startedAt.current > PREPARING_POLL_CEILING_MS;
+
+	const data = status.data;
+	const worthShowing = data !== undefined && data.ready && (data.named > 0 || timedOut);
+
+	useEffect(() => {
+		if (!active || !worthShowing) return;
+		// Re-run the loader so the real rows replace this placeholder, and drop the status query so
+		// a later cold board starts clean.
+		queryClient.removeQueries({ queryKey: ["ladderStatus", challengeId] });
+		router.invalidate();
+	}, [active, worthShowing, challengeId, queryClient, router]);
+
+	return { rows: data?.rows ?? 0, named: data?.named ?? 0 };
+};
 
 // --- Animation Variants ---
 const containerVariants = {
@@ -337,6 +400,7 @@ export default function ChallengeLeaderboard({
 	rows,
 	population,
 	preparing = false,
+	challengeId,
 	selectedRegion,
 	onRegionChange,
 	truncated,
@@ -351,6 +415,9 @@ export default function ChallengeLeaderboard({
 	});
 
 	const { getProfileImage, getChallengeIcon } = useDataDragonPath(version);
+
+	// Only polls while this board has never been read; a board with rows never mounts it.
+	const preparingProgress = usePreparingBoard(challengeId, preparing);
 
 	// Riot's own thresholds are the tier boundaries, and they apply to either board: a value is
 	// worth the same wherever we read it from. Derived rather than memoised - it is an array of
@@ -465,8 +532,9 @@ export default function ChallengeLeaderboard({
 								</p>
 								{preparing && (
 									<p className="max-w-sm text-center text-xs">
-										Nobody has opened this board before, so Riot is being read
-										now. Reload in a moment.
+										{preparingProgress.rows > 0
+											? `${preparingProgress.rows.toLocaleString()} players read, naming them now - this page updates itself.`
+											: "Nobody has opened this board before, so it is being read from Riot. This page updates itself."}
 									</p>
 								)}
 							</div>
