@@ -13,10 +13,7 @@ import { isLadderRegionId, type LadderRegionId } from "~/features/challenges/lad
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { parseRiotId } from "~/features/shared/riot-id";
 import { getChallengeConfig } from "~/server/api/get-challenge-config.api";
-import {
-	getChallengeLadderFn,
-	getTrackedChallengeBoardFn,
-} from "~/server/api/get-challenge-ladder.api";
+import { LADDER_PAGE_SIZE, getChallengeLadderFn } from "~/server/api/get-challenge-ladder.api";
 import { getDataDragonVersion } from "~/server/api/mutations";
 import { metaDescription } from "~/utils/seo";
 
@@ -97,7 +94,8 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 		hasMore: boolean;
 		page: number;
 		pageSize: number;
-		ladder: "riot" | "fallback";
+		/** True when the board has never been read and a sync is running to build it. */
+		preparing: boolean;
 		/** `GLOBAL` when every shard is merged; otherwise the selected platform id. */
 		selectedRegion: LadderRegionId | "GLOBAL";
 		truncated: boolean;
@@ -125,9 +123,6 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 			throw new Error("Challenge not found");
 		}
 
-		// Riot cannot be read at all (a hard failure, not a shard with no ladder for this
-		// challenge) falls back to the tracked board and says so, rather than rendering an empty
-		// ladder as if the challenge had no players.
 		const page = toPositiveInt(search.page) ?? 1;
 		const pageSize = toPositiveInt(search.pageSize);
 
@@ -139,37 +134,36 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 				pageSize,
 			},
 		});
-		if (ladder) {
+
+		// A never-visited board has no rows yet: Riot is being read in the background, so the page
+		// says so instead of showing the tracked population as if it were the ladder.
+		if (ladder.state === "preparing") {
 			return {
 				config: config as ChallengeConfig,
-				rows: ladder.rows,
-				population: ladder.population,
-				hasMore: ladder.hasMore,
-				page: ladder.page,
-				pageSize: ladder.pageSize,
-				ladder: "riot",
+				rows: [],
+				population: 0,
+				hasMore: false,
+				page: 1,
+				// The cold path never paged, so the requested size stands in for the real one.
+				pageSize: pageSize ?? LADDER_PAGE_SIZE,
+				preparing: true,
 				selectedRegion,
-				truncated: ladder.truncated,
+				truncated: false,
 				challengeId,
 				search,
 			};
 		}
 
-		const tracked = await getTrackedChallengeBoardFn({
-			data: { challengeId, region: selectedRegion === "GLOBAL" ? null : selectedRegion },
-		});
-
 		return {
 			config: config as ChallengeConfig,
-			rows: tracked.rows,
-			population: tracked.population,
-			// The fallback is capped, not paged: nothing to load more of.
-			hasMore: false,
-			page: 1,
-			pageSize: tracked.rows.length,
-			ladder: "fallback",
+			rows: ladder.rows,
+			population: ladder.population,
+			hasMore: ladder.hasMore,
+			page: ladder.page,
+			pageSize: ladder.pageSize,
+			preparing: false,
 			selectedRegion,
-			truncated: false,
+			truncated: ladder.truncated,
 			challengeId,
 			search,
 		};
@@ -260,12 +254,12 @@ function Client() {
 		config,
 		rows,
 		population,
-		ladder,
 		selectedRegion,
 		truncated,
 		hasMore,
 		page,
 		pageSize,
+		preparing,
 		challengeId,
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
@@ -333,7 +327,7 @@ function Client() {
 						config={config}
 						rows={rows}
 						population={population}
-						ladder={ladder}
+						preparing={preparing}
 						selectedRegion={selectedRegion}
 						truncated={truncated}
 						hasMore={hasMore}

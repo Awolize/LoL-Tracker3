@@ -44,12 +44,13 @@ interface ChallengeLeaderboardProps {
 	/** Real number of ranked players on the selected board, never the capped row count. */
 	population: number;
 	/**
-	 * Which ladder is on screen.
+	 * True when the board has never been read and a sync is building it.
 	 *
-	 * `fallback` only ever reaches here when Riot cannot be read, and it has to say so or the
-	 * board would be presenting our 55 synced profiles as if they were Riot's regional ladder.
+	 * This is the first-visit case, and it replaces the old tracked-fallback board - which showed a
+	 * first-time visitor ~59 rows of our own synced population as though it were the ladder, the
+	 * exact "small board pretending to be a ranking" trap this page keeps having to avoid.
 	 */
-	ladder: "riot" | "fallback";
+	preparing?: boolean;
 	/** "GLOBAL" for the merged board, otherwise a Riot platform id. */
 	selectedRegion: LadderRegionId | "GLOBAL";
 	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;
@@ -335,7 +336,7 @@ export default function ChallengeLeaderboard({
 	config,
 	rows,
 	population,
-	ladder,
+	preparing = false,
 	selectedRegion,
 	onRegionChange,
 	truncated,
@@ -458,11 +459,14 @@ export default function ChallengeLeaderboard({
 						))}
 
 						{rows.length === 0 && (
-							<div className="text-muted-foreground flex flex-col items-center justify-center py-12">
-								<p className="text-sm">No players found</p>
-								{ladder === "fallback" && (
-									<p className="mt-1 text-xs">
-										Nobody tracked has a recorded value for this challenge here.
+							<div className="text-muted-foreground flex flex-col items-center justify-center gap-1 py-12">
+								<p className="text-sm">
+									{preparing ? "Preparing this leaderboard" : "No players found"}
+								</p>
+								{preparing && (
+									<p className="max-w-sm text-center text-xs">
+										Nobody has opened this board before, so Riot is being read
+										now. Reload in a moment.
 									</p>
 								)}
 							</div>

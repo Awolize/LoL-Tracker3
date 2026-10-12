@@ -1,12 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
-import { and, count, desc, eq } from "drizzle-orm";
 
-import { db } from "~/db";
-import { challenge, challengesDetails, summoner } from "~/db/schema";
 import type { LadderBoardRow } from "~/features/challenges/challenge-leaderboard";
-import { regionToConstant } from "~/features/shared/champs";
-import { recordLadderView } from "~/server/challenges/ladder-sweep";
+import { recordLadderRead } from "~/server/challenges/ladder-sweep";
 import {
+	LADDER_REGIONS,
 	type LadderRegionId,
 	type LadderRow,
 	isLadderRegionId,
@@ -16,8 +13,24 @@ import {
 import { updateQueue } from "~/server/jobs/queue";
 import { stableGlobalJobOpts } from "~/server/jobs/queue-stable-job-opts";
 
-/** What the page renders: one page of a board, plus how honest its population number is. */
-export type ChallengeLadderResult = {
+/**
+ * What the page renders.
+ *
+ * `preparing` is the never-visited case: Riot will answer, we just have nothing stored yet and a
+ * sync is queued. It is deliberately distinct from a board with rows, because the honest thing to
+ * show a first visitor is that the board is being built - not our 59-row tracked population dressed
+ * up as a ranking, which is the trap this page was rebuilt to avoid.
+ */
+export type ChallengeLadderResult =
+	| {
+			state: "preparing";
+			/** Riot shards that will be read, for a "preparing N regions" line. */
+			regions: number;
+	  }
+	| ChallengeLadderBoard;
+
+export type ChallengeLadderBoard = {
+	state: "ready";
 	/** How many rows the selected board holds in total, never just this page's count. */
 	population: number;
 	/** The rows for {@link ChallengeLadderResult.page}, already sliced. */
@@ -32,13 +45,6 @@ export type ChallengeLadderResult = {
 	truncated: boolean;
 	fetchedAt: string;
 };
-
-/**
- * The tracked board: no Riot tiers involved, so nothing to truncate and nothing fetched.
- *
- * Not paged. It is only ever the fallback, and there is no ladder to page through in that state.
- */
-export type TrackedChallengeBoard = Pick<ChallengeLadderResult, "population" | "rows">;
 
 /** Rows per page. One page of the merged board is what the page showed before paging existed. */
 export const LADDER_PAGE_SIZE = 200;
@@ -141,13 +147,13 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 	.handler(
 		async ({
 			data: { challengeId, region, page, pageSize },
-		}): Promise<ChallengeLadderResult | null> => {
+		}): Promise<ChallengeLadderResult> => {
 			const selected = boardRegion(region);
 			const snapshot = await readCachedLadder(challengeId);
 
 			// Note the read so the scheduled sweep can keep the boards people actually open fresh
 			// first. Awaiting is fine: one Redis increment, and its own failures are swallowed.
-			await recordLadderView(challengeId);
+			await recordLadderRead(challengeId);
 
 			// Stale-while-revalidate: keep serving a stored snapshot and refresh it behind the reader.
 			// A deterministic job id means a stampede of page views collapses into one pending job per
@@ -157,12 +163,12 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 				await queueLadderRefresh(challengeId, "refresh");
 			}
 
-			// Only a genuinely empty cache is a miss. `null` here is what makes the route show the
-			// tracked fallback, which should mean "we have never read this ladder", not "the freshness
-			// window rolled over".
+			// Nothing stored: a board nobody has opened before. Queue the sync and say so, rather
+			// than degrading to the tracked population - which would show a first-time visitor a
+			// 59-row board that looks like a ranking.
 			if (!snapshot) {
 				await queueLadderRefresh(challengeId, "sync");
-				return null;
+				return { state: "preparing", regions: LADDER_REGIONS.length };
 			}
 
 			const board = selected ? (snapshot.byRegion[selected] ?? []) : snapshot.global;
@@ -174,6 +180,7 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 			const start = (currentPage - 1) * size;
 
 			return {
+				state: "ready",
 				population: board.length,
 				rows: board.slice(start, start + size).map(toBoardRow),
 				page: currentPage,
@@ -186,74 +193,3 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 			};
 		},
 	);
-
-/**
- * Our own tracked population for a challenge, ranked by value.
- *
- * This is the honest-but-small board the tracker has always shown, and it is only ever the
- * loader's fallback when Riot's ladder cannot be read - never a mode the page offers. It is also
- * the only board that can carry a name for a player outside the apex tiers, so it keeps the
- * region filter.
- */
-export const getTrackedChallengeBoardFn = createServerFn({ method: "GET" })
-	.validator((input: { challengeId: number; region?: string | null }) => input)
-	.handler(async ({ data: { challengeId, region } }): Promise<TrackedChallengeBoard> => {
-		const selected = boardRegion(region);
-		const where = selected
-			? and(
-					eq(challenge.challengeId, challengeId),
-					eq(summoner.region, regionToConstant(selected)),
-				)
-			: eq(challenge.challengeId, challengeId);
-
-		const rankQuery = db
-			.select({
-				value: challenge.value,
-				puuid: summoner.puuid,
-				gameName: summoner.gameName,
-				tagLine: summoner.tagLine,
-				region: summoner.region,
-				profileIconId: summoner.profileIconId,
-			})
-			.from(challenge)
-			.innerJoin(
-				challengesDetails,
-				eq(challenge.challengesDetailsId, challengesDetails.puuid),
-			)
-			.innerJoin(summoner, eq(challengesDetails.puuid, summoner.puuid))
-			.where(where)
-			.orderBy(desc(challenge.value))
-			.limit(LADDER_PAGE_SIZE);
-
-		const populationQuery = db
-			.select({ population: count() })
-			.from(challenge)
-			.innerJoin(
-				challengesDetails,
-				eq(challenge.challengesDetailsId, challengesDetails.puuid),
-			)
-			.innerJoin(summoner, eq(challengesDetails.puuid, summoner.puuid))
-			.where(where);
-
-		const [ranked, populationRows] = await Promise.all([rankQuery, populationQuery]);
-
-		return {
-			population: populationRows[0]?.population ?? 0,
-			rows: ranked.map((row) => ({
-				puuid: row.puuid,
-				value: row.value ?? 0,
-				region: row.region,
-				riotId:
-					row.gameName !== null && row.tagLine !== null
-						? { gameName: row.gameName, tagLine: row.tagLine }
-						: null,
-				summoner: {
-					puuid: row.puuid,
-					gameName: row.gameName,
-					tagLine: row.tagLine,
-					region: row.region,
-					profileIconId: row.profileIconId,
-				},
-			})),
-		};
-	});

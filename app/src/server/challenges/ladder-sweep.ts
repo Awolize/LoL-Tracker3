@@ -1,7 +1,4 @@
-import { asc, eq } from "drizzle-orm";
-
-import { db } from "~/db";
-import { challengesConfig } from "~/db/schema";
+import { isLadderStale } from "~/server/challenges/riot-challenge-ladder";
 import { connection } from "~/server/jobs/redis";
 
 /**
@@ -34,117 +31,93 @@ export const LADDER_APP_BUDGET_WINDOW_MS = 2 * 60 * 1000;
 export const LADDER_SYNC_CALLS = 12 * 3 + 100;
 
 /**
- * Which challenge a reader looked at, so the sweep can keep the busy ones fresh first.
+ * When a reader last opened each board, scored by epoch milliseconds.
  *
- * A Redis sorted set rather than a column: this is pure recency bookkeeping, it never needs to
- * be queried relationally, and a background sweep should not be adding a write to Postgres on
- * every page view of a public page.
+ * A timestamp, not a counter. The first version kept a cumulative read count, which can only ever
+ * grow and so cannot answer the only question the sweep needs asked: "has anyone wanted this in the
+ * last week?" A board read a thousand times a month ago must go dormant exactly like one read once.
+ *
+ * Redis rather than a column for the same reason as before: this is recency bookkeeping, and a
+ * public page view should not be adding a write to Postgres.
  */
-const VIEW_COUNT_KEY = "ladder-views";
+const LAST_READ_KEY = "ladder-read-at";
 
-/** Record a read of a challenge's ladder. Fire-and-forget; a lost count is not worth a 500. */
-export const recordLadderView = async (challengeId: number): Promise<void> => {
-	await connection.zincrby(VIEW_COUNT_KEY, 1, String(challengeId)).catch(() => undefined);
+/**
+ * How long a single read keeps a board on the refresh schedule.
+ *
+ * After this the board is no longer wanted: its snapshot is allowed to expire (24 h) and the sweep
+ * stops refreshing it, so a dormant board costs nothing at all. Its first visitor after that pays a
+ * cold sync (~33 s) and re-admits it for another week.
+ */
+export const LADDER_WANTED_SECONDS = 7 * 24 * 60 * 60;
+
+/** Record that a reader wants this board, for {@link LADDER_WANTED_SECONDS}. */
+export const recordLadderRead = async (challengeId: number): Promise<void> => {
+	await connection
+		.zadd(LAST_READ_KEY, String(Date.now()), String(challengeId))
+		.catch(() => undefined);
 };
 
-/**
- * When each challenge was last swept, as a Redis sorted set scored by epoch milliseconds.
- *
- * This is what makes the sweep a rotation rather than a loop over the same ids. The first version
- * of this function topped up from `ChallengesConfig` ordered by id, which looked like coverage and
- * was not: the same lowest ids came back every run, so those two boards refreshed forever and the
- * other 180 never would.
- */
-const LAST_SWEPT_KEY = "ladder-swept";
+/** Challenge ids read within {@link LADDER_WANTED_SECONDS}, most recent first. */
+export const wantedChallenges = async (limit: number): Promise<number[]> => {
+	const cutoff = Date.now() - LADDER_WANTED_SECONDS * 1000;
+	const members = await connection
+		.zrevrangebyscore(LAST_READ_KEY, "+inf", String(cutoff))
+		.catch(() => [] as string[]);
+	return members
+		.map((id) => Number.parseInt(id, 10))
+		.filter((id) => Number.isInteger(id))
+		.slice(0, limit);
+};
 
-/** A pool big enough that the least-swept candidates include boards with no reads at all. */
-const ROTATION_POOL = 50;
-
-/**
- * Last-swept entries as a flat `[member, score, member, score]` list.
- *
- * Its own function because ioredis types `zrange`'s variadic arguments strictly; this keeps the
- * one cast in a single place rather than at the call site.
- */
-const readSweptScores = async (): Promise<string[]> =>
-	(await connection.zrange(LAST_SWEPT_KEY, 0, "-1", "WITHSCORES")) as unknown as string[];
+/** How many wanted boards each sweep inspects before the freshness filter narrows it to a batch. */
+const WANTED_POOL = 50;
 
 /**
- * The challenges a sweep should refresh: least-recently-swept, most-read first within that.
+ * The challenges a sweep should actually refresh.
  *
- * Two pools, because either alone is wrong:
+ * Two filters, and both are load-bearing:
  *
- * - **rotation** - the {@link ROTATION_POOL} least-recently-swept challenges from the catalogue,
- *   which guarantees every board comes round instead of the same ids repeating;
- * - **reads** - the most-viewed challenges, so a board people actually open does not wait a full
- *   rotation (182 boards at 2 per run is ~15 h) to be refreshed.
+ * 1. **Wanted** - read within {@link LADDER_WANTED_SECONDS}. There is deliberately no catalogue
+ *    top-up any more: pre-warming every board cost 182 x 136 = 24,752 calls, about eight hours of
+ *    the key's whole allowance, to keep 178 boards nobody had ever opened current. Effort follows
+ *    demand now, so a never-visited board stays cold until its first visitor instead.
+ * 2. **Stale** - its stored snapshot is past `LADDER_FRESH_SECONDS`, or missing. Without this the
+ *    sweep re-fetched the eligible set every rotation: with only a handful of wanted boards, a
+ *    2-per-10-minute sweep would re-pull each one every ~20 minutes against a 24-hour freshness
+ *    window, spending the budget re-reading data the app already treats as current.
  *
- * Reads win ties, so a busy board is refreshed promptly while an unvisited one still gets its turn.
+ * Both are checked here rather than inside `ladder-sync`, so an already-fresh board is never
+ * enqueued at all - the sweep cannot spend budget re-reading data the app already treats as
+ * current, and it cannot mark a fresh board as needing attention either.
  */
 export const selectSweepChallenges = async (
 	limit: number,
-): Promise<{ selected: number[]; fromRotation: number[] }> => {
-	const [allLeaderboards, mostViewed, lastSwept] = await Promise.all([
-		db
-			.select({ id: challengesConfig.id })
-			.from(challengesConfig)
-			.where(eq(challengesConfig.leaderboard, true))
-			.orderBy(asc(challengesConfig.id)),
-		connection.zrevrange(VIEW_COUNT_KEY, 0, ROTATION_POOL - 1).catch(() => [] as string[]),
-		readSweptScores(),
-	]);
+): Promise<{ selected: number[]; wanted: number[] }> => {
+	const wanted = await wantedChallenges(limit * WANTED_POOL);
+	if (wanted.length === 0) return { selected: [], wanted: [] };
 
-	const catalogue = allLeaderboards.map((row) => row.id);
-	const viewRank = new Map<number, number>();
-	mostViewed.forEach((id, index) => {
-		const parsed = Number.parseInt(id, 10);
-		if (Number.isInteger(parsed)) viewRank.set(parsed, index);
-	});
+	const staleFlags = await Promise.all(wanted.map((id) => isStoredLadderStale(id)));
+	const stale = wanted.filter((_, index) => staleFlags[index]);
 
-	// Last-swept time per challenge; anything absent has never been swept and sorts first.
-	const sweptAt = new Map<number, number>();
-	for (let i = 0; i < lastSwept.length; i += 2) {
-		const id = Number.parseInt(lastSwept[i] ?? "", 10);
-		const score = Number.parseInt(lastSwept[i + 1] ?? "", 10);
-		if (Number.isInteger(id) && Number.isInteger(score)) sweptAt.set(id, score);
-	}
-
-	const rotation = [...catalogue]
-		.sort((a, b) => (sweptAt.get(a) ?? 0) - (sweptAt.get(b) ?? 0) || a - b)
-		.slice(0, ROTATION_POOL);
-
-	const byReadPriority = (a: number, b: number) =>
-		(viewRank.get(a) ?? Number.MAX_SAFE_INTEGER) -
-			(viewRank.get(b) ?? Number.MAX_SAFE_INTEGER) || a - b;
-
-	const selected: number[] = [];
-	for (const id of [...rotation].sort(byReadPriority)) {
-		if (selected.length >= limit) break;
-		selected.push(id);
-	}
-	// A board someone is reading right now should not wait for the rotation to come round to it.
-	for (const id of [...viewRank.keys()].sort(byReadPriority)) {
-		if (selected.length >= limit) break;
-		if (catalogue.includes(id) && !selected.includes(id)) selected.push(id);
-	}
-
-	return { selected, fromRotation: selected.filter((id) => rotation.includes(id)) };
+	return { selected: stale.slice(0, limit), wanted };
 };
 
 /**
- * Record that challenges were swept, so the next sweep starts after them rather than on them.
+ * True when a board has no snapshot, or one past `LADDER_FRESH_SECONDS`.
  *
- * Called with everything the sweep queued, not just what it selected: a read-priority pick that
- * jumped the rotation still has to move to the back, or it would be re-picked on every run.
+ * Reads the snapshot directly rather than going through `readCachedLadder`, because that enriches
+ * rows from `Summoner` and only `fetchedAt` is needed here.
  */
-export const markSwept = async (challengeIds: number[]): Promise<void> => {
-	if (challengeIds.length === 0) return;
-	const now = Date.now();
-	await Promise.all(
-		challengeIds.map((id) =>
-			connection.zadd(LAST_SWEPT_KEY, String(now), String(id)).catch(() => undefined),
-		),
-	);
+const isStoredLadderStale = async (challengeId: number): Promise<boolean> => {
+	const raw = await connection.get(`challenge-ladder:v1:${challengeId}`).catch(() => null);
+	if (!raw) return true;
+	try {
+		return isLadderStale(JSON.parse(raw) as { fetchedAt: string });
+	} catch {
+		// Unparseable is treated as stale so the sweep repairs it rather than skipping forever.
+		return true;
+	}
 };
 
 /**
