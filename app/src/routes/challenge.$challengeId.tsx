@@ -8,7 +8,6 @@ import { SiteHeader } from "~/components/header/SiteHeader";
 import type { ChallengeTags } from "~/db/schema";
 import ChallengeLeaderboard, {
 	type LadderBoardRow,
-	type LadderSource,
 } from "~/features/challenges/challenge-leaderboard";
 import { isLadderRegionId, type LadderRegionId } from "~/features/challenges/ladder-regions";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
@@ -44,10 +43,10 @@ interface ChallengeConfig {
 }
 
 /**
- * The two boards this page can show, spelled in the URL so a board is linkable.
+ * The selected region is the only board choice there is, and it lives in the URL so a board is
+ * linkable. The board itself is always Riot's apex ladder; the tracked population is the loader's
+ * fallback when Riot cannot be read, not a mode.
  *
- * `riot` is Riot's own regional apex ladder (Challenger/Grandmaster/Master only); `tracked` is
- * this tracker's own synced population, which covers every tier but only the profiles we hold.
  * `validateSearch` must not transform values (TanStack Router coerces single numeric params to
  * numbers and rewrites the URL with a 307 when a validator changes the type), so every field is
  * validated as identity and normalised where it is used.
@@ -55,13 +54,9 @@ interface ChallengeConfig {
 const searchSchema = z.object({
 	username: z.string().optional(),
 	region: z.string().optional(),
-	source: z.string().optional(),
 	/** A Riot platform id, e.g. `EUW1`. Every non-numeric value stays a string. */
 	ladderRegion: z.string().optional(),
 });
-
-const isLadderSource = (value: string | undefined): value is LadderSource =>
-	value === "riot" || value === "tracked";
 
 export const Route = createFileRoute("/challenge/$challengeId")({
 	validateSearch: searchSchema,
@@ -73,20 +68,18 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 		config: ChallengeConfig;
 		rows: LadderBoardRow[];
 		population: number;
-		source: LadderSource;
+		source: "riot" | "tracked";
 		/** `GLOBAL` when every shard is merged; otherwise the selected platform id. */
 		selectedRegion: LadderRegionId | "GLOBAL";
 		truncated: boolean;
-		emptyRegions: string[];
 		challengeId: number;
-		search: { username?: string; region?: string; source?: string; ladderRegion?: string };
+		search: { username?: string; region?: string; ladderRegion?: string };
 	}> => {
 		const challengeId = parseInt(challengeIdRaw, 10);
 		if (isNaN(challengeId)) {
 			throw new Error("Invalid challenge ID");
 		}
 
-		const requested: LadderSource = isLadderSource(search.source) ? search.source : "riot";
 		const selectedRegion: LadderRegionId | "GLOBAL" =
 			search.ladderRegion && isLadderRegionId(search.ladderRegion)
 				? search.ladderRegion
@@ -97,26 +90,23 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 			throw new Error("Challenge not found");
 		}
 
-		// Asking for the Riot ladder when Riot cannot be read (a hard failure, not a missing
-		// regional ladder) falls back to the tracked board and says so, rather than rendering an
-		// empty ladder as if the challenge had no players.
-		if (requested === "riot") {
-			const ladder = await getChallengeLadderFn({
-				data: { challengeId, region: selectedRegion === "GLOBAL" ? null : selectedRegion },
-			});
-			if (ladder && ladder.source === "riot") {
-				return {
-					config: config as ChallengeConfig,
-					rows: ladder.rows,
-					population: ladder.population,
-					source: "riot",
-					selectedRegion,
-					truncated: ladder.truncated,
-					emptyRegions: ladder.emptyRegions,
-					challengeId,
-					search,
-				};
-			}
+		// Riot cannot be read at all (a hard failure, not a shard with no ladder for this
+		// challenge) falls back to the tracked board and says so, rather than rendering an empty
+		// ladder as if the challenge had no players.
+		const ladder = await getChallengeLadderFn({
+			data: { challengeId, region: selectedRegion === "GLOBAL" ? null : selectedRegion },
+		});
+		if (ladder) {
+			return {
+				config: config as ChallengeConfig,
+				rows: ladder.rows,
+				population: ladder.population,
+				source: "riot",
+				selectedRegion,
+				truncated: ladder.truncated,
+				challengeId,
+				search,
+			};
 		}
 
 		const tracked = await getTrackedChallengeBoardFn({
@@ -130,7 +120,6 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 			source: "tracked",
 			selectedRegion,
 			truncated: false,
-			emptyRegions: [],
 			challengeId,
 			search,
 		};

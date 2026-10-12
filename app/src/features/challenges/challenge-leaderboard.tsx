@@ -42,15 +42,13 @@ export interface LadderBoardRow {
 	} | null;
 }
 
-export type LadderSource = "riot" | "tracked";
-
 interface ChallengeLeaderboardProps {
 	config: ChallengeConfig;
 	rows: LadderBoardRow[];
 	/** Real number of ranked players on the selected board, never the capped row count. */
 	population: number;
 	/** `tracked` only ever reaches here as the loader's fallback when Riot cannot be read. */
-	source: LadderSource;
+	source: "riot" | "tracked";
 	/** "GLOBAL" for the merged board, otherwise a Riot platform id. */
 	selectedRegion: LadderRegionId | "GLOBAL";
 	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;

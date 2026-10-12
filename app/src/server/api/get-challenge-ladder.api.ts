@@ -6,7 +6,6 @@ import { challenge, challengesDetails, summoner } from "~/db/schema";
 import type { LadderBoardRow } from "~/features/challenges/challenge-leaderboard";
 import { regionToConstant } from "~/features/shared/champs";
 import {
-	LADDER_REGIONS,
 	type LadderRegionId,
 	type LadderRow,
 	isLadderRegionId,
@@ -15,20 +14,19 @@ import {
 import { updateQueue } from "~/server/jobs/queue";
 import { stableGlobalJobOpts } from "~/server/jobs/queue-stable-job-opts";
 
-export type ChallengeLadderResult =
-	| {
-			source: "riot";
-			/** How many rows we hold for the selected board. */
-			population: number;
-			/** Rows we can show; the board is capped, `population` is not. */
-			rows: LadderBoardRow[];
-			/** True when Riot truncated a tier at its page size. */
-			truncated: boolean;
-			/** Shards with no apex ladder for this challenge. */
-			emptyRegions: string[];
-			fetchedAt: string;
-	  }
-	| { source: "tracked"; population: number; rows: LadderBoardRow[] };
+/** What the page renders: one board, plus how honest its population number is. */
+export type ChallengeLadderResult = {
+	/** How many rows we hold for the selected board. */
+	population: number;
+	/** Rows we can show; the board is capped, `population` is not. */
+	rows: LadderBoardRow[];
+	/** True when Riot truncated a tier at its page size. */
+	truncated: boolean;
+	fetchedAt: string;
+};
+
+/** The tracked board: no Riot tiers involved, so nothing to truncate and nothing fetched. */
+export type TrackedChallengeBoard = Pick<ChallengeLadderResult, "population" | "rows">;
 
 /**
  * The board cap.
@@ -101,14 +99,10 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 		const board = selected ? (snapshot.byRegion[selected] ?? []) : snapshot.global;
 
 		return {
-			source: "riot",
 			population: board.length,
 			rows: board.slice(0, LADDER_BOARD_LIMIT).map(toBoardRow),
 			truncated: snapshot.truncatedTiers.some(
 				(entry) => selected === null || entry.region === selected,
-			),
-			emptyRegions: LADDER_REGIONS.map((r) => r.id).filter(
-				(id) => !snapshot.regionsWithData.includes(id),
 			),
 			fetchedAt: snapshot.fetchedAt,
 		};
@@ -117,13 +111,14 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 /**
  * Our own tracked population for a challenge, ranked by value.
  *
- * This is the honest-but-small board the tracker has always shown, kept as the fallback for when
- * Riot's ladder cannot be read. It is also the only board that can carry a name for a player
- * outside the apex tiers, so the region fallback keeps its region filter.
+ * This is the honest-but-small board the tracker has always shown, and it is only ever the
+ * loader's fallback when Riot's ladder cannot be read - never a mode the page offers. It is also
+ * the only board that can carry a name for a player outside the apex tiers, so it keeps the
+ * region filter.
  */
 export const getTrackedChallengeBoardFn = createServerFn({ method: "GET" })
 	.validator((input: { challengeId: number; region?: string | null }) => input)
-	.handler(async ({ data: { challengeId, region } }): Promise<ChallengeLadderResult> => {
+	.handler(async ({ data: { challengeId, region } }): Promise<TrackedChallengeBoard> => {
 		const selected = boardRegion(region);
 		const where = selected
 			? and(
@@ -164,7 +159,6 @@ export const getTrackedChallengeBoardFn = createServerFn({ method: "GET" })
 		const [ranked, populationRows] = await Promise.all([rankQuery, populationQuery]);
 
 		return {
-			source: "tracked",
 			population: populationRows[0]?.population ?? 0,
 			rows: ranked.map((row, index) => ({
 				position: index + 1,
