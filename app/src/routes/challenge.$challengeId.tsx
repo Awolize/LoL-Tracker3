@@ -236,23 +236,14 @@ function Client() {
 	const { getChallengeIcon } = useDataDragonPath(version);
 
 	/**
-	 * The board choice lives in the URL, so a region or a source is shareable and the back button
-	 * works. Both setters replace rather than push: flipping between boards is not navigation.
+	 * The selected region lives in the URL, so a board is shareable and the back button works.
+	 * Choosing the merged board removes the param rather than spelling out a default.
 	 */
-	const setBoard = (next: {
-		source?: LadderSource;
-		ladderRegion?: LadderRegionId | "GLOBAL";
-	}) => {
+	const setRegion = (ladderRegion: LadderRegionId | "GLOBAL") => {
 		navigate({
 			search: (prev) => ({
 				...prev,
-				source: next.source ?? source,
-				ladderRegion:
-					next.ladderRegion === undefined
-						? selectedRegion
-						: next.ladderRegion === "GLOBAL"
-							? undefined
-							: next.ladderRegion,
+				ladderRegion: ladderRegion === "GLOBAL" ? undefined : ladderRegion,
 			}),
 			replace: true,
 		});
@@ -289,8 +280,7 @@ function Client() {
 						selectedRegion={selectedRegion}
 						truncated={truncated}
 						emptyRegions={emptyRegions}
-						onSourceChange={(next) => setBoard({ source: next })}
-						onRegionChange={(next) => setBoard({ ladderRegion: next })}
+						onRegionChange={setRegion}
 						highlightedUser={
 							search.username && search.region
 								? {

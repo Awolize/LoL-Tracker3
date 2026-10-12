@@ -10,7 +10,6 @@ import {
 } from "~/features/challenges/ladder-regions";
 import { regionToDisplay } from "~/features/shared/champs";
 import { Dropdown, type Choice } from "~/features/shared/components/dropdown";
-import { TogglePill } from "~/features/shared/components/toggle-pill";
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { parseRiotId } from "~/features/shared/riot-id";
 import type { ChallengeConfig } from "~/features/shared/types";
@@ -50,11 +49,11 @@ interface ChallengeLeaderboardProps {
 	rows: LadderBoardRow[];
 	/** Real number of ranked players on the selected board, never the capped row count. */
 	population: number;
+	/** `tracked` only ever reaches here as the loader's fallback when Riot cannot be read. */
 	source: LadderSource;
 	/** "GLOBAL" for the merged board, otherwise a Riot platform id. */
 	selectedRegion: LadderRegionId | "GLOBAL";
 	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;
-	onSourceChange: (source: LadderSource) => void;
 	/** True when Riot truncated an apex tier at its page size - the tail is missing. */
 	truncated: boolean;
 	/** Shards with no apex ladder at all for this challenge. */
@@ -354,7 +353,6 @@ export default function ChallengeLeaderboard({
 	source,
 	selectedRegion,
 	onRegionChange,
-	onSourceChange,
 	truncated,
 	emptyRegions,
 	highlightedUser,
@@ -429,18 +427,9 @@ export default function ChallengeLeaderboard({
 			{/* Source & region controls */}
 			<section className="border-border/60 bg-muted/20 flex flex-col gap-3 rounded-xl border p-3">
 				<div className="flex flex-wrap items-center justify-between gap-3">
-					<div className="flex items-center gap-2">
-						<TogglePill
-							label="Riot apex ladder"
-							checked={source === "riot"}
-							onChange={() => onSourceChange("riot")}
-						/>
-						<TogglePill
-							label="Tracked summoners"
-							checked={source === "tracked"}
-							onChange={() => onSourceChange("tracked")}
-						/>
-					</div>
+					<span className="text-muted-foreground text-xs font-semibold tracking-widest uppercase">
+						{source === "riot" ? "Riot apex ladder" : "Tracked summoners (fallback)"}
+					</span>
 					<Dropdown
 						choices={REGION_CHOICES}
 						choice={selectedChoice}
