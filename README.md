@@ -191,7 +191,9 @@ report zeroes and, because the remake flag is still NULL, a remake as the fastes
 
 `ChallengesConfig.tags` needs the same treatment. Riot's `Challenges.Configs` is unreachable while
 the API key is expired (403), so it backfills from CommunityDragon's copy of the same config instead
-of from Riot. It is idempotent:
+of from Riot. The same run fills `ChallengeTitle` from that file's `titles` map - keyed by the
+numeric `itemId` that `Preferences.title` stores - without which the profile hub omits the title. It
+is idempotent:
 
 ```bash
 cd app
@@ -200,7 +202,8 @@ DATABASE_URL='<production connection string>' \
 ```
 
 If CommunityDragon ever stops publishing `tags`, the script refuses to write rather than filling the
-column with nulls - re-run it then to pick up a newer snapshot.
+column with nulls. `titles` is treated as optional - a snapshot without it still gets its tags
+written, and the title is simply not shown. Re-run either way to pick up a newer snapshot.
 
 To check what is applied:
 

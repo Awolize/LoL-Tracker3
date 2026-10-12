@@ -64,6 +64,13 @@
 			"when": 1791800836825,
 			"tag": "0008_complete_mentor",
 			"breakpoints": true
+		},
+		{
+			"idx": 9,
+			"version": "7",
+			"when": 1791802464204,
+			"tag": "0009_green_spiral",
+			"breakpoints": true
 		}
 	]
 }

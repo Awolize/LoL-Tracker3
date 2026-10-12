@@ -231,6 +231,19 @@ export const challengeLocalization = pgTable(
 	],
 );
 
+/**
+ * Player-title names, from CommunityDragon's `v1/challenges.json` (`titles`, keyed by UUID on the
+ * wire with a numeric `itemId` inside each entry).
+ *
+ * `Preferences.title` stores that numeric `itemId` - verified against every distinct value in the
+ * table - so `itemId` is the key here. Titles are cosmetic and change rarely, which is why the rows
+ * come from a backfill rather than from a sync.
+ */
+export const challengeTitle = pgTable("ChallengeTitle", {
+	itemId: integer().primaryKey().notNull(),
+	name: text().notNull(),
+});
+
 export const challengesDetails = pgTable(
 	"ChallengesDetails",
 	{

@@ -13,6 +13,7 @@ import { getUserByNameAndRegion } from "~/server/api/get-user-by-name-and-region
 import { buildProfileChallengeRows } from "~/server/challenges/build-profile-challenge-rows";
 import { getProfileCapstones, type ProfileCapstones } from "~/server/challenges/capstone-progress";
 import { getChallengesProgressMapForPuuid } from "~/server/challenges/challenges-progress-map";
+import { getProfileSummary, type ProfileSummary } from "~/server/challenges/profile-summary";
 import { getCompleteChampionData } from "~/server/champions/get-complete-champion-data";
 import { updateQueue, updateQueueEvents } from "~/server/jobs/queue";
 import {
@@ -311,3 +312,12 @@ export const getPersonalRecordsFn = createServerFn({ method: "GET" })
 export const getProfileCapstonesFn = createServerFn({ method: "GET" })
 	.validator((input: { puuid: string }) => input)
 	.handler(({ data }): Promise<ProfileCapstones | null> => getProfileCapstones(data.puuid));
+
+/**
+ * Challenge-score summary for the top of the profile hub: the `TotalPoints` score, the pinned
+ * challenges from `Preferences`, and the player's title resolved from `ChallengeTitle`. Null means
+ * nothing is stored for the puuid.
+ */
+export const getProfileSummaryFn = createServerFn({ method: "GET" })
+	.validator((input: { puuid: string }) => input)
+	.handler(({ data }): Promise<ProfileSummary | null> => getProfileSummary(data.puuid));
