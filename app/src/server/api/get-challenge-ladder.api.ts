@@ -9,6 +9,7 @@ import {
 	type LadderRegionId,
 	type LadderRow,
 	isLadderRegionId,
+	isLadderStale,
 	readCachedLadder,
 } from "~/server/challenges/riot-challenge-ladder";
 import { updateQueue } from "~/server/jobs/queue";
@@ -34,19 +35,41 @@ export type TrackedChallengeBoard = Pick<ChallengeLadderResult, "population" | "
  * Riot's own regional ladders are capped and this page has no paging affordance, so we show the
  * top stretch of the merged board. `population` always reports the real count.
  */
-export const LADDER_BOARD_LIMIT = 100;
+export const LADDER_BOARD_LIMIT = 200;
+
+/**
+ * Ask the worker for a ladder snapshot.
+ *
+ * A deterministic job id collapses a stampede of page views into one pending job per challenge, so
+ * a busy board cannot queue a sync per reader. Failures are logged and swallowed: the caller is a
+ * page render, and a queue outage should degrade to the data we already have, not a 500.
+ */
+const queueLadderRefresh = async (
+	challengeId: number,
+	reason: "sync" | "refresh",
+): Promise<void> => {
+	await updateQueue
+		.add(
+			"ladder-sync",
+			{ challengeId },
+			stableGlobalJobOpts(`ladder-sync__${challengeId}`, { priority: 60 }),
+		)
+		.catch((error) =>
+			console.error(
+				`[Ladder] Could not queue a ${reason} for challenge ${challengeId}:`,
+				error,
+			),
+		);
+};
 
 /** The region filter as a Riot platform id, or undefined for "every region". */
 const boardRegion = (region?: string | null): LadderRegionId | null =>
 	region && isLadderRegionId(region) ? region : null;
 
 const toBoardRow = (row: LadderRow): LadderBoardRow => ({
-	position: row.position,
 	puuid: row.puuid,
 	value: row.value,
 	region: row.region,
-	regionalPosition: row.regionalPosition,
-	tier: row.tier,
 	riotId:
 		row.gameName !== null && row.tagLine !== null
 			? { gameName: row.gameName, tagLine: row.tagLine }
@@ -78,21 +101,20 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 	.handler(async ({ data: { challengeId, region } }): Promise<ChallengeLadderResult | null> => {
 		const selected = boardRegion(region);
 		const snapshot = await readCachedLadder(challengeId);
+
+		// Stale-while-revalidate: keep serving a stored snapshot and refresh it behind the reader.
+		// A deterministic job id means a stampede of page views collapses into one pending job per
+		// challenge, and because the job only replaces the key once it finishes, a sync in flight
+		// never empties the board.
+		if (snapshot && isLadderStale(snapshot)) {
+			await queueLadderRefresh(challengeId, "refresh");
+		}
+
+		// Only a genuinely empty cache is a miss. `null` here is what makes the route show the
+		// tracked fallback, which should mean "we have never read this ladder", not "the freshness
+		// window rolled over".
 		if (!snapshot) {
-			// A deterministic job id means a stampede of page views collapses into one pending job
-			// per challenge; the TTL of the snapshot it writes is what bounds how often it re-runs.
-			await updateQueue
-				.add(
-					"ladder-sync",
-					{ challengeId },
-					stableGlobalJobOpts(`ladder-sync__${challengeId}`, { priority: 60 }),
-				)
-				.catch((error) =>
-					console.error(
-						`[Ladder] Could not queue a sync for challenge ${challengeId}:`,
-						error,
-					),
-				);
+			await queueLadderRefresh(challengeId, "sync");
 			return null;
 		}
 
@@ -160,13 +182,10 @@ export const getTrackedChallengeBoardFn = createServerFn({ method: "GET" })
 
 		return {
 			population: populationRows[0]?.population ?? 0,
-			rows: ranked.map((row, index) => ({
-				position: index + 1,
+			rows: ranked.map((row) => ({
 				puuid: row.puuid,
 				value: row.value ?? 0,
 				region: row.region,
-				regionalPosition: null,
-				tier: "",
 				riotId:
 					row.gameName !== null && row.tagLine !== null
 						? { gameName: row.gameName, tagLine: row.tagLine }

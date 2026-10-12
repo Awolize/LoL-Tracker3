@@ -52,13 +52,30 @@ const ladderRegion = (region: LadderRegionId): Regions => region as unknown as R
 export const LADDER_PAGE_LIMIT = 200;
 
 /**
- * How long a fetched snapshot is served before Riot is asked again.
+ * How long a fetched snapshot is served without asking Riot again.
  *
  * The values drift slowly (EUW1 CRYSTAL's top moved 29,405 over a day) and every page view reads
- * the snapshot, so a long TTL is what keeps the Riot budget flat. Fifteen minutes is the tuning
- * knob; it is not a correctness boundary.
+ * the snapshot, so a long window is what keeps the Riot budget flat. Fifteen minutes is the tuning
+ * knob, and it is explicitly **not** an eviction: see {@link CACHE_TTL_SECONDS}.
  */
-export const CACHE_TTL_SECONDS = 15 * 60;
+export const LADDER_FRESH_SECONDS = 15 * 60;
+
+/**
+ * How long a snapshot is kept in Redis at all.
+ *
+ * Deliberately far longer than {@link LADDER_FRESH_SECONDS}, because expiry is not eviction here:
+ * a stale snapshot is still served (and refreshed in the background) so the board never drops to
+ * the tracked fallback just because the freshness window rolled over. This is only a safety net
+ * against keys for challenges nobody looks at any more.
+ *
+ * This is what made the board show 56 rows instead of 1,283 for ~36 s after every expiry: the key
+ * vanished, the read returned nothing, and the fallback took over until the queued sync finished.
+ */
+export const CACHE_TTL_SECONDS = 24 * 60 * 60;
+
+/** True when a stored snapshot is older than {@link LADDER_FRESH_SECONDS}. */
+export const isLadderStale = (snapshot: { fetchedAt: string }, now = Date.now()): boolean =>
+	now - new Date(snapshot.fetchedAt).getTime() > LADDER_FRESH_SECONDS * 1000;
 
 /** One Riot call at a time, a beat apart - well inside the key's 20-per-second app burst. */
 export const LADDER_FETCH_GAP_MS = 650;
