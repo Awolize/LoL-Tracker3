@@ -51,17 +51,6 @@ interface ChallengeConfig {
  * numbers and rewrites the URL with a 307 when a validator changes the type), so every field is
  * validated as identity and normalised where it is used.
  */
-/**
- * Riot's localization strings are not plain text: some carry inline markup (`Obtain
- * <em>champions</em>`). React escapes it, so rendering it raw puts the tags on screen - strip
- * them and keep the words rather than trusting the string or injecting HTML.
- */
-const plainText = (value: string | null | undefined): string =>
-	(value ?? "")
-		.replace(/<[^>]*>/g, "")
-		.replace(/\s+/g, " ")
-		.trim();
-
 const searchSchema = z.object({
 	username: z.string().optional(),
 	region: z.string().optional(),
@@ -231,18 +220,6 @@ function Client() {
 	const challengeName = config.localization?.name || `Challenge ${challengeId}`;
 
 	/**
-	 * Riot's own summary of the challenge, or nothing rather than an empty line.
-	 *
-	 * `description` is the fuller sentence and is the cleaner one upstream - `shortDescription`
-	 * carries inline markup on 72 of 405 rows ("Obtain <em>champions</em>", "Collect <em>mythic
-	 * champion skins</em>") while `description` does on 1 - so it is preferred, with the short one
-	 * as the fallback because `description` is empty on a handful of challenges (CRYSTAL's is).
-	 */
-	const challengeSubtitle = plainText(
-		config.localization?.description || config.localization?.shortDescription,
-	);
-
-	/**
 	 * The selected region lives in the URL, so a board is shareable and the back button works.
 	 * Choosing the merged board removes the param rather than spelling out a default.
 	 */
@@ -274,7 +251,6 @@ function Client() {
 							</h1>
 							<p className="text-muted-foreground text-sm sm:text-base">
 								{challengeName}
-								{challengeSubtitle && ` - ${challengeSubtitle}`}
 							</p>
 						</div>
 					</div>
