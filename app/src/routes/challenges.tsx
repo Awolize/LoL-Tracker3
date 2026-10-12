@@ -14,11 +14,24 @@ type Challenge = Awaited<ReturnType<typeof getChallengesConfig>>[0];
 type CategoryMap = Record<string, Challenge[]>;
 
 // --- Constants ---
+/**
+ * Tab labels by category id, named from the game's own data rather than from how the ids look.
+ *
+ * `ChallengesConfig` joined to `ChallengeLocalization` (the authoritative pair) gives
+ * 0 CRYSTAL, 1 IMAGINATION, 2 EXPERTISE, 3 VETERANCY, 4 TEAMWORK, 5 COLLECTION; CommunityDragon's
+ * `v1/challenges.json` carries the same six names. Ids 1, 3 and 4 previously read Veterancy,
+ * Teamwork and Imagination - the three names rotated by one slot (1 showed 3's name, 3 showed 4's,
+ * 4 showed 1's), which put Teamwork on two tabs and left Imagination mislabelled.
+ *
+ * `0` is deliberately not Riot's "CRYSTAL": this bucket is the fallback for a challenge whose
+ * parent chain reaches no category (see `processChallenges`), and no non-category challenge
+ * resolves to category 0, so labelling it Crystal would describe the wrong set.
+ */
 const CATEGORY_CONFIG: Record<string, string> = {
-	"1": "Veterancy",
+	"1": "Imagination",
 	"2": "Expertise",
-	"3": "Teamwork",
-	"4": "Imagination",
+	"3": "Veterancy",
+	"4": "Teamwork",
 	"5": "Collection",
 	"0": "Legacy & Events",
 };
