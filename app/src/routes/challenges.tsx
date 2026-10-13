@@ -177,8 +177,8 @@ function ChallengesView() {
 							Global challenge leaderboard
 						</h3>
 						<p className="text-muted-foreground mt-1 text-xs leading-relaxed">
-							Where every player stands once all their challenges count, instead of one
-							challenge at a time.
+							Where every player stands once all their challenges count, instead of
+							one challenge at a time.
 						</p>
 					</div>
 				</Link>

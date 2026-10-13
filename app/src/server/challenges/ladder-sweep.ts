@@ -1,3 +1,7 @@
+import { and, eq, inArray } from "drizzle-orm";
+
+import { db } from "~/db";
+import { challengesConfig } from "~/db/schema";
 import { isLadderStale } from "~/server/challenges/riot-challenge-ladder";
 import { connection } from "~/server/jobs/redis";
 
@@ -76,7 +80,7 @@ const WANTED_POOL = 50;
 /**
  * The challenges a sweep should actually refresh.
  *
- * Two filters, and both are load-bearing:
+ * Three filters, and each is load-bearing:
  *
  * 1. **Wanted** - read within {@link LADDER_WANTED_SECONDS}. There is deliberately no catalogue
  *    top-up any more: pre-warming every board cost 182 x 136 = 24,752 calls, about eight hours of
@@ -86,8 +90,13 @@ const WANTED_POOL = 50;
  *    sweep re-fetched the eligible set every rotation: with only a handful of wanted boards, a
  *    2-per-10-minute sweep would re-pull each one every ~20 minutes against a 24-hour freshness
  *    window, spending the budget re-reading data the app already treats as current.
+ * 3. **Ranked** - Riot publishes a leaderboard for it at all. 223 of the 405 tracked challenges do
+ *    not, and Riot answers those with an empty list for every shard and tier, so a sweep of one is
+ *    36 calls spent re-confirming nothing. Nine such empty boards had already been stored by the
+ *    time this filter was added; the route no longer reads them either, so they now age out of
+ *    `ladder-read-at` and this filter is what stops the calls in the meantime.
  *
- * Both are checked here rather than inside `ladder-sync`, so an already-fresh board is never
+ * All three are checked here rather than inside `ladder-sync`, so an already-fresh board is never
  * enqueued at all - the sweep cannot spend budget re-reading data the app already treats as
  * current, and it cannot mark a fresh board as needing attention either.
  */
@@ -99,8 +108,15 @@ export const selectSweepChallenges = async (
 
 	const staleFlags = await Promise.all(wanted.map((id) => isStoredLadderStale(id)));
 	const stale = wanted.filter((_, index) => staleFlags[index]);
+	if (stale.length === 0) return { selected: [], wanted };
 
-	return { selected: stale.slice(0, limit), wanted };
+	const ranked = await db
+		.select({ id: challengesConfig.id })
+		.from(challengesConfig)
+		.where(and(inArray(challengesConfig.id, stale), eq(challengesConfig.leaderboard, true)));
+	const rankedIds = new Set(ranked.map((row) => row.id));
+
+	return { selected: stale.filter((id) => rankedIds.has(id)).slice(0, limit), wanted };
 };
 
 /**

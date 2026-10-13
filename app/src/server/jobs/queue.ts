@@ -313,4 +313,20 @@ if (!global.__riotWorker) {
 			limiter: { max: 2, duration: 1200 },
 		},
 	);
+
+	/**
+	 * Say so when a job fails.
+	 *
+	 * Without this a failure was completely silent: the default job options remove failed jobs, so
+	 * the only trace was a `failed` event nobody was listening to. The scheduled `ladder-sweep`
+	 * failed every ten minutes for four hours that way - 26 times - because the worker running at the
+	 * time predated the `case` for it, and nothing said so. A new job type is matched inside the
+	 * worker's closure, so adding one needs a **restart** in dev: this module can be edited without the
+	 * live worker being rebuilt.
+	 */
+	global.__riotWorker.on("failed", (job, error) => {
+		console.error(
+			`[Worker] FAILED: ${job?.name ?? "unknown"} (${job?.id ?? "no id"}): ${error?.message ?? error}`,
+		);
+	});
 }

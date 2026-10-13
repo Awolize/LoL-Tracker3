@@ -1,7 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useRouter } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -15,6 +15,7 @@ import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { parseRiotId } from "~/features/shared/riot-id";
 import type { ChallengeConfig } from "~/features/shared/types";
 import {
+	getChallengeLadderFn,
 	getChallengeLadderStatusFn,
 	type LadderStatus,
 } from "~/server/api/get-challenge-ladder.api";
@@ -44,7 +45,8 @@ export interface LadderBoardRow {
 
 interface ChallengeLeaderboardProps {
 	config: ChallengeConfig;
-	rows: LadderBoardRow[];
+	/** Page one, rendered on the server so the page still has content without JS. */
+	firstPage: LadderBoardRow[];
 	/** Real number of ranked players on the selected board, never the capped row count. */
 	population: number;
 	/**
@@ -55,6 +57,16 @@ interface ChallengeLeaderboardProps {
 	 * exact "small board pretending to be a ranking" trap this page keeps having to avoid.
 	 */
 	preparing?: boolean;
+	/**
+	 * True when Riot publishes no leaderboard for this challenge, so the rows are the tracker's own.
+	 *
+	 * Not the same as "empty": Riot answers 200 with an empty list for every shard and tier, so a
+	 * board drawn from that reads as "0 summoners ranked" and looks broken. 223 of the 405 tracked
+	 * challenges are in this state, so it is the common case, not an edge. There is no official
+	 * ladder to be confused with, so what is shown is `Challenge`'s own synced values - a smaller,
+	 * slower-moving sample - and every label here says so.
+	 */
+	unranked?: boolean;
 	/** Which challenge this board belongs to; used to poll a board that has no snapshot yet. */
 	challengeId: number;
 	/** "GLOBAL" for the merged board, otherwise a Riot platform id. */
@@ -62,12 +74,8 @@ interface ChallengeLeaderboardProps {
 	onRegionChange: (region: LadderRegionId | "GLOBAL") => void;
 	/** True when Riot truncated an apex tier at its page size - the tail is missing. */
 	truncated: boolean;
-	/** True while rows beyond the ones rendered exist on the server. */
-	hasMore?: boolean;
-	/** Loads the next page. Absent when there is nothing more, or the board is not paged. */
-	onLoadMore?: () => void;
-	/** Rows already shown on earlier pages, so rank numbering continues rather than restarting. */
-	rankOffset?: number;
+	/** True while rows beyond page one exist. Seeds the "load more" state for this board. */
+	hasMore: boolean;
 	highlightedUser?: { username: string; region: string };
 }
 
@@ -87,10 +95,13 @@ const PREPARING_POLL_CEILING_MS = 5 * 60 * 1000;
  * Only mounts while `preparing`, so a board with rows never polls: SWR keeps serving the stale
  * snapshot it has, and a spinner over rows we already have would be strictly worse than the rows.
  *
- * Two conditions, both required. The sync publishes rows first and Account-v1 names in a later
- * pass, so stopping at "rows exist" would swap in thousands of raw puuids and leave the reader to
- * reload again - the same problem one step later. The ceiling is the escape hatch for a challenge
- * whose names never resolve; reaching it shows the rows rather than spinning forever.
+ * Two conditions, both required, plus one escape. The sync publishes rows first and Account-v1
+ * names in a later pass, so stopping at "rows exist" would swap in thousands of raw puuids and
+ * leave the reader to reload again - the same problem one step later. A board that came back with
+ * **no rows at all** is the second escape: there is nothing to name, so waiting for `named > 0`
+ * means polling for the whole five-minute ceiling before showing an empty board. That was every
+ * unranked challenge - the common case - and it is what a reader experiences as "it never loads".
+ * The ceiling stays as the last resort for a challenge whose names never resolve.
  */
 const usePreparingBoard = (challengeId: number, active: boolean) => {
 	const router = useRouter();
@@ -103,8 +114,8 @@ const usePreparingBoard = (challengeId: number, active: boolean) => {
 		refetchInterval: (query) => {
 			const data = query.state.data as LadderStatus | undefined;
 			if (!data) return PREPARING_POLL_MS;
-			// Rows and at least one name: the board is worth swapping in.
-			if (data.ready && data.named > 0) return false;
+			// Rows and at least one name, or a board with no rows to name: worth swapping in.
+			if (data.ready && (data.named > 0 || data.rows === 0)) return false;
 			return PREPARING_POLL_MS;
 		},
 	});
@@ -115,7 +126,8 @@ const usePreparingBoard = (challengeId: number, active: boolean) => {
 		startedAt.current !== null && Date.now() - startedAt.current > PREPARING_POLL_CEILING_MS;
 
 	const data = status.data;
-	const worthShowing = data !== undefined && data.ready && (data.named > 0 || timedOut);
+	const worthShowing =
+		data !== undefined && data.ready && (data.named > 0 || data.rows === 0 || timedOut);
 
 	useEffect(() => {
 		if (!active || !worthShowing) return;
@@ -126,6 +138,51 @@ const usePreparingBoard = (challengeId: number, active: boolean) => {
 	}, [active, worthShowing, challengeId, queryClient, router]);
 
 	return { rows: data?.rows ?? 0, named: data?.named ?? 0 };
+};
+
+/**
+ * How far ahead of the viewport the next page starts loading.
+ *
+ * A screen's worth, so the rows are usually there by the time the reader arrives rather than
+ * appearing under the scroll. Deliberately not larger: the fetch is what decides how far the board
+ * can run ahead of a reader, and one page per screenful keeps that honest.
+ */
+const LOAD_MORE_ROOT_MARGIN = "600px";
+
+/**
+ * Fire `load` when the marker scrolls into view.
+ *
+ * The marker is the "Load more" button, which stays rendered and focusable: an infinite scroll with
+ * no control is unreachable by keyboard, and it is also the fallback if this observer never fires.
+ *
+ * `active` is what stops a scroll from queueing the same page twice - it goes false while a fetch is
+ * in flight, and the observer is torn down rather than left to re-fire. The callback is held in a
+ * ref so re-creating it every render (it closes over the row count) cannot reconnect the observer
+ * and fire an extra load per render, which is the trap this hook exists to avoid.
+ */
+const useLoadMoreOnScroll = (active: boolean, load: () => void) => {
+	const marker = useRef<HTMLDivElement | null>(null);
+	const latestLoad = useRef(load);
+
+	useEffect(() => {
+		latestLoad.current = load;
+	});
+
+	useEffect(() => {
+		const element = marker.current;
+		if (!active || !element) return;
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((entry) => entry.isIntersecting)) latestLoad.current();
+			},
+			{ rootMargin: LOAD_MORE_ROOT_MARGIN },
+		);
+		observer.observe(element);
+		return () => observer.disconnect();
+	}, [active]);
+
+	return marker;
 };
 
 // --- Animation Variants ---
@@ -240,8 +297,6 @@ const TierBadge = ({ tier, points, iconUrl, exists }: TierBadgeProps) => {
 interface LeaderboardRowProps {
 	entry: LadderBoardRow;
 	index: number;
-	/** Rows already rendered above this one, so the rank continues across sections. */
-	offset: number;
 	highlightedUsername: string | null;
 	highlightedRegion: string | null;
 	getPlayerTier: (value: number) => string | null;
@@ -251,7 +306,6 @@ interface LeaderboardRowProps {
 const LeaderboardRow = ({
 	entry,
 	index,
-	offset,
 	highlightedUsername,
 	highlightedRegion,
 	getPlayerTier,
@@ -318,14 +372,13 @@ const LeaderboardRow = ({
 			)}
 
 			<div className="relative z-10 flex items-center gap-4">
-				{/* Position within the board on screen, so a region board counts 1, 2, 3... rather
-				    than showing the rank it held on the merged board. */}
+				{/* The board always renders from rank 1, so the row's own index is its rank. */}
 				<div
 					className={`w-10 text-center font-mono text-sm ${
 						isHighlighted ? "text-foreground font-bold" : "text-muted-foreground/70"
 					}`}
 				>
-					{offset + index + 1}
+					{index + 1}
 				</div>
 
 				{/* Avatar & Info */}
@@ -397,16 +450,15 @@ const LeaderboardRow = ({
 // --- Main Export ---
 export default function ChallengeLeaderboard({
 	config,
-	rows,
+	firstPage,
 	population,
 	preparing = false,
+	unranked = false,
 	challengeId,
 	selectedRegion,
 	onRegionChange,
 	truncated,
-	hasMore = false,
-	onLoadMore,
-	rankOffset = 0,
+	hasMore,
 	highlightedUser,
 }: ChallengeLeaderboardProps) {
 	const { data: version = "15.24.1" } = useQuery({
@@ -418,6 +470,66 @@ export default function ChallengeLeaderboard({
 
 	// Only polls while this board has never been read; a board with rows never mounts it.
 	const preparingProgress = usePreparingBoard(challengeId, preparing);
+
+	// Page one is server-rendered; everything after it is fetched a page at a time and appended
+	// here. The caller remounts this component when the board changes, which is what clears them -
+	// same contract as the match history section.
+	const [extraRows, setExtraRows] = useState<LadderBoardRow[]>([]);
+	const [nextPage, setNextPage] = useState(2);
+	const [loading, setLoading] = useState(false);
+	const [exhausted, setExhausted] = useState(!hasMore);
+	const [error, setError] = useState<string | null>(null);
+
+	const rows = [...firstPage, ...extraRows];
+
+	/**
+	 * Fetch and append the next page.
+	 *
+	 * Appended rows are de-duplicated against everything already on the board. The snapshot is
+	 * replaced wholesale when the daily refresh lands, so a page fetched either side of one can
+	 * repeat a row - and a repeated row is a duplicate React key, which renders it twice.
+	 */
+	const loadMore = async () => {
+		if (loading || exhausted) return;
+
+		setLoading(true);
+		setError(null);
+		try {
+			const result = await getChallengeLadderFn({
+				data: {
+					challengeId,
+					region: selectedRegion === "GLOBAL" ? null : selectedRegion,
+					page: nextPage,
+				},
+			});
+
+			// A cold board cannot happen here - a board with rows has a snapshot - but the union
+			// leaves no way to read rows without ruling it out.
+			if (result.state !== "ready") {
+				throw new Error("This leaderboard is being prepared");
+			}
+
+			setExtraRows((current) => {
+				const seen = new Set(
+					[...firstPage, ...current].map((row) => `${row.region}-${row.puuid}`),
+				);
+				return [
+					...current,
+					...result.rows.filter((row) => !seen.has(`${row.region}-${row.puuid}`)),
+				];
+			});
+			setNextPage((page) => page + 1);
+			if (!result.hasMore) setExhausted(true);
+		} catch {
+			setError("Could not load more of this leaderboard - try again in a moment.");
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	// Only while there is something left to fetch: an exhausted board has no observer at all, so
+	// reaching the bottom of a 379-row region board cannot spin.
+	const loadMoreMarker = useLoadMoreOnScroll(!exhausted && rows.length > 0, loadMore);
 
 	// Riot's own thresholds are the tier boundaries, and they apply to either board: a value is
 	// worth the same wherever we read it from. Derived rather than memoised - it is an array of
@@ -487,29 +599,54 @@ export default function ChallengeLeaderboard({
 							Challenge Points Leaderboard
 						</h3>
 
-						<Dropdown
-							choices={REGION_CHOICES}
-							choice={selectedChoice}
-							menuLabel="Region"
-							callback={(value) => {
-								if (value < 0) {
-									onRegionChange("GLOBAL");
-									return;
-								}
-								const region = LADDER_REGIONS[value];
-								if (region) onRegionChange(region.id);
-							}}
-						/>
+						{/* Neither control means anything without a ladder: there is no regional board
+						    to choose between and no population to count. */}
+						{!unranked && (
+							<Dropdown
+								choices={REGION_CHOICES}
+								choice={selectedChoice}
+								menuLabel="Region"
+								callback={(value) => {
+									if (value < 0) {
+										onRegionChange("GLOBAL");
+										return;
+									}
+									const region = LADDER_REGIONS[value];
+									if (region) onRegionChange(region.id);
+								}}
+							/>
+						)}
 					</div>
 
-					{/* The real population, counted for this board - never the page size. */}
+					{/* The real population, counted for this board - never the page size. A tracked
+					    board counts the summoners this tracker follows, and says so, because that is
+					    a different and much smaller thing than a ladder. */}
 					<span className="text-muted-foreground font-mono text-xs">
-						{population.toLocaleString()}{" "}
-						{population === 1 ? "summoner ranked" : "summoners ranked"}
-						{population > rows.length && ` · ${rows.length} shown`}
-						{truncated && " · Master tier capped by Riot"}
+						{unranked ? (
+							<>
+								Ranked among the {population.toLocaleString()} summoners this
+								tracker follows
+							</>
+						) : (
+							<>
+								{population.toLocaleString()}{" "}
+								{population === 1 ? "summoner ranked" : "summoners ranked"}
+								{population > rows.length && ` · ${rows.length} shown`}
+								{truncated && " · Master tier capped by Riot"}
+							</>
+						)}
 					</span>
 				</div>
+
+				{/* Why this board is not Riot's, stated before the rows rather than after them. */}
+				{unranked && rows.length > 0 && (
+					<p className="text-muted-foreground bg-muted/40 mb-3 rounded-lg px-3 py-2 text-xs leading-relaxed">
+						Riot does not run a leaderboard for this challenge. This is the tracker's
+						own ranking, built from the challenge values it has synced for the summoners
+						it follows - so it moves only when one of those profiles is refreshed, not
+						when Riot's ladder does.
+					</p>
+				)}
 				<div className="bg-background/50 overflow-hidden rounded-xl border shadow-sm">
 					<div className="flex flex-col">
 						{rows.map((entry, index) => (
@@ -517,7 +654,6 @@ export default function ChallengeLeaderboard({
 								key={`${entry.region}-${entry.puuid}`}
 								entry={entry}
 								index={index}
-								offset={rankOffset}
 								highlightedUsername={normalizedUsername}
 								highlightedRegion={normalizedRegion}
 								getPlayerTier={getPlayerTier}
@@ -528,32 +664,61 @@ export default function ChallengeLeaderboard({
 						{rows.length === 0 && (
 							<div className="text-muted-foreground flex flex-col items-center justify-center gap-1 py-12">
 								<p className="text-sm">
-									{preparing ? "Preparing this leaderboard" : "No players found"}
+									{unranked
+										? "Nobody this tracker follows has a value for this challenge yet"
+										: preparing
+											? "Preparing this leaderboard"
+											: "No players found"}
 								</p>
+								{unranked && (
+									<p className="max-w-md text-center text-xs">
+										Riot does not run a leaderboard for this challenge either,
+										so this board is built from the challenge values the tracker
+										syncs when one of the profiles it follows is refreshed - and
+										none of them has a value for this one yet.
+									</p>
+								)}
 								{preparing && (
 									<p className="max-w-sm text-center text-xs">
 										{preparingProgress.rows > 0
 											? `${preparingProgress.rows.toLocaleString()} players read, naming them now - this page updates itself.`
-											: "Nobody has opened this board before, so it is being read from Riot. This page updates itself."}
+											: "Nobody has opened this board before, so it is being read from Riot. That usually takes about a minute, and this page updates itself."}
 									</p>
 								)}
 							</div>
 						)}
 
-						{/* Only offered while rows remain: Riot caps a tier at its page size, so the
-						    ladder can end before the population count does, and a control here would
-						    promise rows that do not exist. */}
-						{hasMore && onLoadMore && (
-							<div className="border-border/40 flex justify-center border-t p-3">
+						{/* The marker is this button, so scrolling loads as soon as it comes into view -
+						    and it stays a real button for anyone driving the page by keyboard, or if
+						    the observer never fires. Only rendered while rows remain: Riot caps a tier
+						    at its page size, so the ladder can end before the population count does. */}
+						{!exhausted && rows.length > 0 && (
+							<div
+								ref={loadMoreMarker}
+								className="border-border/40 flex flex-col items-center gap-2 border-t p-3"
+							>
+								{error && <p className="text-sm text-red-500">{error}</p>}
 								<Button
 									type="button"
 									variant="outline"
 									size="sm"
-									onClick={onLoadMore}
+									onClick={loadMore}
+									disabled={loading}
 								>
-									Load more
+									{loading ? "Loading…" : "Load more"}
 								</Button>
 							</div>
+						)}
+
+						{/* The end of the list, stated rather than left to the reader to infer. When Riot
+						    caps a tier this is as far as the ladder goes, and saying so stops the
+						    control from implying rows exist that Riot will never return. */}
+						{exhausted && rows.length > 0 && (
+							<p className="text-muted-foreground/70 border-border/40 border-t px-1 py-3 text-center text-xs">
+								{truncated
+									? `End of the board - all ${rows.length.toLocaleString()} ranked players shown. Riot caps the Master tier, so this ladder ends here.`
+									: `End of the board - all ${population.toLocaleString()} ranked players shown.`}
+							</p>
 						)}
 					</div>
 				</div>

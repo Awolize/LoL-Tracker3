@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 
 import type { LadderBoardRow } from "~/features/challenges/challenge-leaderboard";
+import type { LadderStatus } from "~/server/challenges/ladder-status";
 import { recordLadderRead } from "~/server/challenges/ladder-sweep";
 import {
 	LADDER_REGIONS,
@@ -12,7 +13,8 @@ import {
 } from "~/server/challenges/riot-challenge-ladder";
 import { updateQueue } from "~/server/jobs/queue";
 import { stableGlobalJobOpts } from "~/server/jobs/queue-stable-job-opts";
-import { connection } from "~/server/jobs/redis";
+
+export type { LadderStatus };
 
 /**
  * What the page renders.
@@ -34,11 +36,11 @@ export type ChallengeLadderBoard = {
 	state: "ready";
 	/** How many rows the selected board holds in total, never just this page's count. */
 	population: number;
-	/** The rows for {@link ChallengeLadderResult.page}, already sliced. */
+	/** The rows of {@link page}, nothing else - the board appends these on the client. */
 	rows: LadderBoardRow[];
 	/** 1-based page of {@link LADDER_PAGE_SIZE}. */
 	page: number;
-	/** Rows per page. */
+	/** Rows per page, i.e. what one "load more" fetches. */
 	pageSize: number;
 	/** True while rows beyond this page exist. */
 	hasMore: boolean;
@@ -47,23 +49,23 @@ export type ChallengeLadderBoard = {
 	fetchedAt: string;
 };
 
-/** Rows per page. One page of the merged board is what the page showed before paging existed. */
-export const LADDER_PAGE_SIZE = 200;
+/** Rows one "load more" fetches. One page of the merged board is what the page showed before paging. */
+export const LADDER_PAGE_SIZE = 100;
 
 /**
  * The largest page a request may ask for.
  *
- * The snapshot is read whole either way, so this bounds the response, not the work. It keeps a
- * hand-edited `?limit=` from asking for the entire merged board in one render.
+ * The snapshot is read whole either way, so this bounds the response, not the work. The page size
+ * is no longer a URL param, but the server fn is still callable with any number, so this keeps one
+ * call from asking for the entire merged board in a single response.
  */
 export const LADDER_MAX_PAGE_SIZE = 1000;
 
 /**
  * Clamp a requested page into existence.
  *
- * A hand-edited URL is the only way to get a nonsense page, so it is corrected rather than
- * rejected: page 0 and page 99 of a 3-page board both have a sensible answer, and neither should
- * 404 a public page.
+ * A nonsense page is corrected rather than rejected: page 0 and page 99 of a 3-page board both have
+ * a sensible answer, and neither should 404 a public page.
  */
 const resolvePaging = (
 	page?: number | null,
@@ -196,55 +198,18 @@ export const getChallengeLadderFn = createServerFn({ method: "GET" })
 	);
 
 /**
- * What a cold board should poll while it waits: is the snapshot there yet, and is it named?
+ * Poll target for a board with no snapshot yet.
  *
- * A plain function rather than only a `createServerFn`, so the status reader can be exercised
- * directly - a `createServerFn` needs a Start context and cannot be called from a script, which
- * would leave this logic verifiable only through a browser.
- *
- * Deliberately not the board. One Redis read and no Riot calls, so polling it costs nothing in
- * rate-limit budget, which is the only reason polling is acceptable here at all.
- *
- * Two conditions rather than one, because the sync publishes rows and names in separate passes:
- * rows land at ~46 s and Account-v1 names another ~40 s later. Stopping at "rows exist" would swap
- * thousands of raw puuids in front of the reader, which is the same problem one step later.
+ * The reader is imported here, inside the handler, rather than at the top of the module: this file
+ * is served to the browser (a route imports its constants and its two server-fn bindings), and the
+ * transform only strips what the handler bodies use. A top-level import of the Redis-backed reader
+ * survived that strip and put `ioredis` in the client bundle, which threw while the client graph
+ * evaluated and left every ladder row at its `initial` opacity of 0 - an empty-looking board. Same
+ * boundary as `api/get-challenge-leaderboard.api.ts`; see `challenges/ladder-status.ts`.
  */
-export type LadderStatus = {
-	/** True once a snapshot exists, which is when the board has rows to render. */
-	ready: boolean;
-	rows: number;
-	/** Rows already carrying a Riot ID. Zero means the naming pass has not run yet. */
-	named: number;
-	fetchedAt: string | null;
-};
-
-const namedRowCount = (rows: { gameName: string | null; tagLine: string | null }[]): number =>
-	rows.filter((row) => row.gameName !== null && row.tagLine !== null).length;
-
-/** See {@link LadderStatus}. Reads Redis only. */
-export const readLadderStatus = async (challengeId: number): Promise<LadderStatus> => {
-	const cached = await connection.get(`challenge-ladder:v1:${challengeId}`).catch(() => null);
-	if (!cached) return { ready: false, rows: 0, named: 0, fetchedAt: null };
-
-	try {
-		const snapshot = JSON.parse(cached) as {
-			fetchedAt: string;
-			global: { gameName: string | null; tagLine: string | null }[];
-		};
-		return {
-			ready: true,
-			rows: snapshot.global.length,
-			named: namedRowCount(snapshot.global),
-			fetchedAt: snapshot.fetchedAt,
-		};
-	} catch {
-		// A corrupt value is not "ready": let the poll keep waiting rather than swap in a broken
-		// board, and let the next sync overwrite it.
-		return { ready: false, rows: 0, named: 0, fetchedAt: null };
-	}
-};
-
-/** Poll target for a board with no snapshot yet. Delegates to {@link readLadderStatus}. */
 export const getChallengeLadderStatusFn = createServerFn({ method: "GET" })
 	.validator((input: { challengeId: number }) => input)
-	.handler(({ data: { challengeId } }): Promise<LadderStatus> => readLadderStatus(challengeId));
+	.handler(async ({ data: { challengeId } }): Promise<LadderStatus> => {
+		const { readLadderStatus } = await import("~/server/challenges/ladder-status");
+		return readLadderStatus(challengeId);
+	});

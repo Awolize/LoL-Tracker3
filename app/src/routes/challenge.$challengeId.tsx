@@ -13,7 +13,8 @@ import { isLadderRegionId, type LadderRegionId } from "~/features/challenges/lad
 import { useDataDragonPath } from "~/features/shared/hooks/useDataDragonPath";
 import { parseRiotId } from "~/features/shared/riot-id";
 import { getChallengeConfig } from "~/server/api/get-challenge-config.api";
-import { LADDER_PAGE_SIZE, getChallengeLadderFn } from "~/server/api/get-challenge-ladder.api";
+import { getChallengeLadderFn } from "~/server/api/get-challenge-ladder.api";
+import { getChallengeLeaderboardWithHighlight } from "~/server/api/get-challenge-leaderboard.api";
 import { getDataDragonVersion } from "~/server/api/mutations";
 import { metaDescription } from "~/utils/seo";
 
@@ -64,21 +65,7 @@ const searchSchema = z.object({
 	region: z.string().optional(),
 	/** A Riot platform id, e.g. `EUW1`. Every non-numeric value stays a string. */
 	ladderRegion: z.string().optional(),
-	/**
-	 * 1-based page of the board. `z.union` rather than `z.coerce.number()` because TanStack Router
-	 * hands `?page=2` over as the number `2` and `?page=abc` as a string; transforming either here
-	 * makes the router rewrite the URL with a 307.
-	 */
-	page: z.union([z.number(), z.string()]).optional(),
-	pageSize: z.union([z.number(), z.string()]).optional(),
 });
-
-/** Parse a search value the router may hand over as a number or a string. */
-const toPositiveInt = (value: number | string | undefined): number | null => {
-	if (value === undefined) return null;
-	const parsed = typeof value === "number" ? value : Number.parseInt(value, 10);
-	return Number.isFinite(parsed) && parsed > 0 ? Math.trunc(parsed) : null;
-};
 
 export const Route = createFileRoute("/challenge/$challengeId")({
 	validateSearch: searchSchema,
@@ -90,12 +77,12 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 		config: ChallengeConfig;
 		rows: LadderBoardRow[];
 		population: number;
-		/** Whether more rows exist beyond this page. Only the ladder boards are paged. */
+		/** Whether more rows exist beyond this page. The board appends the rest on the client. */
 		hasMore: boolean;
-		page: number;
-		pageSize: number;
 		/** True when the board has never been read and a sync is running to build it. */
 		preparing: boolean;
+		/** True when Riot publishes no leaderboard for this challenge, so there is nothing to read. */
+		unranked: boolean;
 		/** `GLOBAL` when every shard is merged; otherwise the selected platform id. */
 		selectedRegion: LadderRegionId | "GLOBAL";
 		truncated: boolean;
@@ -104,8 +91,6 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 			username?: string;
 			region?: string;
 			ladderRegion?: string;
-			page?: number | string;
-			pageSize?: number | string;
 		};
 	}> => {
 		const challengeId = parseInt(challengeIdRaw, 10);
@@ -123,15 +108,58 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 			throw new Error("Challenge not found");
 		}
 
-		const page = toPositiveInt(search.page) ?? 1;
-		const pageSize = toPositiveInt(search.pageSize);
+		// Riot runs a leaderboard for a minority of challenges - 182 of the 405 tracked here, measured
+		// 2026-10-13 - and says which in its own config. For the rest the ladder endpoint answers 200
+		// with an empty list for every shard and tier, so reading it costs 36 Riot calls to store a
+		// board that can never fill. It is not read at all, which also keeps the board out of
+		// `ladder-read-at`, the set the refresh sweep works from.
+		//
+		// Those pages are not left empty: with no official ladder to be confused with, the ranking
+		// this tracker can actually produce is worth showing - its own synced challenge values for the
+		// profiles it follows. That is a smaller and slower-moving thing than a ladder (it covers the
+		// ~50 profiles anyone has refreshed, and only when they refreshed), so the page labels it as
+		// ours rather than presenting it as Riot's board.
+		if (config.config.leaderboard !== true) {
+			const tracked = await getChallengeLeaderboardWithHighlight({ data: { challengeId } });
 
+			return {
+				config: config as ChallengeConfig,
+				rows: tracked.leaderboard.map((entry) => ({
+					puuid: entry.challenge.challengesDetailsId,
+					value: entry.challenge.value ?? 0,
+					region: entry.summoner.region,
+					riotId:
+						entry.summoner.gameName !== null && entry.summoner.tagLine !== null
+							? {
+									gameName: entry.summoner.gameName,
+									tagLine: entry.summoner.tagLine,
+								}
+							: null,
+					summoner: {
+						puuid: entry.challenge.challengesDetailsId,
+						gameName: entry.summoner.gameName,
+						tagLine: entry.summoner.tagLine,
+						region: entry.summoner.region,
+						profileIconId: entry.summoner.profileIconId ?? 0,
+					},
+				})),
+				population: tracked.population,
+				hasMore: false,
+				preparing: false,
+				unranked: true,
+				selectedRegion,
+				truncated: false,
+				challengeId,
+				search,
+			};
+		}
+
+		// Page one only. The board appends the remaining pages itself, so the URL says *which*
+		// board is shown (challenge, region) and never how far down the reader has scrolled.
 		const ladder = await getChallengeLadderFn({
 			data: {
 				challengeId,
 				region: selectedRegion === "GLOBAL" ? null : selectedRegion,
-				page,
-				pageSize,
 			},
 		});
 
@@ -143,10 +171,8 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 				rows: [],
 				population: 0,
 				hasMore: false,
-				page: 1,
-				// The cold path never paged, so the requested size stands in for the real one.
-				pageSize: pageSize ?? LADDER_PAGE_SIZE,
 				preparing: true,
+				unranked: false,
 				selectedRegion,
 				truncated: false,
 				challengeId,
@@ -159,9 +185,8 @@ export const Route = createFileRoute("/challenge/$challengeId")({
 			rows: ladder.rows,
 			population: ladder.population,
 			hasMore: ladder.hasMore,
-			page: ladder.page,
-			pageSize: ladder.pageSize,
 			preparing: false,
+			unranked: false,
 			selectedRegion,
 			truncated: ladder.truncated,
 			challengeId,
@@ -257,9 +282,8 @@ function Client() {
 		selectedRegion,
 		truncated,
 		hasMore,
-		page,
-		pageSize,
 		preparing,
+		unranked,
 		challengeId,
 	} = Route.useLoaderData();
 	const search = Route.useSearch();
@@ -283,19 +307,11 @@ function Client() {
 	 * The selected region lives in the URL, so a board is shareable and the back button works.
 	 * Choosing the merged board removes the param rather than spelling out a default.
 	 */
-	/** Paging always drops the region: page 3 of the merged board means nothing for one shard. */
-	const setPage = (nextPage: number) => {
-		navigate({ search: (prev) => ({ ...prev, page: nextPage }), replace: false });
-	};
-
 	const setRegion = (ladderRegion: LadderRegionId | "GLOBAL") => {
 		navigate({
 			search: (prev) => ({
 				...prev,
 				ladderRegion: ladderRegion === "GLOBAL" ? undefined : ladderRegion,
-				// Page 4 of EUW1 is a different slice than page 4 of the merged board, so a region
-				// change starts the new board from the top rather than mid-way through it.
-				page: undefined,
 			}),
 			replace: true,
 		});
@@ -323,17 +339,20 @@ function Client() {
 						</div>
 					</div>
 
+					{/* Remounted whenever the board or its readiness changes: appended pages live in the
+					    component's state, so a new board has to start from its own page one rather than
+					    inherit the previous board's depth. Same contract as the match history section. */}
 					<ChallengeLeaderboard
+						key={`${challengeId}-${selectedRegion}-${preparing ? "preparing" : "ready"}`}
 						config={config}
-						rows={rows}
+						firstPage={rows}
 						population={population}
 						preparing={preparing}
+						unranked={unranked}
 						challengeId={challengeId}
 						selectedRegion={selectedRegion}
 						truncated={truncated}
 						hasMore={hasMore}
-						onLoadMore={hasMore ? () => setPage(page + 1) : undefined}
-						rankOffset={(page - 1) * pageSize}
 						onRegionChange={setRegion}
 						highlightedUser={
 							search.username && search.region
@@ -344,17 +363,6 @@ function Client() {
 								: undefined
 						}
 					/>
-
-					{/* The end of the list, stated rather than left to the reader to infer. When Riot
-					    caps a tier this is as far as the ladder goes, and saying so stops a paging
-					    control from implying rows exist that Riot will never return. */}
-					{!hasMore && rows.length > 0 && (
-						<p className="text-muted-foreground/70 px-1 text-center text-xs">
-							{truncated
-								? `End of the board - all ${rows.length.toLocaleString()} ranked players shown. Riot caps the Master tier, so this ladder ends here.`
-								: `End of the board - all ${population.toLocaleString()} ranked players shown.`}
-						</p>
-					)}
 				</div>
 			</div>
 		</div>
