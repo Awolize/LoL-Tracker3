@@ -44,7 +44,7 @@ export type RegionsAreValidIds = AssertTrue<
 const JADE_CHAMPION_PREFIX = "Jade_";
 
 /** True for the classic entries - the ones namespaced with the `Jade_` prefix. */
-const isClassicChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
+export const isClassicChampion = (key: string): boolean => key.startsWith(JADE_CHAMPION_PREFIX);
 
 /** The key without the classic prefix (`Jade_Annie` -> `Annie`). */
 export const baseChampionKey = (key: string): string =>

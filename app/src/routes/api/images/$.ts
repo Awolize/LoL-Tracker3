@@ -2,6 +2,11 @@ import * as Sentry from "@sentry/tanstackstart-react";
 import { createFileRoute } from "@tanstack/react-router";
 import sharp from "sharp";
 
+import { isClassicChampion } from "~/features/shared/champs";
+import {
+	classicChampionIconUrl,
+	fetchClassicChampions,
+} from "~/server/champions/classic-champions";
 import { getObject, putObject } from "~/server/external/s3";
 
 const DEBUG = process.env.IMAGE_DEBUG === "true" || process.env.IMAGE_DEBUG === "1";
@@ -10,6 +15,52 @@ const log = (...args: any[]) => {
 };
 
 const CHALLENGE_ASSETS = "https://raw.communitydragon.org/latest/game/assets/challenges/config";
+
+/**
+ * How long the classic alias -> id map is reused.
+ *
+ * Riot only adds a champion to the classic set every few weeks, and this sits in front of every
+ * image request, so the summary file is read once per process per day rather than per icon.
+ */
+const CLASSIC_ID_TTL_MS = 24 * 60 * 60 * 1000;
+
+const globalForClassicChampions = globalThis as unknown as {
+	classicChampionIds?: { at: number; ids: Map<string, number> };
+	classicChampionIdsPromise?: Promise<Map<string, number>>;
+};
+
+/**
+ * `Jade_Akali` -> 60084, from CommunityDragon's client data.
+ *
+ * The classic champions have no Data Dragon art (their set stopped being exported after 16.15.1),
+ * but CommunityDragon publishes a square icon per id, which is what the branch below serves.
+ *
+ * The in-flight promise is shared: a mastery page requests ~80 icons at once, and without it every
+ * one of them would fetch the summary on the first load after a deploy.
+ */
+const getClassicChampionIds = async (): Promise<Map<string, number>> => {
+	const cached = globalForClassicChampions.classicChampionIds;
+	if (cached && Date.now() - cached.at < CLASSIC_ID_TTL_MS) return cached.ids;
+
+	const pending = globalForClassicChampions.classicChampionIdsPromise;
+	if (pending) return pending;
+
+	const request = fetchClassicChampions()
+		.then((champions) => {
+			const ids = new Map(champions.map((champion) => [champion.alias, champion.id]));
+			globalForClassicChampions.classicChampionIds = { at: Date.now(), ids };
+			return ids;
+		})
+		.finally(() => {
+			globalForClassicChampions.classicChampionIdsPromise = undefined;
+		});
+
+	globalForClassicChampions.classicChampionIdsPromise = request;
+	return request;
+};
+
+const getClassicChampionId = async (alias: string): Promise<number | undefined> =>
+	(await getClassicChampionIds()).get(alias);
 
 /**
  * Ids 0-5 are not challenges. They are the six category aggregates (CRYSTAL, IMAGINATION,
@@ -71,6 +122,12 @@ export const Route = createFileRoute("/api/images/$")({
 				// 2. Fetch Upstream
 				try {
 					const isChallenge = path.includes("img/challenges/");
+					// `/cdn/<version>/img/champion/Jade_Akali.webp` -> `Jade_Akali`. Current
+					// champions fall through to Data Dragon; only the classic prefix is served
+					// from CommunityDragon.
+					const championFileName = path.match(
+						/\/img\/champion\/([^/]+?)\.(?:png|webp)$/i,
+					)?.[1];
 
 					if (isChallenge) {
 						// Logic: /img/challenges/12345-iron.webp
@@ -141,6 +198,27 @@ export const Route = createFileRoute("/api/images/$")({
 
 						original = buf;
 						log("Fetched challenge from CommunityDragon");
+					} else if (
+						championFileName !== undefined &&
+						isClassicChampion(championFileName)
+					) {
+						// Classic champions keep their `Jade_` names in the URL but have no Data
+						// Dragon art after 16.15.1; CommunityDragon serves the square icon by id.
+						const id = await getClassicChampionId(championFileName);
+						if (id === undefined) {
+							log(`No CommunityDragon id for classic champion ${championFileName}`);
+							return new Response("Image not found", { status: 404 });
+						}
+
+						const res = await fetch(classicChampionIconUrl(id));
+						if (res.status === 404) {
+							log(`No CommunityDragon art for classic champion ${championFileName}`);
+							return new Response("Image not found", { status: 404 });
+						}
+						if (!res.ok) throw new Error(`CommunityDragon ${res.status}`);
+						original = Buffer.from(await res.arrayBuffer());
+
+						log("Fetched classic champion from CommunityDragon:", championFileName);
 					} else {
 						// Fetch from DDragon
 						const riotPath = path.endsWith(".webp")
@@ -148,10 +226,11 @@ export const Route = createFileRoute("/api/images/$")({
 							: path;
 
 						const res = await fetch(`https://ddragon.leagueoflegends.com/${riotPath}`);
-						// Same rule as the challenge branch: a 404 is a missing cosmetic asset,
-						// while any other status is real breakage.
-						if (res.status === 404) {
-							log(`No DDragon art for ${riotPath}`);
+						// Riot's CDN answers 403 for a path it does not have and 200 for one it
+						// does, so both statuses mean "missing art", not breakage. Anything else
+						// is a real problem worth an error-level event.
+						if (res.status === 404 || res.status === 403) {
+							log(`No DDragon art for ${riotPath} (${res.status})`);
 							return new Response("Image not found", { status: 404 });
 						}
 						if (!res.ok) throw new Error(`DDragon ${res.status}`);
